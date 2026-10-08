@@ -1,8 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { switchMap, of } from 'rxjs';
+import { switchMap, of, forkJoin, map, catchError } from 'rxjs';
 import { BusinessContextService } from '../../core/business-context';
 import { TiendaDeSucursal, TiendaService } from '../../core/tienda';
+import { BusinessAccountService } from '../../core/business-account';
 import { TiendaSucursalComponent } from './tienda-sucursal';
 import { environment } from '../../../environments/environment';
 
@@ -33,7 +34,7 @@ import { environment } from '../../../environments/environment';
         <p class="hint">Todavía no tenés sucursales. <a routerLink="/sucursales/nueva">Agregar una sucursal →</a></p>
       } @else {
         @for (s of sucursales(); track s.branchId) {
-          <app-tienda-sucursal [sucursal]="s" [businessAccountId]="businessAccountId()!" />
+          <app-tienda-sucursal [sucursal]="s" [businessAccountId]="businessAccountId()!" [enApp]="enApp()[s.branchId] ?? null" />
         }
         <p class="hint pie">
           ¿Querés ver cómo queda? <a [href]="misuper" target="_blank" rel="noopener">misuper.app ↗</a>
@@ -46,12 +47,19 @@ import { environment } from '../../../environments/environment';
 export class MiTiendaComponent implements OnInit {
   private readonly context = inject(BusinessContextService);
   private readonly service = inject(TiendaService);
+  private readonly cuentas = inject(BusinessAccountService);
 
   protected readonly cargando = signal(true);
   protected readonly sinCuenta = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly businessAccountId = signal<number | null>(null);
   protected readonly sucursales = signal<TiendaDeSucursal[]>([]);
+  /**
+   * BP-72 (08-oct-2026) -- si cada sucursal se muestra en la app BuscaPrecios (IsPublic, el mismo
+   * interruptor de "Sucursales"). Solo ahi aparece el boton "Pedíselo a…" que trae gente a la tienda.
+   * Sale del listado de sucursales; si ese pedido falla, queda vacio y la tarjeta no dice nada.
+   */
+  protected readonly enApp = signal<Partial<Record<string, boolean>>>({});
   protected readonly misuper = environment.misuperUrl;
 
   ngOnInit(): void {
@@ -60,8 +68,15 @@ export class MiTiendaComponent implements OnInit {
       .pipe(
         switchMap((ctx) => {
           if (!ctx) return of(null);
-          this.businessAccountId.set(ctx.account.businessAccountId);
-          return this.service.listar(ctx.account.businessAccountId);
+          const id = ctx.account.businessAccountId;
+          this.businessAccountId.set(id);
+          return forkJoin([
+            this.service.listar(id),
+            this.cuentas.listBranches(id).pipe(
+              map((bs) => Object.fromEntries(bs.map((b) => [b.branchId, b.isPublic]))),
+              catchError(() => of({} as Partial<Record<string, boolean>>)),
+            ),
+          ]).pipe(map(([lista, enApp]) => { this.enApp.set(enApp); return lista; }));
         }),
       )
       .subscribe({

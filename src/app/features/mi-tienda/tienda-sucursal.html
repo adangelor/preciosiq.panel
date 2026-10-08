@@ -39,6 +39,29 @@
       @if (faltaWhatsApp()) {
         <p class="aviso">Sin WhatsApp tus clientes no te pueden mandar el pedido. Cargalo con "Editar".</p>
       }
+
+      <!-- BP-72: la tienda publicada recibe gente de la app BuscaPrecios solo si la sucursal se muestra ahí. -->
+      @if (t.activa && enAppActual() === false) {
+        <div class="aviso aviso--app">
+          <p>
+            <strong>Esta sucursal no aparece en la app BuscaPrecios.</strong> Si la mostrás, quien busque tus productos
+            cerca ve tu precio y un botón <em>"Pedíselo a {{ t.nombreVisible }}"</em> que lo trae a tu tienda.
+          </p>
+          @if (errorApp()) {
+            <p class="form-error">{{ errorApp() }}</p>
+          }
+          <div class="acciones acciones--compactas">
+            <button type="button" (click)="mostrarEnApp()" [disabled]="cambiandoApp()">
+              {{ cambiandoApp() ? 'Guardando…' : 'Mostrar en BuscaPrecios' }}
+            </button>
+            <a routerLink="/sucursales">Ver todas mis sucursales</a>
+          </div>
+        </div>
+      } @else if (t.activa && enAppActual() === true) {
+        <p class="hint">
+          ✓ Se muestra en la app BuscaPrecios: quien busque tus productos cerca ve el botón para pedirte por tu tienda.
+        </p>
+      }
       @if (t.slugsAnteriores.length > 0) {
         <p class="hint">
           La dirección vieja ({{ t.slugsAnteriores.join(', ') }}) sigue llevando a tu tienda por 30 días, así el QR que

@@ -37,6 +37,9 @@
   margin: 0.75rem 0;
 }
 .aviso--ok { background: var(--success-soft); }
+/* BP-72: "Mostrar en BuscaPrecios". */
+.aviso--app p { margin: 0 0 0.5rem; }
+.acciones--compactas { margin-top: 0.5rem; }
 
 .resumen {
   display: grid;

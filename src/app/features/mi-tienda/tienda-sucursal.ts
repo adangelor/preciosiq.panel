@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
 import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeSucursal, TiendaService, achicarImagen } from '../../core/tienda';
+import { BusinessAccountService } from '../../core/business-account';
 
 type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 'cvu' | 'qr';
 
@@ -19,10 +20,13 @@ type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 
 })
 export class TiendaSucursalComponent implements OnInit {
   private readonly service = inject(TiendaService);
+  private readonly cuentas = inject(BusinessAccountService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly sucursal = input.required<TiendaDeSucursal>();
   readonly businessAccountId = input.required<number>();
+  /** BP-72: si la sucursal se muestra en la app BuscaPrecios (IsPublic); null = no se sabe, no se dice nada. */
+  readonly enApp = input<boolean | null>(null);
   readonly guardada = output<TiendaConfig>();
 
   protected readonly tienda = signal<TiendaConfig | null>(null);
@@ -45,6 +49,9 @@ export class TiendaSucursalComponent implements OnInit {
   protected readonly errorGeneral = signal<string | null>(null);
   protected readonly mensaje = signal<string | null>(null);
   protected readonly subiendoQr = signal(false);
+  protected readonly enAppActual = signal<boolean | null>(null);
+  protected readonly cambiandoApp = signal(false);
+  protected readonly errorApp = signal<string | null>(null);
 
   protected readonly urlPublica = computed(() => {
     const t = this.tienda();
@@ -57,6 +64,7 @@ export class TiendaSucursalComponent implements OnInit {
 
   ngOnInit(): void {
     this.tienda.set(this.sucursal().tienda);
+    this.enAppActual.set(this.enApp());
 
     // Primero se suscribe y DESPUES se abre el editor: abrirEditor() manda el slug sugerido por slug$,
     // y si nadie escucha todavia el chequeo inicial se pierde (el campo quedaba sin "Disponible").
@@ -198,5 +206,27 @@ export class TiendaSucursalComponent implements OnInit {
 
   protected valor(ev: Event): string {
     return (ev.target as HTMLInputElement | HTMLTextAreaElement).value;
+  }
+
+  /**
+   * BP-72 -- prende "visible en la app" de esta sucursal (el mismo interruptor de Sucursales). Con eso,
+   * quien busca un producto cerca en BuscaPrecios ve el precio y el boton "Pedíselo a…" a esta tienda.
+   */
+  protected mostrarEnApp(): void {
+    this.cambiandoApp.set(true);
+    this.errorApp.set(null);
+    this.cuentas
+      .updateBranchVisibility(this.sucursal().branchId, { businessAccountId: this.businessAccountId(), isPublic: true })
+      .subscribe({
+        next: (b) => {
+          this.cambiandoApp.set(false);
+          this.enAppActual.set(b.isPublic);
+          this.mensaje.set('Listo: tu sucursal ya se muestra en la app BuscaPrecios, con el botón para pedirte por tu tienda.');
+        },
+        error: (err) => {
+          this.cambiandoApp.set(false);
+          this.errorApp.set(err?.error?.error ?? 'No pudimos cambiarlo. Probá de nuevo o hacelo desde Sucursales.');
+        },
+      });
   }
 }
