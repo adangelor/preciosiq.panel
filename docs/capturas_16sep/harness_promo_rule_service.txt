@@ -1,4 +1,4 @@
-PromoRuleService harness -- 2026-10-02 19:25:36 -- copia local, cuenta 4
+PromoRuleService harness -- 2026-10-08 17:57:40 -- copia local, cuenta 4
   [OK] alta de producto 2993000000017 en 999-9
   [OK] alta de producto 2993000000017 en 999-8
   [OK] alta de producto 2993000000024 en 999-9
@@ -24,6 +24,11 @@ PromoRuleService harness -- 2026-10-02 19:25:36 -- copia local, cuenta 4
   [OK] null desde 999-9 desactiva la de 999-9 Y la de cuenta
   [OK] sin regla activa el espejo limpia los dos campos (en las dos sucursales)
   [OK] ausente no toca nada (GuardarAsync devuelve null)
+
+2b. BP-80: una regla fuera de vigencia espeja 'sin promo'
+  [OK] regla vencida ayer -> espejo vacio
+  [OK] regla que empieza manana -> espejo vacio
+  [OK] regla de hoy a hoy -> espejo 1500
 
 3. Panel: Promo1UnitPrice sin promoRule -> regla; vacio no borra
   [OK] promoRule ausente + promo1UnitPrice 900 -> Regla precio_unitario min 1, leyenda, convertida
@@ -61,4 +66,4 @@ PromoRuleService harness -- 2026-10-02 19:25:36 -- copia local, cuenta 4
   [OK] espejo del % = 850 con la leyenda del CSV
   [OK] regla sin descuento -> espejo vacio (precio Y texto)
 
-RESULTADO: 53 OK, 0 FALLAN
+RESULTADO: 56 OK, 0 FALLAN
