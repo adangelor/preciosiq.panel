@@ -1,0 +1,288 @@
+<div class="dialog-header">
+  <h2><i class="fa-solid fa-robot" aria-hidden="true"></i> Asesor de Precios</h2>
+  <div class="dialog-header-actions">
+    @if (report() && !loading()) {
+      <button type="button" class="icon-button" (click)="print()" title="Imprimir o guardar como PDF" aria-label="Imprimir o guardar como PDF">
+        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+      </button>
+    }
+    <button type="button" class="dialog-close" (click)="close()" aria-label="Cerrar">&times;</button>
+  </div>
+</div>
+
+<div class="dialog-body" id="advisor-printable">
+  @if (loading()) {
+    <div class="advisor-loading">
+      <p>Analizando tu posición contra la zona…</p>
+      <p class="hint">Esto puede tardar hasta medio minuto: estamos cruzando tu catálogo completo contra la competencia.</p>
+    </div>
+  } @else if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  } @else if (report(); as r) {
+    <!-- Encabezado de impresion: en pantalla lo tapa el header del dialog, en papel es
+         lo unico que identifica de quien es el informe. -->
+    <div class="print-only print-header">
+      <h1>Asesor de Precios — PreciosIQ</h1>
+      <p>{{ r.digest.metadatos.branchName }} · radio {{ r.digest.metadatos.maxDistanceMeters }} m · generado {{ generatedAtLocal() }}</p>
+    </div>
+
+    <div class="advisor-meta no-print">
+      <span>{{ r.digest.metadatos.branchName }} · radio {{ r.digest.metadatos.maxDistanceMeters }} m</span>
+      @if (r.fromCache) {
+        <span class="advisor-badge">Informe de hoy</span>
+        <button type="button" class="link-button" (click)="load(true)">Regenerar</button>
+      }
+      @if (r.mode === 'basico') {
+        <span class="advisor-badge advisor-badge--warn" title="El asesor con IA no está configurado en este servidor; este informe se armó directamente con los datos, sin redacción del modelo.">Modo básico</span>
+      }
+    </div>
+
+    <!-- ---------- 1. Los numeros de cabecera ---------- -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <span class="kpi-value">{{ r.digest.resumen.productosPropiosConPrecio | number:'1.0-0' }}</span>
+        <span class="kpi-label">productos tuyos con precio</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-value">{{ r.digest.resumen.productosMatcheadosConZona | number:'1.0-0' }}</span>
+        <span class="kpi-label">comparables con la zona</span>
+      </div>
+      <div class="kpi">
+        @if (r.digest.resumen.deltaPromedioPonderadoPct !== null) {
+          <span class="kpi-value" [class.delta--above]="r.digest.resumen.deltaPromedioPonderadoPct! > 0" [class.delta--below]="r.digest.resumen.deltaPromedioPonderadoPct! < 0">{{ signed(r.digest.resumen.deltaPromedioPonderadoPct!) }}</span>
+        } @else {
+          <span class="kpi-value kpi-value--muted">s/d</span>
+        }
+        <span class="kpi-label">diferencia promedio vs. zona</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-value">{{ r.digest.resumen.categoriasMasCaras }} / {{ r.digest.resumen.categoriasMasBaratas }}</span>
+        <span class="kpi-label">categorías más caras / más baratas</span>
+      </div>
+    </div>
+
+    <!-- ---------- 2. La narrativa (lo unico que escribe el modelo) ---------- -->
+    <div class="advisor-report" [innerHTML]="reportHtml()"></div>
+
+    <!-- ---------- 3. Las tablas: SIEMPRE del digest, nunca del markdown ---------- -->
+
+    <!-- Primero lo que no se puede comparar. Si el cruce esta roto, cualquier
+         conclusion sobre precios que venga despues no vale nada. -->
+    @if (r.digest.comparacionesSospechosas?.length) {
+      <h3 class="table-title table-title--warn">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        Revisá estas cargas <span class="hint">— parecen pack contra unidad, no diferencia de precio</span>
+      </h3>
+      <table class="cat-table cat-table--warn">
+        <thead><tr><th>Producto</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Diferencia</th><th>Por qué lo marcamos</th></tr></thead>
+        <tbody>
+          @for (x of r.digest.comparacionesSospechosas; track x.ean) {
+            <tr>
+              <td>
+                {{ x.descripcion ?? x.ean }}
+                @if (x.descripcionConfirma) {
+                  <span class="confirm-chip" title="La descripción del producto menciona el mismo múltiplo">confirmado por la descripción</span>
+                }
+              </td>
+              <td class="num">{{ money(x.precioPropio) }}</td>
+              <td class="num">{{ money(x.precioRefZona) }}</td>
+              <td class="num">{{ x.ratio }}×</td>
+              <td class="hint">{{ x.motivo }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="hint suspect-note">Estos productos quedan fuera del resto del informe: no ensucian tu posición ni los números en pesos.</p>
+    }
+
+    @if (r.digest.competitividad; as c) {
+      @if (c.masCarosQueZona.length > 0) {
+        <h3 class="table-title">Más caros que la zona <span class="hint">— revisar primero</span></h3>
+        <table class="cat-table">
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Δ</th><th>Referencias</th></tr></thead>
+          <tbody>
+            @for (p of c.masCarosQueZona; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="hint">{{ p.categoria }}</td>
+                <td class="num">{{ money(p.precioPropio) }}</td>
+                <td class="num">{{ money(p.precioRefZona) }}</td>
+                <td class="num delta--above">{{ signed(p.deltaPct) }}</td>
+                <td class="hint">{{ p.referenciasSepa.join(' · ') }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (c.espacioParaSubir.length > 0) {
+        <h3 class="table-title">Espacio para subir <span class="hint">— más baratos que la zona</span></h3>
+        <table class="cat-table">
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Δ</th></tr></thead>
+          <tbody>
+            @for (p of c.espacioParaSubir; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="hint">{{ p.categoria }}</td>
+                <td class="num">{{ money(p.precioPropio) }}</td>
+                <td class="num">{{ money(p.precioRefZona) }}</td>
+                <td class="num delta--below">{{ signed(p.deltaPct) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (c.categoriasFueraDeLinea.length > 0) {
+        <h3 class="table-title">Categorías fuera de línea</h3>
+        <table class="cat-table">
+          <thead><tr><th>Categoría</th><th>Subcategoría</th><th class="num">Δ vs. zona</th><th class="num">Productos</th></tr></thead>
+          <tbody>
+            @for (c2 of c.categoriasFueraDeLinea; track c2.categoria + '|' + (c2.subcategoria ?? '')) {
+              <tr>
+                <td>{{ c2.categoria }}</td>
+                <td class="hint">{{ c2.subcategoria ?? '—' }}</td>
+                <td class="num" [class.delta--above]="c2.deltaPct > 0" [class.delta--below]="c2.deltaPct < 0">{{ signed(c2.deltaPct) }}</td>
+                <td class="num">{{ c2.productosMatcheados }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+
+    @if (r.digest.rentabilidad; as m) {
+      <h3 class="section-title">Rentabilidad
+        @if (m.margenPromedioPct !== null) {
+          <span class="hint">— margen promedio {{ pct(m.margenPromedioPct!) }} sobre los productos con costo cargado</span>
+        }
+      </h3>
+
+      @if (m.ventaBajoCosto.length > 0) {
+        <h3 class="table-title">Se venden bajo costo</h3>
+        <table class="cat-table">
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th>Proveedor</th></tr></thead>
+          <tbody>
+            @for (p of m.ventaBajoCosto; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="hint">{{ p.categoria }}</td>
+                <td class="num delta--above">{{ money(p.precioPropio) }}</td>
+                <td class="num">{{ money(p.costo) }}</td>
+                <td class="hint">{{ p.proveedor ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (m.renegociarCompra.length > 0) {
+        <h3 class="table-title">Renegociar la compra <span class="hint">— tu costo está arriba del precio de venta de la zona</span></h3>
+        <table class="cat-table">
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu costo</th><th class="num">Venta zona</th><th>Proveedor</th></tr></thead>
+          <tbody>
+            @for (p of m.renegociarCompra; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="hint">{{ p.categoria }}</td>
+                <td class="num delta--above">{{ money(p.costo) }}</td>
+                <td class="num">{{ money(p.precioVentaZona) }}</td>
+                <td class="hint">{{ p.proveedor ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (m.margenExpuesto.length > 0) {
+        <h3 class="table-title">Margen expuesto <span class="hint">— margen alto y caro vs. la zona: hay lugar para bajar</span></h3>
+        <table class="cat-table">
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Margen</th><th class="num">Δ vs. zona</th></tr></thead>
+          <tbody>
+            @for (p of m.margenExpuesto; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="hint">{{ p.categoria }}</td>
+                <td class="num">{{ money(p.precioPropio) }}</td>
+                <td class="num">{{ money(p.costo) }}</td>
+                <td class="num">{{ pct(p.margenPct) }}</td>
+                <td class="num delta--above">{{ signed(p.deltaVsZonaPct) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+
+    @if (r.digest.ganancia; as g) {
+      @if (g.oportunidades.length > 0) {
+        <h3 class="section-title">En pesos
+          <span class="hint">— ~{{ money(g.totalEnJuegoMensual) }} por mes para ganar, manteniendo el volumen actual</span>
+        </h3>
+
+        @if (g.totalMargenEnRiesgoMensual > 0) {
+          <p class="advisor-teaser">
+            Además hay <strong>{{ money(g.totalMargenEnRiesgoMensual) }} por mes de margen</strong> que perderías si bajaras a la zona
+            los productos que hoy se venden bien estando caros. Están más abajo, marcados como <strong>Sostener</strong>.
+          </p>
+        }
+
+        <!-- El orden de esta tabla ES la recomendación: primero lo que suma, después lo
+             que hay que cuidar, y al final lo que no se arregla con precio. -->
+        <table class="cat-table">
+          <thead><tr>
+            <th>Producto</th><th>Acción</th>
+            <th class="num">Δ vs. zona</th><th class="num">Rotación</th><th class="num">Margen</th>
+            <th class="num">$/mes</th><th>Por qué</th>
+          </tr></thead>
+          <tbody>
+            @for (o of g.oportunidades; track o.ean + '|' + o.accion) {
+              <tr>
+                <td>
+                  {{ o.descripcion ?? o.ean }}
+                  <span class="hint block">{{ o.categoria }} · {{ o.unidadesMensuales | number:'1.0-1' }} u/mes</span>
+                </td>
+                <td><span class="accion-chip" [class]="'accion-chip accion-chip--' + o.accion">{{ accionLabel(o.accion) }}</span></td>
+                <td class="num" [class.delta--above]="o.deltaPct > 0" [class.delta--below]="o.deltaPct < 0">{{ signed(o.deltaPct) }}</td>
+                <td class="num">p{{ o.percentilRotacion }}</td>
+                <td class="num">{{ o.margenPct !== null ? pct(o.margenPct!) : '—' }}</td>
+                <td class="num">
+                  @if (o.sentidoImpacto === 'ninguno') {
+                    <span class="hint">—</span>
+                  } @else {
+                    <span [class.impacto--gana]="o.sentidoImpacto === 'ganancia'" [class.impacto--riesgo]="o.sentidoImpacto === 'riesgo'">
+                      {{ money(o.impactoMensualPesos) }}
+                    </span>
+                    <span class="hint block">{{ sentidoLabel(o.sentidoImpacto) }}</span>
+                  }
+                </td>
+                <td class="hint motivo">{{ o.motivo }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+
+    <!-- Los teasers y el disclaimer NO se duplican aca: los trae el markdown (el
+         modelo los cierra en prosa, y el modo basico los emite igual). Lo unico
+         que este template renderiza por su cuenta son las tablas. -->
+
+    <div class="print-only print-footer">
+      <p>PreciosIQ · {{ r.digest.metadatos.branchName }} · informe #{{ r.reportId }} · {{ generatedAtLocal() }}</p>
+    </div>
+
+    <div class="advisor-feedback no-print">
+      @if (feedbackSent() === null) {
+        <span class="hint">¿Te sirvió este informe?</span>
+        <button type="button" class="feedback-button" (click)="sendFeedback(true)" aria-label="Me sirvió"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i></button>
+        <button type="button" class="feedback-button" (click)="sendFeedback(false)" aria-label="No me sirvió"><i class="fa-solid fa-thumbs-down" aria-hidden="true"></i></button>
+      } @else {
+        <span class="hint">¡Gracias por el feedback!</span>
+      }
+      <button type="button" class="print-button" (click)="print()">
+        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Imprimir / Guardar PDF
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,359 @@
+// Asesor de Precios, fase 1 -- estilos del dialog del informe. Duplicados minimos
+// de cat-table/delta/hint por el encapsulamiento de estilos de Angular (mismo
+// motivo documentado en benchmark-detail-dialog.scss).
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+}
+
+.dialog-close {
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-3);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.dialog-body {
+  padding: 0 1.25rem 1.25rem;
+  font-size: 0.92rem;
+}
+
+.advisor-loading {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.advisor-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin-bottom: 0.75rem;
+}
+
+.advisor-badge {
+  background: rgba(46, 90, 172, 0.12);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.72rem;
+}
+
+.advisor-badge--warn {
+  background: rgba(217, 138, 21, 0.15);
+  color: var(--warning);
+}
+
+// El informe renderizado (markdown -> html propio).
+.advisor-report {
+  h2 { font-size: 1.2rem; margin: 0.5rem 0 0.6rem; }
+  h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: var(--primary); }
+  h4 { font-size: 0.92rem; margin: 0.8rem 0 0.3rem; }
+  p { margin: 0.4rem 0; line-height: 1.5; }
+  ul, ol { margin: 0.4rem 0 0.6rem 1.4rem; padding: 0; }
+  li { margin: 0.25rem 0; line-height: 1.45; }
+
+  blockquote {
+    margin: 0.75rem 0;
+    padding: 0.6rem 0.9rem;
+    background: var(--primary-soft);
+    border-left: 4px solid var(--primary);
+    border-radius: 6px;
+    font-size: 0.88rem;
+  }
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.advisor-evidence {
+  margin-top: 0.5rem;
+
+  h4 {
+    margin: 0.8rem 0 0.3rem;
+    font-size: 0.88rem;
+  }
+}
+
+.cat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+
+  th, td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+}
+
+.delta--above { color: var(--danger); font-weight: 600; }
+.delta--below { color: var(--success); font-weight: 600; }
+
+.advisor-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.feedback-button {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   31-ago-2026 -- el informe deja de ser una pared de prosa: fila de KPIs arriba,
+   narrativa corta al medio, y tablas armadas desde el digest abajo.
+   Las reglas de @media print viven en styles.scss (ver el comentario de alla).
+   ------------------------------------------------------------------------- */
+
+.dialog-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.icon-button {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  font-size: 1rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--primary);
+    background: var(--primary-soft);
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--primary-soft);
+  border-radius: 8px;
+}
+
+.kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.kpi-value--muted {
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.kpi-label {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  line-height: 1.25;
+}
+
+.section-title {
+  font-size: 1.02rem;
+  color: var(--primary);
+  margin: 1.5rem 0 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.table-title {
+  font-size: 0.92rem;
+  margin: 1.1rem 0 0.35rem;
+
+  .hint {
+    font-weight: 400;
+  }
+}
+
+/* Numeros a la derecha y tabulares: una columna de precios que no se alinea es
+   una columna que no se puede comparar de un vistazo. */
+.cat-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cat-table thead th {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.cat-table tbody tr:nth-child(even) {
+  background: rgba(127, 127, 127, 0.05);
+}
+
+.advisor-teaser {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.9rem;
+  background: var(--primary-soft);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  font-size: 0.86rem;
+}
+
+.advisor-disclaimer {
+  margin-top: 1.1rem;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-3);
+}
+
+.print-button {
+  margin-left: auto;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+  }
+}
+
+/* Solo en papel. El @media print de styles.scss lo pone en block. */
+.print-only {
+  display: none;
+}
+
+.print-header {
+  h1 {
+    font-size: 1.3rem;
+    margin: 0 0 0.2rem;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    font-size: 0.82rem;
+    color: var(--text-3);
+  }
+}
+
+.print-footer {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+/* Comparaciones sospechosas (pack vs. unidad): color de advertencia, no de peligro.
+   No es que el comerciante hizo algo mal -- es un dato que no se puede comparar. */
+.table-title--warn {
+  color: var(--warning);
+}
+
+.cat-table--warn {
+  th, td {
+    border-bottom-color: rgba(217, 138, 21, 0.25);
+  }
+}
+
+.confirm-chip {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(217, 138, 21, 0.15);
+  color: var(--warning);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.suspect-note {
+  margin: 0.35rem 0 0;
+  font-style: italic;
+}
+
+/* Posicion x rotacion (31-ago-2026). Los colores dicen el SENTIDO de la accion, no si el
+   numero es grande: "sostener" es tan valioso como "subir" y no puede leerse como alerta. */
+.accion-chip {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.accion-chip--subir    { background: rgba(31, 138, 78, 0.15); color: var(--success); }
+.accion-chip--sostener { background: rgba(46, 90, 172, 0.14); color: var(--primary); }
+.accion-chip--bajar    { background: rgba(217, 138, 21, 0.15); color: var(--warning); }
+.accion-chip--revisar-surtido { color: var(--text-3); }
+
+.impacto--gana   { color: var(--success); font-weight: 600; }
+.impacto--riesgo { color: var(--primary); font-weight: 600; }
+
+.hint.block { display: block; font-weight: 400; }
+
+/* El "por que" es la columna que hace entendible la tabla: se le da lugar y se deja
+   respirar en varias lineas en vez de recortarla. */
+.motivo {
+  min-width: 16rem;
+  line-height: 1.35;
+}

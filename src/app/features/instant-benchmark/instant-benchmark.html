@@ -1,0 +1,176 @@
+<div class="signup">
+  <h1>Benchmark instantáneo</h1>
+  <p class="subtitle">
+    Cómo estás parado contra la competencia cerca de tu sucursal, sin cargar nada previo.
+    Usamos los precios ya relevados (SEPA y otros comercios) agrupados por categoría.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="signup__form">
+    <div class="signup__row">
+      @if (branches().length > 1) {
+        <label>
+          Sucursal
+          <select formControlName="branchId">
+            @for (b of branches(); track b.branchId) {
+              <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+            }
+          </select>
+        </label>
+      }
+      <label>
+        Radio (metros)
+        <input type="number" formControlName="maxDistanceMeters" step="100" />
+      </label>
+    </div>
+
+    @if (selectedBranch(); as sb) {
+      <app-radius-advisor
+        [latitude]="sb.latitude"
+        [longitude]="sb.longitude"
+        [radius]="radiusValue() || 0"
+        [ownCommerceId]="ownCommerceId()"
+        [autoApply]="!hasSavedRadius()"
+        (radiusChange)="applyRadius($event)"
+      />
+    }
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Calculando…' : 'Ver benchmark' }}
+    </button>
+  </form>
+
+  @if (loading()) {
+    <app-loading-bar
+      [label]="'Buscando competidores en un radio de ' + form.controls.maxDistanceMeters.value + ' m y comparando precios por categoría…'"
+    />
+  }
+
+  @if (result(); as r) {
+    @if (r.categories.length === 0) {
+      <p class="hint">No encontramos categorías con datos en ese radio. Probá ampliar el radio.</p>
+    } @else {
+      <!--
+        25-ago-2026 -- pedido de Andres: antes era UNA tabla plana con categorías y
+        subcategorías mezcladas, sin paginar (cientos de filas). Ahora cada categoría es
+        una fila (el total, isCategoryTotal) que se despliega con un click para ver sus
+        subcategorías indentadas, y las categorías van paginadas de a pageSize.
+      -->
+      <div class="bench-toolbar">
+        <label class="bench-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input
+            type="search"
+            placeholder="Buscar categoría o subcategoría…"
+            [value]="filterText()"
+            (input)="setFilter($any($event.target).value)"
+          />
+        </label>
+        <span class="pagination__info">
+          {{ filteredGroups().length }} categoría{{ filteredGroups().length === 1 ? '' : 's' }}
+          @if (filterText()) {
+            (de {{ groups().length }})
+          }
+        </span>
+      </div>
+
+      <table class="benchmark-table">
+        <thead>
+          <tr>
+            <th class="bench-col-toggle" aria-label="Desplegar"></th>
+            <!-- 25-ago-2026 -- ordenable por columna (mismo patron que el dashboard). -->
+            <th class="sort-th bench-name-col" (click)="toggleSort('categoryName')" [attr.aria-sort]="ariaSort('categoryName')">
+              Categoría<i class="fa-solid" [class]="sortIcon('categoryName')" aria-hidden="true"></i>
+            </th>
+            <th class="sort-th" (click)="toggleSort('competitorCount')" [attr.aria-sort]="ariaSort('competitorCount')">
+              Competidores<i class="fa-solid" [class]="sortIcon('competitorCount')" aria-hidden="true"></i>
+            </th>
+            <th class="sort-th" (click)="toggleSort('ownAvgPrice')" [attr.aria-sort]="ariaSort('ownAvgPrice')">
+              Tu precio prom.<i class="fa-solid" [class]="sortIcon('ownAvgPrice')" aria-hidden="true"></i>
+            </th>
+            <th class="sort-th" (click)="toggleSort('competitorAvgPrice')" [attr.aria-sort]="ariaSort('competitorAvgPrice')">
+              Precio prom. competencia<i class="fa-solid" [class]="sortIcon('competitorAvgPrice')" aria-hidden="true"></i>
+            </th>
+            <th class="sort-th" (click)="toggleSort('delta')" [attr.aria-sort]="ariaSort('delta')">
+              Diferencia<i class="fa-solid" [class]="sortIcon('delta')" aria-hidden="true"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of pagedGroups(); track g.key) {
+            <tr
+              class="bench-row bench-row--category"
+              [class.bench-row--open]="isOpen(g.key)"
+              (click)="toggle(g.key)"
+              (keydown.enter)="toggle(g.key)"
+              (keydown.space)="toggle(g.key); $event.preventDefault()"
+              tabindex="0"
+              role="button"
+              [attr.aria-expanded]="isOpen(g.key)"
+            >
+              <td class="bench-col-toggle">
+                @if (g.children.length > 0) {
+                  <i class="fa-solid" [class.fa-chevron-right]="!isOpen(g.key)" [class.fa-chevron-down]="isOpen(g.key)" aria-hidden="true"></i>
+                }
+              </td>
+              <td>
+                <strong>{{ g.total.categoryName }}</strong>
+                @if (g.children.length > 0) {
+                  <span class="bench-count">{{ g.children.length }} subcat.</span>
+                }
+              </td>
+              <ng-container *ngTemplateOutlet="rowCells; context: { $implicit: g.total }"></ng-container>
+            </tr>
+
+            @if (isOpen(g.key)) {
+              @for (row of g.children; track row.categoryId + '|' + row.subcategoryId) {
+                <tr class="bench-row bench-row--sub">
+                  <td class="bench-col-toggle"></td>
+                  <td class="bench-sub-name">{{ row.subcategoryName ?? '(sin subcategoría)' }}</td>
+                  <ng-container *ngTemplateOutlet="rowCells; context: { $implicit: row }"></ng-container>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+
+      <ng-template #rowCells let-row>
+        <td>{{ row.competitorCount }}</td>
+        <td>{{ row.ownAvgPrice ? '$' + row.ownAvgPrice.toFixed(2) : '—' }}</td>
+        @if (row.sufficientCoverage) {
+          <td>${{ row.competitorAvgPrice?.toFixed(2) }}</td>
+          <td [class]="deltaClass(row)">{{ deltaLabel(row) }}</td>
+        } @else {
+          <td colspan="2" class="insufficient">Sin cadenas SEPA cerca y menos de 3 cuentas de la familia</td>
+        }
+      </ng-template>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 1">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior
+          </button>
+          <span class="pagination__info">Página {{ page() }} de {{ totalPages() }}</span>
+          <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">
+            Siguiente <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+    }
+  }
+  }
+</div>

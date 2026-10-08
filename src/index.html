@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>PreciosIQ - Inteligencia de precios para tu negocio</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="PreciosIQ: inteligencia de precios B2B para cadenas y comercios minoristas, sobre la red de datos de BuscaPrecios."
+    />
+    <!-- SEO / Open Graph / Twitter (05-sep-2026). La imagen vive en public/og/ y viaja con el build. -->
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="geo.region" content="AR" />
+    <link rel="canonical" href="https://preciosiq.com/" />
+    <link
+      rel="alternate"
+      type="text/plain"
+      href="https://preciosiq.com/llms.txt"
+      title="Resumen para modelos de lenguaje"
+    />
+    <meta property="og:site_name" content="PreciosIQ" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="PreciosIQ — Inteligencia de precios para tu negocio" />
+    <meta
+      property="og:description"
+      content="Compará tu catálogo contra la competencia, sucursal por sucursal, con precios reales de la red de BuscaPrecios. Empezá gratis, sin límite de productos."
+    />
+    <meta property="og:url" content="https://preciosiq.com/" />
+    <meta property="og:image" content="https://preciosiq.com/og/preciosiq.png" />
+    <meta property="og:image:secure_url" content="https://preciosiq.com/og/preciosiq.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="PreciosIQ: inteligencia de precios para comercios y cadenas"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PreciosIQ — Inteligencia de precios para tu negocio" />
+    <meta
+      name="twitter:description"
+      content="Compará tu catálogo contra la competencia, sucursal por sucursal, con precios reales de la red de BuscaPrecios. Empezá gratis."
+    />
+    <meta name="twitter:image" content="https://preciosiq.com/og/preciosiq.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://buscaprecios.online/#org",
+            "name": "BuscaPrecios",
+            "url": "https://buscaprecios.online",
+            "sameAs": [
+              "https://cuantocuesta.com.ar",
+              "https://preciosiq.com",
+              "https://distribucioniq.com"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://preciosiq.com/#site",
+            "url": "https://preciosiq.com",
+            "name": "PreciosIQ",
+            "inLanguage": "es-AR",
+            "publisher": { "@id": "https://buscaprecios.online/#org" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "PreciosIQ",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "url": "https://preciosiq.com",
+            "inLanguage": "es-AR",
+            "description": "Inteligencia de precios B2B para comercios y cadenas de Argentina: precios de la competencia sucursal por sucursal, benchmark por categoría, carga masiva de precios y Asesor de Precios.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "ARS",
+              "description": "Plan Gratis: carga de datos sin límite de productos y sin tarjeta."
+            },
+            "author": { "@id": "https://buscaprecios.online/#org" }
+          }
+        ]
+      }
+    </script>
+    <link rel="icon" type="image/x-icon" href="/home/assets/favicon.ico" />
+    <!-- 19-ago-2026 -- icono de marca real (LogoPreciosIQ.svg que mando Andres), pedido
+       explicito de que aparezca "donde sea necesario". El .ico de arriba ya se
+       reemplazo por uno generado de este mismo logo -- esto suma el touch-icon para
+       cuando alguien agrega la pagina a la pantalla de inicio en iOS/Android. -->
+    <link rel="apple-touch-icon" href="/home/assets/apple-touch-icon.png" />
+
+    <!-- Bootstrap icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,600;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,500;0,600;0,700;1,300;1,500;1,600;1,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Mismo tema visual que buscaprecios.online/PreciosIQ y buscaprecios.online -- copiado a
+       public/home/ (ver retailiq.panel/public/home) para que este build sea autonomo en
+       Hostinger, sin depender de que el backend .NET este arriba para poder pintarse. -->
+    <link href="/home/css/styles.css" rel="stylesheet" />
+
+    <!-- Google Identity Services -- boton de login con Google, ver features/login/login.ts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- E1.7 (16-ago-2026) -- Angular Material (mat-sidenav del panel, ver layout/panel-header):
+       mismas fuentes que distribucioniq.panel para unificar interfaz. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  </head>
+  <body id="page-top">
+    <app-root></app-root>
+
+    <!-- Bootstrap JS (navbar, modales, scrollspy) -- lo usa la landing (features/landing) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/home/js/scripts.js"></script>
+    <!--Omnivox Chat Widget-->
+    <script
+      src="https://omnivox.chat/js/omnivox.widget.js"
+      data-channel="bf0994ff-2a87-4a14-9331-17391874b925"
+      data-position="bottom-right"
+      async
+      defer
+    ></script>
+  </body>
+</html>

@@ -1,0 +1,490 @@
+.signup {
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+legend {
+  font-weight: 600;
+  padding: 0 0.5rem;
+  // 25-ago-2026 -- fix real: el CSS del tema de la landing (public/home/css/styles.css,
+  // reboot de Bootstrap 5) pone `legend { float: left; width: 100%; font-size: ~1.4rem }`
+  // y `legend + * { clear: left }`. Aca el legend se veia enorme y el primer campo del
+  // fieldset quedaba aplastado al costado si lo que seguia no era un bloque normal
+  // (ej. el boton "Quitar" absoluto de las sucursales extra). Se vuelve al legend
+  // normal de un fieldset.
+  float: none;
+  width: auto;
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+  // 16-ago-2026 -- fix real: sin esto, un label dentro de .signup__row no se achica
+  // nunca por debajo del ancho "natural" de su input (min-width flex por default es
+  // "auto", no 0) -- en pantallas angostas el input de Código postal terminaba saliendo
+  // del cuadro del fieldset en vez de acomodarse.
+  min-width: 0;
+}
+
+input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+  // Mismo fix: el input tiene un ancho intrinseco propio (~20 caracteres) que ignora
+  // el contenedor si no se le pide explicitamente que ocupe el 100% del label.
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.signup__row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.signup__grow {
+  flex: 1 1 200px;
+}
+
+.signup__row > label:not(.signup__grow) {
+  flex: 1 1 120px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.field-error,
+.form-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+// 18-ago-2026 -- fix real: la pantalla de exito post-alta no tenia contenedor propio,
+// quedaba como texto suelto flotando en el medio de la pagina, con el <h1> al tamaño
+// gigante por default del navegador (nunca se le puso font-size) al lado de un logo de
+// 48px -- la desproporcion es lo que se veia "feo". Ahora es una tarjeta centrada, con
+// un icono de check para reforzar el "listo", titulo a un tamaño acorde al logo, y el
+// boton como CTA unico y prominente en vez de quedar perdido mas abajo.
+.signup__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  max-width: 420px;
+  margin: 2.5rem auto 0;
+  padding: 2rem 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+}
+
+.signup__success-icon {
+  display: flex;
+  margin-bottom: 0.25rem;
+
+  svg {
+    display: block;
+  }
+}
+
+// E1.6 -- logo (favicon traido del sitio, o imagen subida a mano), mostrado arriba del
+// saludo de éxito post-alta. Mismo patrón visual que productora-signup.scss en
+// distribucioniq.panel -- marca hermana, mismo look.
+.signup__success-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    line-height: 1.3;
+    font-weight: 700;
+    color: var(--text);
+  }
+}
+
+.signup__logo,
+.signup__logo-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.signup__success .subtitle {
+  margin-bottom: 0.4rem;
+}
+
+.signup__success-cta {
+  margin-top: 0.6rem;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+}
+
+.signup__logo-placeholder--loading {
+  animation: signup-logo-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes signup-logo-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+.field-hint {
+  color: var(--text-3);
+  font-size: 0.78rem;
+}
+
+// E1.10 -- selector de plan en el onboarding. Mismo lenguaje visual que
+// upgrade-plan.scss (.plan-cards/.plan-card/.billing-cycle-toggle) para que el
+// selector de acá y la pantalla de "Tu plan" se sientan como la misma pieza, con el
+// prefijo signup__ propio de este componente.
+.signup__plans-fieldset {
+  .field-hint {
+    margin-bottom: 0.9rem;
+  }
+}
+
+.signup__plan-cards {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+
+.signup__plan-card {
+  flex: 1 1 150px;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  // 18-ago-2026 -- fix real: esta tarjeta es un <button>, y mas arriba en este mismo
+  // archivo hay una regla generica "button { color: #fff }" pensada para el boton de
+  // submit (azul, texto blanco). Esta clase pisaba el background a blanco pero no el
+  // color, asi que el <h3> del plan y el precio (que no tienen color propio) heredaban
+  // blanco y quedaban invisibles sobre el fondo blanco de la tarjeta -- solo se salvaba
+  // el detalle ("15 productos") porque tiene su propio color:#666. "color: inherit"
+  // corta esa herencia del boton generico y vuelve al color de texto normal de la
+  // pagina, igual que el resto de los titulos/leyendas de este formulario.
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  position: relative;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  &--selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+    background: var(--bg-elevated);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: capitalize;
+  }
+}
+
+.signup__plan-card__price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.signup__plan-card__detail {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0;
+}
+
+.signup__plan-card__badge {
+  align-self: flex-start;
+  background: var(--success);
+  color: var(--on-primary);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.billing-cycle-toggle {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-bottom: 0.9rem;
+  padding: 0.25rem;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+
+  button {
+    background: transparent;
+    color: var(--primary);
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 999px;
+
+    &.active {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 25-ago-2026 -- wizard (pedido de Andres): indicador de pasos arriba, un fieldset por
+// pantalla, botonera Anterior/Siguiente abajo. Los botones secundarios de aca abajo
+// pisan a proposito la regla generica "button { background: var(--primary) }" de mas
+// arriba, que es la del CTA principal.
+// ---------------------------------------------------------------------------
+.wizard-steps {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  gap: 0.25rem;
+  counter-reset: none;
+}
+
+.wizard-step {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+
+  // Linea que une los pasos.
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 0.9rem;
+    left: calc(50% + 1.1rem);
+    right: calc(-50% + 1.1rem);
+    height: 2px;
+    background: var(--border);
+  }
+
+  &--done:not(:last-child)::after {
+    background: var(--primary);
+  }
+}
+
+.wizard-step__btn {
+  width: 100%;
+  background: none;
+  color: var(--text-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+
+  &:disabled {
+    opacity: 1;
+  }
+
+  &:not(:disabled):hover .wizard-step__num {
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+}
+
+.wizard-step__num {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-3);
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.wizard-step--current .wizard-step__num {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.wizard-step--current .wizard-step__label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.wizard-step--done .wizard-step__num {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.wizard-step--done .wizard-step__label {
+  color: var(--text-2);
+}
+
+.wizard-step__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.wizard-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+
+  button i {
+    font-size: 0.85em;
+  }
+}
+
+.wizard-nav__spacer {
+  flex: 1;
+}
+
+.wizard-nav__back {
+  background: var(--bg-elevated);
+  color: var(--text-2);
+
+  &:hover:not(:disabled) {
+    color: var(--text);
+  }
+}
+
+// Sucursales: el fieldset tiene el boton "Quitar" arriba a la derecha (solo de la
+// segunda en adelante), y abajo el de "Agregar otra".
+.signup__branch {
+  position: relative;
+}
+
+.signup__branch-remove {
+  position: absolute;
+  top: -0.9rem;
+  right: 0.75rem;
+  background: var(--bg-card);
+  color: var(--danger);
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: 999px;
+
+  &:hover {
+    border-color: var(--danger);
+  }
+}
+
+.signup__add-branch {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+// Resumen del ultimo paso, para que el "Crear cuenta" no sea a ciegas.
+.signup__summary dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+
+  dt {
+    color: var(--text-3);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+// Pantalla de exito: que paso con las sucursales extra.
+.signup__extra-branches {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+  text-align: left;
+  font-size: 0.9rem;
+
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+    align-items: baseline;
+  }
+
+  // El motivo del error va debajo del nombre, no al costado (se partia feo).
+  .hint {
+    grid-column: 2;
+    display: block;
+  }
+
+  .fa-check {
+    color: var(--success);
+  }
+
+  .fa-xmark {
+    color: var(--danger);
+  }
+}

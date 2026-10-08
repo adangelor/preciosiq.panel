@@ -1,0 +1,61 @@
+<div class="signup card--page">
+  <h1>Historial de precio</h1>
+  <p class="subtitle">
+    Cómo evolucionó el precio de un producto tuyo, sumando lo que cargó SEPA, lo que
+    cargaste vos y las correcciones confirmadas por consenso de usuarios.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="search()" class="signup__form">
+      <div class="signup__row">
+        @if (branches().length > 1) {
+          <label>
+            Sucursal
+            <select formControlName="branchId">
+              @for (b of branches(); track b.branchId) {
+                <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+              }
+            </select>
+          </label>
+        }
+        <label>
+          EAN
+          <input type="text" formControlName="ean" />
+        </label>
+        <label>
+          Días hacia atrás
+          <input type="number" formControlName="days" />
+        </label>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Buscando…' : 'Ver historial' }}
+      </button>
+    </form>
+
+    @if (points(); as p) {
+      @if (latestSource(); as src) {
+        <p class="latest-source">
+          Último precio cargado como:
+          <span class="source-badge" [class]="'source-badge--' + src">{{ sourceLabel(src) }}</span>
+        </p>
+      }
+      <div class="chart-container">
+        <app-price-history-chart [points]="p" />
+      </div>
+    }
+  }
+</div>

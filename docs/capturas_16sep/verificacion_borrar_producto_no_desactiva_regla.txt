@@ -1,0 +1,14 @@
+DELETE /api/business/prices (999-9, 2995000000033) -> 204
+
+Reglas ANTES:
+Id|BranchId|Tipo|Activa
+--|--------|----|------
+1846|999-9|precio_unitario|1
+
+Reglas DESPUES:
+Id|BranchId|Tipo|Activa
+--|--------|----|------
+1846|999-9|precio_unitario|1
+
+Filas en Products despues: -
+0

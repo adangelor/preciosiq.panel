@@ -1,0 +1,20 @@
+@if (plotted().length > 0) {
+  <div class="chart-wrap">
+    <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" [attr.width]="width" [attr.height]="height">
+      <path [attr.d]="pathD()" fill="none" stroke="#2e5aac" stroke-width="2" />
+      @for (p of plotted(); track $index) {
+        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4" [attr.fill]="p.color">
+          <title>{{ p.date }} — ${{ p.price.toFixed(2) }} ({{ p.source }})</title>
+        </circle>
+      }
+    </svg>
+    <div class="chart-legend">
+      <span class="legend-item"><i style="background:#8a8a8a"></i> SEPA</span>
+      <span class="legend-item"><i style="background:#2e5aac"></i> Cargado por vos</span>
+      <span class="legend-item"><i style="background:#d98a15"></i> Consenso de usuarios</span>
+      <span class="chart-range">${{ minPriceLabel() }} – ${{ maxPriceLabel() }}</span>
+    </div>
+  </div>
+} @else {
+  <p class="chart-empty">Todavía no hay historial de precio para este producto en esta sucursal.</p>
+}

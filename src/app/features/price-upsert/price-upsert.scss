@@ -1,0 +1,326 @@
+.signup {
+  max-width: 640px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+// E10.6 -- el panel de "llegaste al cupo" tiene una tabla de 6 columnas, se sale a
+// proposito del ancho angosto (640px) del resto del formulario.
+.plan-limit {
+  max-width: 900px;
+  margin: 2rem auto 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--warning);
+  background: var(--warning-soft);
+  border-radius: 10px;
+}
+
+.plan-limit h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+  color: var(--warning);
+}
+
+.plan-limit__cta {
+  display: inline-block;
+  margin: 0.5rem 0 1.25rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.plan-limit__table-wrap {
+  overflow-x: auto;
+}
+
+.plan-limit__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.plan-limit__table th,
+.plan-limit__table td {
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.plan-limit__actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  white-space: normal;
+}
+
+.plan-limit__actions button {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.plan-limit__secondary {
+  background: var(--border) !important;
+  color: var(--text-2) !important;
+}
+
+.plan-limit__danger {
+  background: var(--danger) !important;
+}
+
+.plan-limit__ean-input {
+  width: 9rem;
+  padding: 0.3rem 0.4rem;
+}
+
+.plan-limit__pager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.plan-limit__pager button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+// BP-38 -- "Ver mis productos" (sin cupo lleno): mismo bloque, sin el tono de advertencia.
+.plan-limit--list {
+  border-color: var(--border);
+  background: var(--bg-card);
+
+  h2 {
+    color: inherit;
+  }
+}
+
+// BP-38 -- seccion Promo (regla de promo, la misma que cobra la caja).
+.promo {
+  margin: 0.4rem 0 1rem;
+  padding: 0.9rem 1rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.promo__title {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.promo__fields label {
+  flex: 1;
+  min-width: 0;
+}
+
+.promo__check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.promo__preview {
+  margin: -0.3rem 0 0.8rem;
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.promo__loaded {
+  margin: 0 0 0.7rem;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  font-size: 0.72rem;
+}
+
+.muted {
+  color: var(--text-3);
+}
+
+.link-button {
+  display: block;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+input,
+select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.signup__row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.signup__grow {
+  flex: 1;
+}
+
+.signup__autocomplete {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions li {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.suggestions li:hover {
+  background: var(--bg-elevated);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: -0.4rem 0 0.6rem;
+}
+
+.field-error,
+.form-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+// .form-success quedo sin uso: la confirmacion de guardado paso al toast de abajo
+// (el cartel inline se quedaba colgado despues de limpiar el formulario).
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Toast de confirmacion ───────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  max-width: min(560px, calc(100vw - 2rem));
+  padding: 0.85rem 1rem 0.85rem 0.9rem;
+  border-radius: 10px;
+
+  background: var(--success);
+  color: var(--success-soft);
+  font-size: 0.92rem;
+  line-height: 1.35;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+  animation: toast-in 180ms ease-out;
+}
+
+.toast__check {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.toast__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toast__close {
+  flex: 0 0 auto;
+  padding: 0 0.25rem;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: 0.65;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

@@ -1,0 +1,43 @@
+.chart-wrap {
+  font-family: inherit;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+  max-width: 640px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  margin-top: 0.5rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.legend-item i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.chart-range {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.chart-empty {
+  font-size: 0.9rem;
+  color: var(--text-3);
+}

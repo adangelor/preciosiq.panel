@@ -1,0 +1,171 @@
+<div class="signup card--page mappings">
+  <h1>Mapeos de columnas</h1>
+  <p class="subtitle">
+    Cada mapeo dice qué columna de tu archivo es cada cosa. Acá están todos, con las columnas que
+    usa cada uno, cuándo se usó por última vez y cuántas cargas hizo. Podés probar cualquiera con un
+    archivo para ver si coincide, sin cargar nada.
+  </p>
+
+  @if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <div class="mappings__toolbar">
+      <a routerLink="/precios/carga-masiva" class="mappings__cta">Ir a la carga masiva →</a>
+      <label class="mappings__check">
+        <input type="checkbox" [checked]="incluirArchivados()" (change)="toggleArchivados()" />
+        Ver también los archivados
+      </label>
+    </div>
+
+    @if (loading()) {
+      <p class="hint">Cargando tus mapeos…</p>
+    } @else if (mappings().length === 0) {
+      <p class="hint">
+        Todavía no guardaste ningún mapeo. Se crea solo la primera vez que cargás un archivo desde
+        <a routerLink="/precios/carga-masiva">Carga masiva</a>.
+      </p>
+    } @else {
+      <div class="mappings__table-wrap">
+        <table class="mappings__table">
+          <thead>
+            <tr>
+              <th>Mapeo</th>
+              <th>Columnas</th>
+              <th>Último uso</th>
+              <th>Cargas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of mappings(); track m.id) {
+              <tr [class.mappings__row--archived]="m.archivedAt">
+                <td>
+                  @if (renamingId() === m.id) {
+                    <input
+                      type="text"
+                      class="mappings__name-input"
+                      [ngModel]="newName()"
+                      (ngModelChange)="newName.set($event)"
+                    />
+                  } @else {
+                    <strong>{{ m.name }}</strong>
+                    @if (m.archivedAt) { <span class="tag">archivado</span> }
+                    <br />
+                    <span class="hint">separador “{{ m.delimiter }}”, decimales “{{ m.decimalSeparator }}”</span>
+                  }
+                </td>
+                <td class="mappings__cols">{{ resumenColumnas(m) }}</td>
+                <td>
+                  @if (m.lastUsedAt) {
+                    {{ m.lastUsedAt | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    <span class="hint">nunca se usó</span>
+                  }
+                </td>
+                <td>{{ m.timesUsed ?? 0 }}</td>
+                <td class="mappings__actions">
+                  @if (renamingId() === m.id) {
+                    <button type="button" [disabled]="saving()" (click)="submitRename(m)">Guardar</button>
+                    <button type="button" class="mappings__secondary" (click)="cancelRename()">Cancelar</button>
+                  } @else {
+                    <button type="button" class="mappings__secondary" (click)="toggle(m)">
+                      {{ expandedId() === m.id ? 'Ocultar' : 'Ver y probar' }}
+                    </button>
+                    <button type="button" class="mappings__secondary" (click)="startRename(m)">Renombrar</button>
+                    <button type="button" class="mappings__secondary" [disabled]="saving()" (click)="archivar(m)">
+                      {{ m.archivedAt ? 'Desarchivar' : 'Archivar' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+
+              @if (expandedId() === m.id) {
+                <tr class="mappings__detail-row">
+                  <td colspan="5">
+                    <h3>Columnas de “{{ m.name }}”</h3>
+                    <ul class="mappings__cols-list">
+                      @for (c of columnas(m); track c.campo) {
+                        <li><span class="hint">{{ c.campo }}:&nbsp;</span><strong>{{ c.columna }}</strong></li>
+                      }
+                    </ul>
+
+                    <h3>Probar con un archivo</h3>
+                    <p class="hint">No se carga nada: solo te decimos qué columnas encuentra y cómo leería las primeras filas.</p>
+                    <div class="mappings__test">
+                      <input type="file" accept=".csv,text/csv" (change)="onTestFile($event)" />
+                      <button type="button" [disabled]="!testFile() || testing()" (click)="probar(m)">
+                        {{ testing() ? 'Probando…' : 'Probar este mapeo' }}
+                      </button>
+                    </div>
+
+                    @if (testResult(); as t) {
+                      <p [class.mappings__ok]="t.faltantes === 0" [class.form-error]="t.faltantes > 0">
+                        {{ t.encontradas }} columna{{ t.encontradas === 1 ? '' : 's' }} encontrada{{ t.encontradas === 1 ? '' : 's' }},
+                        {{ t.faltantes }} sin encontrar en este archivo.
+                      </p>
+                      @for (a of t.avisos; track a) {
+                        <p class="mappings__aviso">⚠ {{ a }}</p>
+                      }
+
+                      <table class="mappings__table mappings__table--inner">
+                        <thead><tr><th>Campo</th><th>Columna del mapeo</th><th>¿Está en el archivo?</th></tr></thead>
+                        <tbody>
+                          @for (c of t.columnas; track c.campo) {
+                            <tr>
+                              <td>{{ c.campo }}</td>
+                              <td>{{ c.columna }}</td>
+                              <td [class.mappings__ok]="c.encontrada" [class.form-error]="!c.encontrada">
+                                {{ c.encontrada ? 'Sí' : 'No' }}
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+
+                      @if (t.muestra.length > 0) {
+                        <h4>Así leería las primeras filas</h4>
+                        <div class="mappings__table-wrap">
+                          <table class="mappings__table mappings__table--inner">
+                            <thead>
+                              <tr><th>Fila</th><th>EAN</th><th>Descripción</th><th>Precio</th><th>Promo</th><th>Desc. %</th><th>Desde</th><th>Hasta</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                              @for (r of t.muestra; track r.rowNumber) {
+                                <tr>
+                                  <td>{{ r.rowNumber }}</td>
+                                  <td>{{ r.ean ?? '—' }}</td>
+                                  <td>{{ r.description ?? '—' }}</td>
+                                  <td>{{ r.listPrice ?? '—' }}</td>
+                                  <td>{{ r.promo1UnitPrice ?? '—' }}</td>
+                                  <td>{{ r.promoPercent ?? '—' }}</td>
+                                  <td>{{ r.promoMinQty ?? '—' }}</td>
+                                  <td>{{ r.promoMaxQty ?? '—' }}</td>
+                                  <td class="form-error">{{ r.motivo }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">
+        Archivar no borra nada: el mapeo deja de ofrecerse en la carga masiva, pero el
+        <a routerLink="/precios/importaciones">historial de importaciones</a> lo sigue nombrando.
+      </p>
+    }
+  }
+</div>

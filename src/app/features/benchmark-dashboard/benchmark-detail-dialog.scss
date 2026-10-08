@@ -1,0 +1,176 @@
+:host {
+  display: block;
+  padding: 1.75rem 2rem 2rem;
+  font-family: inherit;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dialog-header h2 {
+  margin: 0;
+}
+
+.dialog-close {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: var(--border);
+}
+
+.dialog-body h3 {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.empty-state {
+  font-size: 0.9rem;
+  color: var(--text-3);
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin: 1rem 0;
+}
+
+.cat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.cat-table th,
+.cat-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.insufficient {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.delta--above {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.delta--below {
+  color: var(--success);
+  font-weight: 600;
+}
+
+// 16-ago-2026 -- pedido de Andres: encabezados clickeables para reordenar la tabla
+// "como se le de la real gana", mas un indicador de que orden esta activo y un link
+// para volver al orden sugerido (propio primero, mayor diferencia primero).
+.sort-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sort-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sort-th:hover {
+  color: var(--primary);
+}
+
+.source-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.source-badge--sepa {
+  background: rgba(138, 138, 138, 0.15);
+  color: var(--text-2);
+}
+
+.source-badge--self_reported {
+  background: rgba(46, 90, 172, 0.12);
+  color: var(--primary);
+}
+
+.source-badge--crowd {
+  background: rgba(217, 138, 21, 0.15);
+  color: var(--warning);
+}
+
+// E8.6 -- lista de cadenas SEPA nombradas por producto (dato publico por ley).
+.chain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -0.5rem 0 1.5rem;
+}
+
+.pagination button {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  color: var(--text-3);
+  border-color: var(--border-strong);
+  background: var(--bg-card);
+  cursor: not-allowed;
+}
+
+.pagination__info {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}

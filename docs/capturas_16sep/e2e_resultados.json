@@ -1,0 +1,398 @@
+{
+  "p1": {
+    "preview": "Llevando 3 de $2.500: $6.300 (ahorra $1.200)",
+    "toast": "Producto creado — 2995000000019: $2500 (promo: Llevando 3+: $2.100 c/u)",
+    "caja_x2": {
+      "ean": "2995000000019",
+      "cantidad": 2,
+      "lista": 2500,
+      "descuento": 0,
+      "total": 5000,
+      "promoText": null,
+      "regla": "Llevando 3+: $2.100 c/u",
+      "ticketTotal": 5000
+    },
+    "caja_x3": {
+      "ean": "2995000000019",
+      "cantidad": 3,
+      "lista": 2500,
+      "descuento": 1200,
+      "total": 6300,
+      "promoText": "Llevando 3+: $2.100 c/u",
+      "regla": "Llevando 3+: $2.100 c/u",
+      "ticketTotal": 6300
+    },
+    "red": {
+      "branchId": "999-9",
+      "ean": "2995000000019",
+      "description": "BP38 Gaseosa panel a caja 1,5 L",
+      "brand": "PRUEBA",
+      "presentationQuantity": 1,
+      "presentationUnit": "UN",
+      "listPrice": 2500,
+      "promo1UnitPrice": 2100,
+      "promo1Text": "Llevando 3+: $2.100 c/u",
+      "promo2UnitPrice": null,
+      "promo2Text": null,
+      "promoRule": {
+        "id": 1844,
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": 2100,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "2026-09-16T21:41:08Z",
+        "texto": "Llevando 3+: $2.100 c/u",
+        "textoCondicion": "Llevando 3: $2.100 c/u",
+        "activa": true
+      },
+      "promoRuleTexto": "Llevando 3+: $2.100 c/u"
+    },
+    "reglas": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1844|999-9|2995000000019|precio_unitario|3.000|NULL|2100.00|NULL|NULL|NULL|NULL|panel|1"
+    ],
+    "espejo": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-9|2995000000019|2500.00|2100.00|Llevando 3+: $2.100 c/u|NULL"
+    ],
+    "fecha": "2026-09-16T21:41:32.267Z"
+  },
+  "p2": {
+    "reglaCreadaEnCaja": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1845|999-9|2995000000026|n_x_m|3.000|NULL|NULL|NULL|3|2|NULL|caja|1"
+    ],
+    "panelTrae": {
+      "tipo": "n_x_m",
+      "grupoN": "3",
+      "pagaM": "2",
+      "min": "3",
+      "vigente": "Promo vigente: 3x2",
+      "listPrice": "1000"
+    },
+    "toast": "Precio actualizado — 2995000000026: $1100 (antes $1000 · promo: 3x2)",
+    "reglasDespuesDeGuardarPrecio": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1845|999-9|2995000000026|n_x_m|3.000|NULL|NULL|NULL|3|2|NULL|caja|1"
+    ],
+    "espejo": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-9|2995000000026|1100.00|733.33|3x2|NULL"
+    ],
+    "red": {
+      "branchId": "999-9",
+      "ean": "2995000000026",
+      "description": "BP38 Pan casero caja a panel",
+      "brand": "PRUEBA",
+      "presentationQuantity": 1,
+      "presentationUnit": "UN",
+      "listPrice": 1100,
+      "promo1UnitPrice": 733.33,
+      "promo1Text": "3x2",
+      "promo2UnitPrice": null,
+      "promo2Text": null,
+      "promoRule": {
+        "id": 1845,
+        "branchId": "999-9",
+        "tipo": "n_x_m",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": null,
+        "grupoN": 3,
+        "pagaM": 2,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "2026-09-16T21:42:07Z",
+        "texto": "3x2",
+        "textoCondicion": "3x2",
+        "activa": true
+      },
+      "promoRuleTexto": "3x2"
+    },
+    "fecha": "2026-09-16T21:42:26.409Z"
+  },
+  "p3": {
+    "putConPromo": {
+      "status": 200,
+      "promo1UnitPrice": 900,
+      "promoRuleTexto": "Llevando 1+: $900 c/u"
+    },
+    "reglasTrasPromo900": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1846|999-9|2995000000033|precio_unitario|1.000|NULL|900.00|NULL|NULL|NULL|NULL|panel|1"
+    ],
+    "putVacio": {
+      "status": 200,
+      "promo1UnitPrice": 900,
+      "promoRuleTexto": "Llevando 1+: $900 c/u"
+    },
+    "reglasTrasVacio": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1846|999-9|2995000000033|precio_unitario|1.000|NULL|900.00|NULL|NULL|NULL|NULL|panel|1"
+    ],
+    "caja_x1": {
+      "ean": "2995000000033",
+      "cantidad": 1,
+      "lista": 1050,
+      "descuento": 150,
+      "total": 900,
+      "promoText": "Llevando 1+: $900 c/u",
+      "regla": "Llevando 1+: $900 c/u",
+      "ticketTotal": 900
+    },
+    "espejo": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-9|2995000000033|1050.00|900.00|Llevando 1+: $900 c/u|NULL"
+    ],
+    "fecha": "2026-09-16T21:43:05.735Z"
+  },
+  "p4": {
+    "reglasPrevias": "-\r\n1",
+    "resumen1": "Listo\n\n20 filas procesadas — 19 productos nuevos, 1 precios actualizados, 0 con error.\n\n Promos: 10 nuevas o cambiadas, 1 quitadas, 2 ignoradas. Se publican en la red y la caja las cobra.\n\n¿Se coló algún error? Ver historial de importaciones y deshacer esta carga →\n\nPromos ignoradas (2)\n\nEl precio de estas filas se cargó igual; la promo no.\n\nFila\tMotivo\n4\tPrecio promo $1.200 no es menor que el de lista $1.000: no es promo.\n5\tCantidad minima ilegible: 'tres'.\nCargar otro archivo",
+    "reglas1": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1848|999-9|2996000000001|precio_unitario|3.000|9999.000|2100.00|NULL|NULL|NULL|NULL|csv|1",
+      "1849|999-9|2996000000002|precio_unitario|1.000|NULL|850.00|NULL|NULL|NULL|NULL|csv|1",
+      "1847|999-9|2996000000005|porcentaje|2.000|NULL|NULL|10.00|NULL|NULL|NULL|caja|0",
+      "1850|999-9|2996000000006|precio_unitario|2.000|NULL|700.00|NULL|NULL|NULL|2x1400|csv|1",
+      "1851|999-9|2996000000007|precio_unitario|2.000|12.000|960.00|NULL|NULL|NULL|Oferta 7|csv|1",
+      "1852|999-9|2996000000009|precio_unitario|2.000|12.000|980.00|NULL|NULL|NULL|Oferta 9|csv|1",
+      "1853|999-9|2996000000011|precio_unitario|2.000|12.000|1000.00|NULL|NULL|NULL|Oferta 11|csv|1",
+      "1854|999-9|2996000000013|precio_unitario|2.000|12.000|1020.00|NULL|NULL|NULL|Oferta 13|csv|1",
+      "1855|999-9|2996000000015|precio_unitario|2.000|12.000|1040.00|NULL|NULL|NULL|Oferta 15|csv|1",
+      "1856|999-9|2996000000017|precio_unitario|2.000|12.000|1060.00|NULL|NULL|NULL|Oferta 17|csv|1",
+      "1857|999-9|2996000000019|precio_unitario|2.000|12.000|1080.00|NULL|NULL|NULL|Oferta 19|csv|1"
+    ],
+    "espejo1": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-9|2996000000001|2500.00|2100.00|Llevando 3+: $2.100 c/u (m x. 9999)|NULL",
+      "999-9|2996000000002|1000.00|850.00|Llevando 1+: $850 c/u|NULL",
+      "999-9|2996000000003|1000.00|NULL|NULL|NULL",
+      "999-9|2996000000004|1000.00|NULL|NULL|NULL",
+      "999-9|2996000000005|1000.00|NULL|NULL|NULL",
+      "999-9|2996000000006|1000.00|700.00|2x1400|NULL",
+      "999-9|2996000000007|1060.00|960.00|Oferta 7|NULL",
+      "999-9|2996000000008|1070.00|NULL|NULL|NULL",
+      "999-9|2996000000009|1080.00|980.00|Oferta 9|NULL",
+      "999-9|2996000000010|1090.00|NULL|NULL|NULL",
+      "999-9|2996000000011|1100.00|1000.00|Oferta 11|NULL",
+      "999-9|2996000000012|1110.00|NULL|NULL|NULL",
+      "999-9|2996000000013|1120.00|1020.00|Oferta 13|NULL",
+      "999-9|2996000000014|1130.00|NULL|NULL|NULL",
+      "999-9|2996000000015|1140.00|1040.00|Oferta 15|NULL",
+      "999-9|2996000000016|1150.00|NULL|NULL|NULL",
+      "999-9|2996000000017|1160.00|1060.00|Oferta 17|NULL",
+      "999-9|2996000000018|1170.00|NULL|NULL|NULL",
+      "999-9|2996000000019|1180.00|1080.00|Oferta 19|NULL",
+      "999-9|2996000000020|1190.00|NULL|NULL|NULL"
+    ],
+    "resumen2": "Listo\n\n20 filas procesadas — 0 productos nuevos, 20 precios actualizados, 0 con error.\n\n Promos: 0 nuevas o cambiadas, 0 quitadas, 2 ignoradas. Se publican en la red y la caja las cobra.\n\n¿Se coló algún error? Ver historial de importaciones y deshacer esta carga →\n\nPromos ignoradas (2)\n\nEl precio de estas filas se cargó igual; la promo no.\n\nFila\tMotivo\n4\tPrecio promo $1.200 no es menor que el de lista $1.000: no es promo.\n5\tCantidad minima ilegible: 'tres'.\nCargar otro archivo",
+    "reglas2": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1848|999-9|2996000000001|precio_unitario|3.000|9999.000|2100.00|NULL|NULL|NULL|NULL|csv|1",
+      "1849|999-9|2996000000002|precio_unitario|1.000|NULL|850.00|NULL|NULL|NULL|NULL|csv|1",
+      "1847|999-9|2996000000005|porcentaje|2.000|NULL|NULL|10.00|NULL|NULL|NULL|caja|0",
+      "1850|999-9|2996000000006|precio_unitario|2.000|NULL|700.00|NULL|NULL|NULL|2x1400|csv|1",
+      "1851|999-9|2996000000007|precio_unitario|2.000|12.000|960.00|NULL|NULL|NULL|Oferta 7|csv|1",
+      "1852|999-9|2996000000009|precio_unitario|2.000|12.000|980.00|NULL|NULL|NULL|Oferta 9|csv|1",
+      "1853|999-9|2996000000011|precio_unitario|2.000|12.000|1000.00|NULL|NULL|NULL|Oferta 11|csv|1",
+      "1854|999-9|2996000000013|precio_unitario|2.000|12.000|1020.00|NULL|NULL|NULL|Oferta 13|csv|1",
+      "1855|999-9|2996000000015|precio_unitario|2.000|12.000|1040.00|NULL|NULL|NULL|Oferta 15|csv|1",
+      "1856|999-9|2996000000017|precio_unitario|2.000|12.000|1060.00|NULL|NULL|NULL|Oferta 17|csv|1",
+      "1857|999-9|2996000000019|precio_unitario|2.000|12.000|1080.00|NULL|NULL|NULL|Oferta 19|csv|1"
+    ],
+    "iguales": true,
+    "fecha": "2026-09-16T21:43:36.643Z"
+  },
+  "p6": {
+    "toast": "Producto creado — 2995000000040: $1000 (promo: 20 % llevando 1+)",
+    "reglasCuenta": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1858|NULL|2995000000040|porcentaje|1.000|NULL|NULL|20.00|NULL|NULL|NULL|panel|1"
+    ],
+    "espejoCuenta": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-8|2995000000040|1000.00|800.00|20 % llevando 1+|NULL",
+      "999-9|2995000000040|1000.00|800.00|20 % llevando 1+|NULL"
+    ],
+    "caja_999_8": {
+      "ean": "2995000000040",
+      "cantidad": 1,
+      "lista": 1000,
+      "descuento": 200,
+      "total": 800,
+      "promoText": "20 % llevando 1+",
+      "regla": "20 % llevando 1+",
+      "ticketTotal": 800
+    },
+    "caja_999_9": {
+      "ean": "2995000000040",
+      "cantidad": 1,
+      "lista": 1000,
+      "descuento": 200,
+      "total": 800,
+      "promoText": "20 % llevando 1+",
+      "regla": "20 % llevando 1+",
+      "ticketTotal": 800
+    },
+    "putSucursal": {
+      "status": 200,
+      "promoRuleTexto": "Llevando 1+: $700 c/u"
+    },
+    "caja_999_9_con_regla_de_sucursal": {
+      "ean": "2995000000040",
+      "cantidad": 1,
+      "lista": 1000,
+      "descuento": 300,
+      "total": 700,
+      "promoText": "Llevando 1+: $700 c/u",
+      "regla": "Llevando 1+: $700 c/u",
+      "ticketTotal": 700
+    },
+    "caja_999_8_sigue_cuenta": {
+      "ean": "2995000000040",
+      "cantidad": 1,
+      "lista": 1000,
+      "descuento": 200,
+      "total": 800,
+      "promoText": "20 % llevando 1+",
+      "regla": "20 % llevando 1+",
+      "ticketTotal": 800
+    },
+    "reglasFinal": [
+      "Id|BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|Leyenda|Origen|Activa",
+      "--|--------|---|----|------|------|-----------|----------|------|-----|-------|------|------",
+      "1858|NULL|2995000000040|porcentaje|1.000|NULL|NULL|20.00|NULL|NULL|NULL|panel|1",
+      "1859|999-9|2995000000040|precio_unitario|1.000|NULL|700.00|NULL|NULL|NULL|NULL|panel|1"
+    ],
+    "espejoFinal": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Promo2Text",
+      "--------|---------|---------|---------------|----------|----------",
+      "999-8|2995000000040|1000.00|800.00|20 % llevando 1+|NULL",
+      "999-9|2995000000040|1000.00|700.00|Llevando 1+: $700 c/u|NULL"
+    ],
+    "fecha": "2026-09-16T21:45:07.989Z"
+  },
+  "p7": {
+    "sinceItems": 2,
+    "migrados": [
+      {
+        "ean": "2994000000013",
+        "listPrice": 2000,
+        "promo1UnitPrice": 1800,
+        "promo1Text": "Oferta panel vieja",
+        "updatedAtUtc": "2026-09-16T21:36:36Z",
+        "promoRule": {
+          "id": 1841,
+          "branchId": "999-9",
+          "tipo": "precio_unitario",
+          "minQty": 1,
+          "maxQty": null,
+          "precioPromo": 1800,
+          "porcentaje": null,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "2026-09-16T21:36:36Z",
+          "texto": "Llevando 1+: $1.800 c/u",
+          "textoCondicion": "Llevando 1: $1.800 c/u",
+          "leyenda": "Oferta panel vieja",
+          "activa": true
+        }
+      },
+      {
+        "ean": "2994000000020",
+        "listPrice": 500,
+        "promo1UnitPrice": 450,
+        "promo1Text": null,
+        "updatedAtUtc": "2026-09-16T21:36:36Z",
+        "promoRule": {
+          "id": 1842,
+          "branchId": "999-9",
+          "tipo": "precio_unitario",
+          "minQty": 1,
+          "maxQty": null,
+          "precioPromo": 450,
+          "porcentaje": null,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "2026-09-16T21:36:36Z",
+          "texto": "Llevando 1+: $450 c/u",
+          "textoCondicion": "Llevando 1: $450 c/u",
+          "activa": true
+        }
+      }
+    ],
+    "caja_A": {
+      "ean": "2994000000013",
+      "cantidad": 1,
+      "lista": 2000,
+      "descuento": 200,
+      "total": 1800,
+      "promoText": "Llevando 1+: $1.800 c/u",
+      "regla": "Llevando 1+: $1.800 c/u",
+      "ticketTotal": 1800
+    },
+    "caja_B": {
+      "ean": "2994000000020",
+      "cantidad": 2,
+      "lista": 500,
+      "descuento": 100,
+      "total": 900,
+      "promoText": "Llevando 1+: $450 c/u",
+      "regla": "Llevando 1+: $450 c/u",
+      "ticketTotal": 900
+    },
+    "fecha": "2026-09-16T21:45:37.616Z"
+  },
+  "lista": {
+    "pagina": 2,
+    "filas": [
+      "2996000000005 | BP38 CSV 5 promo vacia (tenia regla) (PRUEBA) | 1 UN | $1000 | —",
+      "2996000000006 | BP38 CSV 6 leyenda 2x1400 (PRUEBA) | 1 UN | $1000 | Llevando 2+: $700 c/u",
+      "2996000000007 | BP38 CSV 7 (PRUEBA) | 1 UN | $1060 | Llevando 2+: $960 c/u (máx. 12)",
+      "2996000000008 | BP38 CSV 8 (PRUEBA) | 1 UN | $1070 | —",
+      "2996000000009 | BP38 CSV 9 (PRUEBA) | 1 UN | $1080 | Llevando 2+: $980 c/u (máx. 12)",
+      "2994000000037 | BP38 Dato viejo sin regla (PRUEBA) | 1 UN | $1000 | $900 — sin regla: la caja no la cobra",
+      "2995000000040 | BP38 Galletitas todas las sucursales (PRUEBA) | 1 UN | $1000 | Llevando 1+: $700 c/u",
+      "2995000000019 | BP38 Gaseosa panel a caja 1,5 L (PRUEBA) | 1 UN | $2500 | Llevando 3+: $2.100 c/u",
+      "2995000000026 | BP38 Pan casero caja a panel (PRUEBA) | 1 UN | $1100 | 3x2",
+      "2990000000011 | BP38 prueba 2990000000011 (PRUEBA) | 1 UN | $2600 | —",
+      "2990000000028 | BP38 prueba 2990000000028 (PRUEBA) | 1 UN | $1000 | 3x2",
+      "2990000000035 | BP38 prueba 2990000000035 (PRUEBA) | 1 UN | $1000 | 2da al 50 %",
+      "2990000000042 | BP38 prueba 2990000000042 (PRUEBA) | 1 KG | $3500 | 10 % llevando 2+",
+      "2990000000059 | BP38 prueba 2990000000059 (PRUEBA) | 1 UN | $1000 | —",
+      "2995000000033 | BP38 Yerba formulario viejo (PRUEBA) | 1 UN | $1050 | Llevando 1+: $900 c/u",
+      "2994000000013 | Migracion prueba A (promo vieja con leyenda) (PRUEBA) | 1 UN | $2000 | Llevando 1+: $1.800 c/u",
+      "2994000000020 | Migracion prueba B (promo vieja sin leyenda) (PRUEBA) | 1 UN | $500 | Llevando 1+: $450 c/u"
+    ],
+    "fecha": "2026-09-16T21:46:09.227Z"
+  }
+}

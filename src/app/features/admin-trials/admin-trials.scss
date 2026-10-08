@@ -1,0 +1,102 @@
+.admin-trials {
+  max-width: 960px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+.admin-trials__search {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.admin-trials__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-trials__table th,
+.admin-trials__table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.admin-trials__commerce-id {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.admin-trials__badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.admin-trials__badge--none {
+  background: var(--bg-elevated);
+  color: var(--text-3);
+}
+
+.admin-trials__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.admin-trials__actions select,
+.admin-trials__actions input {
+  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.admin-trials__actions input[type='number'] {
+  width: 4rem;
+}
+
+.admin-trials__actions button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-trials__actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-trials__revoke {
+  background: var(--danger) !important;
+}

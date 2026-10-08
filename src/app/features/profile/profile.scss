@@ -1,0 +1,76 @@
+.profile-page {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.profile-page__header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-page__card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-page__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.profile-page__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.profile-page__avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.profile-page__upload-label {
+  cursor: pointer;
+}
+
+.profile-page__upload-btn {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.profile-page__email {
+  color: var(--text-2);
+  font-size: 0.9rem;
+  margin: -0.5rem 0 0.5rem;
+}
+
+.profile-page__change-password {
+  align-self: flex-start;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.form-success {
+  color: var(--success);
+  font-size: 0.9rem;
+}

@@ -1,0 +1,22 @@
+# preciosiq.com — la landing es pública; el panel (detrás de login) no tiene sentido indexarlo.
+User-agent: *
+Allow: /$
+Allow: /registrarme
+Allow: /home/
+Allow: /og/
+Allow: /llms.txt
+Disallow: /login
+Disallow: /recuperar-contrasena
+Disallow: /alta
+Disallow: /dashboard
+Disallow: /benchmark
+Disallow: /sucursales
+Disallow: /precios
+Disallow: /ventas
+Disallow: /plan
+Disallow: /perfil
+Disallow: /api/
+
+Sitemap: https://preciosiq.com/sitemap.xml
+
+# Resumen del producto para modelos de lenguaje: https://preciosiq.com/llms.txt

@@ -1,0 +1,82 @@
+<div class="signup card--page">
+  <h1>Historial de importaciones</h1>
+  <p class="subtitle">
+    Las últimas cargas masivas por CSV. Si alguna quedó mal (por ejemplo, un separador
+    decimal mal configurado), la podés deshacer del todo desde acá.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+    @if (undoMessage()) {
+      <p class="success-message">{{ undoMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="hint">Cargando historial…</p>
+    } @else if (batches().length === 0) {
+      <p class="hint">
+        Todavía no hiciste ninguna carga masiva.
+        <a routerLink="/precios/carga-masiva">Cargar un CSV →</a>
+      </p>
+    } @else {
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Sucursal</th>
+            <th>Archivo</th>
+            <th>Filas</th>
+            <th>Nuevos</th>
+            <th>Actualizados</th>
+            <th>Con error</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of batches(); track b.id) {
+            <tr [class.batch--reverted]="b.revertedAt">
+              <td>{{ b.importedAt | date: 'dd/MM/yy HH:mm' }}</td>
+              <td>{{ b.branchName }}</td>
+              <td>{{ b.fileName ?? '—' }}</td>
+              <td>{{ b.totalRows }}</td>
+              <td>{{ b.created }}</td>
+              <td>{{ b.updated }}</td>
+              <td>{{ b.failed }}</td>
+              <td>
+                @if (b.revertedAt) {
+                  <span class="status-badge status-badge--reverted">Deshecha</span>
+                } @else {
+                  <span class="status-badge status-badge--active">Vigente</span>
+                }
+              </td>
+              <td>
+                @if (!b.revertedAt) {
+                  <button
+                    type="button"
+                    class="link-btn link-btn--danger"
+                    [disabled]="undoingId() === b.id"
+                    (click)="undo(b)"
+                  >
+                    {{ undoingId() === b.id ? 'Deshaciendo…' : 'Deshacer' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

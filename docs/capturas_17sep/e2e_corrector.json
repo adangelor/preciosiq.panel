@@ -1,0 +1,57 @@
+{
+  "antes": [
+    "ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Tipo|PrecioPromo|Porcentaje",
+    "---------|---------|---------------|----------|----|-----------|----------",
+    "2998000000018|1529.00|1452.55|Llevando 1+: $1.452,55 c/u|precio_unitario|1452.55|NULL",
+    "2998000000025|399.00|359.10|10 % llevando 2+|porcentaje|NULL|10.00"
+  ],
+  "anomalias": [
+    "Amargo de prueba x 1,5 Lt | Precio de lista | $152900.00 | $1529.00 (precio anterior) | +9900% | Editar",
+    "Amargo de prueba x 1,5 Lt | Promo 1 | $145255.00 | $1452.55 (precio anterior) | +9900% | Editar",
+    "Jugo de prueba x unidad | Precio de lista | $39900.00 | $399.00 (precio anterior) | +9900% | Editar"
+  ],
+  "edicionLista": {
+    "campos": [
+      "1529"
+    ],
+    "nota": "Precio de lista Volver al anterior ($1529.00) Guardar Cancelar Este producto tiene la promo “Llevando 1+: $145.255 c/u”: no se toca, pero se recalcula con el precio nuevo."
+  },
+  "tablaTrasPrimera": [
+    "Amargo de prueba x 1,5 Lt Precio de lista $152900.00 $1529.00 (precio anterior) +9900% corregido: $1529"
+  ],
+  "edicionPromo": {
+    "campos": [
+      "1529",
+      "1452.55"
+    ],
+    "nota": "Precio de lista Precio promo Volver al anterior ($1452.55) Guardar Cancelar"
+  },
+  "edicionB": {
+    "campos": [
+      "399"
+    ],
+    "nota": "Precio de lista Volver al anterior ($399.00) Guardar Cancelar"
+  },
+  "tablaFinal": [
+    "Amargo de prueba x 1,5 Lt Precio de lista $152900.00 $1529.00 (precio anterior) +9900% corregido: $1529",
+    "Amargo de prueba x 1,5 Lt Promo 1 $145255.00 $1452.55 (precio anterior) +9900% corregido: lista $1529 · promo $1452.55",
+    "Jugo de prueba x unidad Precio de lista $39900.00 $399.00 (precio anterior) +9900% corregido: $399"
+  ],
+  "despues": [
+    "ProductId|ListPrice|Promo1UnitPrice|Promo1Text|Tipo|PrecioPromo|Porcentaje|Origen",
+    "---------|---------|---------------|----------|----|-----------|----------|------",
+    "2998000000018|1529.00|1452.55|Llevando 1+: $1.452,55 c/u|precio_unitario|1452.55|NULL|panel",
+    "2998000000025|399.00|NULL|NULL|NULL|NULL|NULL|NULL"
+  ],
+  "historial": [
+    "ProductId|ChangeType|ListPrice|PrevListPrice|Source",
+    "---------|----------|---------|-------------|------",
+    "2998000000018|INSERT|1529.00|NULL|self_reported",
+    "2998000000025|INSERT|399.00|NULL|self_reported",
+    "2998000000018|UPDATE|152900.00|1529.00|self_reported",
+    "2998000000025|UPDATE|39900.00|399.00|self_reported",
+    "2998000000018|UPDATE|1529.00|152900.00|self_reported",
+    "2998000000018|UPDATE|1529.00|1529.00|self_reported",
+    "2998000000025|UPDATE|399.00|39900.00|self_reported"
+  ]
+}

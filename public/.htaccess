@@ -1,0 +1,35 @@
+# PreciosIQ panel (Angular SPA) -- fallback de routing client-side.
+# Sin esto, cualquier ruta que no sea "/" (ej. /sucursales, /dashboard,
+# /benchmark) da 404 al refrescar o al entrar por link directo, porque Apache
+# busca un archivo/carpeta real en el server con ese nombre y no existe: las
+# rutas las resuelve el router de Angular en el navegador, no el server.
+#
+# Este archivo vive en retailiq.panel/public/.htaccess -- Angular CLI copia
+# todo el contenido de "public/" a la raiz de dist/retailiq.panel/browser en
+# cada build (ver "assets" en angular.json), asi que viaja solo con cada
+# deploy nuevo, no hay que volver a subirlo a mano.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Si el archivo o la carpeta pedida existe de verdad en el server (JS, CSS,
+  # imagenes, favicon.ico, etc.), serville tal cual -- no reescribir esos.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Cualquier otra cosa (rutas de Angular) cae en index.html, y el router del
+  # lado del cliente toma desde ahi.
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# index.html nunca se debe cachear agresivo (referencia los bundles hasheados
+# de cada build) -- si el navegador lo cachea, un deploy nuevo puede quedar
+# sirviendo index.html viejo apuntando a chunks que ya no existen (pantalla
+# en blanco hasta hacer hard refresh).
+<IfModule mod_headers.c>
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>

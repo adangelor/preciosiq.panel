@@ -1,0 +1,142 @@
+// E13 (25-ago-2026) -- "Cargar ventas". Misma base visual que csv-import.scss.
+.signup {
+  max-width: 900px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+input,
+select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.signup__row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.signup__row > label {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-error,
+.field-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: -0.4rem 0 0.9rem;
+}
+
+label .hint {
+  margin: 0;
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: var(--bg-elevated);
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.preview-scroll {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.preview-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  margin-bottom: 1rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+// Radios del modo de período: en fila, no apilados como el label genérico.
+.period-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.9rem;
+}
+
+.period-mode__option {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0;
+  cursor: pointer;
+
+  input[type='radio'] {
+    width: auto;
+    margin: 0;
+  }
+}
+
+.result-ok {
+  color: var(--success);
+  margin-right: 0.35rem;
+}
+
+.result-step p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}

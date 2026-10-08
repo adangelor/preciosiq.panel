@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "body": {
+    "promoRule": {
+      "id": 1846,
+      "branchId": "999-9",
+      "tipo": "precio_unitario",
+      "minQty": 1,
+      "maxQty": null,
+      "precioPromo": 900,
+      "porcentaje": null,
+      "grupoN": null,
+      "pagaM": null,
+      "cadaN": null,
+      "validFrom": null,
+      "validTo": null,
+      "updatedAtUtc": "2026-09-16T21:42:43Z",
+      "texto": "Llevando 1+: $900 c/u",
+      "textoCondicion": "Llevando 1: $900 c/u",
+      "activa": true
+    },
+    "promoRuleTexto": "Llevando 1+: $900 c/u",
+    "commerceId": "999-7",
+    "bannerId": "1",
+    "branchId": "999-9",
+    "ean": "2995000000033",
+    "listPrice": 1000,
+    "previousListPrice": null,
+    "wasNewProduct": true,
+    "promo1UnitPrice": 900,
+    "promo1Text": "Llevando 1+: $900 c/u",
+    "promo2UnitPrice": null,
+    "promo2Text": null
+  }
+}

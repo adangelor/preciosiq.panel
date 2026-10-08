@@ -1,0 +1,128 @@
+.business-profile {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.business-profile__header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.business-profile__header .subtitle {
+  color: var(--text-2);
+  margin: 0 0 1.5rem;
+}
+
+.business-profile__card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+.business-profile__logo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.business-profile__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.business-profile__logo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.business-profile__logo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.business-profile__logo-fetch {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 220px;
+  }
+}
+
+.business-profile__upload-label {
+  cursor: pointer;
+}
+
+.business-profile__upload-btn {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.business-profile__branch-select {
+  width: 100%;
+  max-width: 320px;
+}
+
+.business-profile__address-row {
+  display: flex;
+  gap: 0.75rem;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.business-profile__street {
+  flex: 2 !important;
+}
+
+.business-profile__number {
+  flex: 1 !important;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-2);
+
+  &--small {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.form-success {
+  color: var(--success);
+  font-size: 0.9rem;
+}

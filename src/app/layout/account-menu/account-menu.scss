@@ -1,0 +1,52 @@
+.account-menu__trigger {
+  margin-left: 0.5rem;
+  // Fix "queda un ovalo" (17-ago-2026): mat-icon-button de Material 3 no siempre tiene
+  // ancho y alto iguales (el touch-target/state-layer interno no es un cuadrado
+  // perfecto segun los tokens M3 de este tema) -- eso estiraba el circulo de adentro a
+  // ovalo. Forzando ancho/alto IGUALES + padding 0 + overflow hidden en el boton mismo,
+  // el circulo de adentro (que ya tiene border-radius: 50%) queda siempre perfecto sin
+  // depender de la caja interna de Material.
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.account-menu__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-menu__avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // E-Cuenta fix (17-ago-2026) -- ESTE panel usa Material 3 (mat.theme() en
+  // styles.scss), no Material 2: color="primary" en mat-toolbar NO pinta el fondo de
+  // azul como en M2 (queda blanco/superficie). Un circulo blanco translucido con texto
+  // blanco (lo que habia antes) quedaba blanco sobre blanco -- invisible. Fondo solido
+  // de marca (#2e5aac, el mismo azul que el sidenav) para que se vea SIEMPRE, sin
+  // depender de que color de fondo tenga el toolbar en cada momento.
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.account-menu__header {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem 0.75rem;
+  line-height: 1.3;
+}
+
+.account-menu__email {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}

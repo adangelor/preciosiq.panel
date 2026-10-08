@@ -1,0 +1,64 @@
+PromoRuleService harness -- 2026-10-02 19:25:36 -- copia local, cuenta 4
+  [OK] alta de producto 2993000000017 en 999-9
+  [OK] alta de producto 2993000000017 en 999-8
+  [OK] alta de producto 2993000000024 en 999-9
+  [OK] alta de producto 2993000000031 en 999-9
+
+1. promoRule en tres estados (Parsear)
+  [OK] ausente -> Ausente
+  [OK] null -> Borrar
+  [OK] objeto -> Regla (3x2)
+  [OK] numero -> Invalido con mensaje
+  [OK] validacion pesable con 3x2 (mismo mensaje que la caja)
+  [OK] 500 GR no es pesable (unidad con contenido)
+
+2. Ambito: sucursal gana sobre cuenta; null desactiva las dos
+  [OK] regla de cuenta guardada con BranchId null y origen panel
+  [OK] regla de sucursal 999-9 guardada
+  [OK] en 999-9 gana la de sucursal (precio_unitario)
+  [OK] en 999-8 vale la de cuenta (porcentaje)
+  [OK] espejo 999-9 = $2.100 'Llevando 3+: $2.100 c/u'
+  [OK] espejo 999-8 (regla de cuenta) = 2000 '20 % llevando 1+'
+  [OK] EspejarAsync cambio las 2 filas
+  [OK] EspejarAsync otra vez no cambia nada
+  [OK] null desde 999-9 desactiva la de 999-9 Y la de cuenta
+  [OK] sin regla activa el espejo limpia los dos campos (en las dos sucursales)
+  [OK] ausente no toca nada (GuardarAsync devuelve null)
+
+3. Panel: Promo1UnitPrice sin promoRule -> regla; vacio no borra
+  [OK] promoRule ausente + promo1UnitPrice 900 -> Regla precio_unitario min 1, leyenda, convertida
+  [OK] espejo con leyenda: 900 / 'Oferta 900'
+  [OK] con promoRule presente se ignora promo1UnitPrice
+  [OK] promoRule ausente + promo1UnitPrice vacio -> Ausente
+  [OK] el 3x2 sigue activo despues de guardar con promo vacia
+  [OK] promoRule null (aunque venga promo1UnitPrice) -> Borrar
+
+4. CSV: filas, 9999, ilegibles, vacio borra, repetir no duplica
+  [OK] promo 2100, desde 3 hasta 9999 -> Crear min 3 max 9999 (literal)
+  [OK] sin minimo -> Crear desde 1, sin maximo
+  [OK] promo >= lista -> Ignorar con motivo
+  [OK] minimo ilegible -> Ignorar con motivo
+  [OK] precio promo vacio -> Desactivar
+  [OK] maximo menor al minimo -> Ignorar con el mensaje de siempre
+  [OK] precio promo ilegible -> Ignorar
+  [OK] solo descuento % -> Crear regla porcentaje con minimo y leyenda
+  [OK] precio promo Y descuento % -> gana el precio, con aviso
+  [OK] descuento % fuera de 0-100 -> Ignorar con motivo
+  [OK] descuento % ilegible -> Ignorar
+  [OK] precio promo y % vacios -> Desactivar
+  [OK] minimo ilegible con % -> Ignorar
+  [OK] lote: 3 reglas nuevas, 1 desactivada (el 3x2 de B)
+  [OK] repetir la misma carga no toca nada (0/0)
+  [OK] una sola activa por EAN en 999-9
+  [OK] origen 'csv'
+  [OK] leyenda del CSV '2x1400': el espejo dice '2x1400', no el texto generado
+  [OK] celda vacia desactiva la regla de sucursal (1), la identica no se toca (0 nuevas)
+  [OK] despues del borrado del CSV manda la regla de cuenta (10 %)
+  [OK] espejo C = 900 '10 % llevando 1+'
+  [OK] lote con descuento %: 1 nueva
+  [OK] la regla quedo con Tipo porcentaje y Porcentaje 15 (no NULL)
+  [OK] repetir la carga con % no toca nada (0/0)
+  [OK] espejo del % = 850 con la leyenda del CSV
+  [OK] regla sin descuento -> espejo vacio (precio Y texto)
+
+RESULTADO: 53 OK, 0 FALLAN

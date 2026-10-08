@@ -1,0 +1,334 @@
+<div class="signup">
+  @if (createdAccount(); as account) {
+    <div class="signup__success">
+      <div class="signup__success-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28">
+          <circle cx="12" cy="12" r="12" fill="#1e7e34" />
+          <path d="M7 12.5l3 3 7-7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <div class="signup__success-header">
+        @if (logoStatus() === 'loading') {
+          <div class="signup__logo-placeholder signup__logo-placeholder--loading" aria-hidden="true"></div>
+        } @else if (logoStatus() === 'done' && logoUrl()) {
+          <img class="signup__logo" [src]="resolveLogoUrl(logoUrl())" alt="Logo de {{ account.razonSocial }}" />
+        }
+        <h1>¡Listo, {{ account.razonSocial }}!</h1>
+      </div>
+
+      <p class="subtitle">
+        Tu cuenta ya está creada. Ya podés ver tu benchmark de precios frente a la competencia cercana.
+      </p>
+
+      @if (logoStatus() === 'loading') {
+        <p class="hint">Guardando el logo de tu comercio…</p>
+      } @else if (logoStatus() === 'error') {
+        <p class="hint">{{ logoErrorMessage() }}</p>
+      }
+
+      <!-- 25-ago-2026 -- si en el paso de sucursales cargaron mas de una, las extras se
+           crean despues de la cuenta, una por una. Aca se informa cual quedo y cual no. -->
+      @if (extraBranchResults().length > 0) {
+        <ul class="signup__extra-branches">
+          @for (r of extraBranchResults(); track r.name) {
+            <li [class.signup__extra-branches--failed]="!r.ok">
+              <i class="fa-solid" [class.fa-check]="r.ok" [class.fa-xmark]="!r.ok" aria-hidden="true"></i>
+              {{ r.name }}
+              @if (!r.ok) {
+                <span class="hint">— {{ r.error }} Podés agregarla desde "Sucursales".</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (checkoutError()) {
+        <p class="form-error">{{ checkoutError() }}</p>
+      }
+
+      <button type="button" class="signup__success-cta" (click)="continueToDashboard()">Ir a mi panel</button>
+    </div>
+  } @else {
+    <h1>Sumá tu comercio a PreciosIQ</h1>
+    <p class="subtitle">
+      Con esto ya vas a poder ver tu benchmark de precios frente a la competencia cercana.
+      Publicar tus precios en la app de consumidores es un paso aparte, y siempre opcional.
+    </p>
+
+    <!--
+      25-ago-2026 -- pedido de Andres: el alta pasa a ser un wizard de a un paso por
+      pantalla, en vez de un formulario largo con cuatro fieldsets apilados. Los pasos
+      completados se pueden volver a abrir tocando el numero; para avanzar hay que dejar
+      valido el paso actual (ver next() en el .ts). El submit real recien ocurre en el
+      ultimo paso -- hasta ahi no se llama a ningun endpoint.
+    -->
+    <ol class="wizard-steps" aria-label="Pasos del alta">
+      @for (s of steps; track s.n) {
+        <li
+          class="wizard-step"
+          [class.wizard-step--current]="step() === s.n"
+          [class.wizard-step--done]="step() > s.n"
+          [attr.aria-current]="step() === s.n ? 'step' : null"
+        >
+          <button type="button" class="wizard-step__btn" (click)="goToStep(s.n)" [disabled]="s.n > step()">
+            <span class="wizard-step__num" aria-hidden="true">
+              @if (step() > s.n) {
+                <i class="fa-solid fa-check"></i>
+              } @else {
+                {{ s.n }}
+              }
+            </span>
+            <span class="wizard-step__label">{{ s.label }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="signup__form">
+      <!-- ============================================================ 1. PLAN -->
+      @if (step() === 1) {
+        <fieldset class="signup__plans-fieldset">
+          <legend>Elegí tu plan</legend>
+          <p class="field-hint">
+            Arrancá gratis: cargá tu catálogo completo, sin límite de productos, y probá si te sirve. Podés subir de plan cuando quieras, ahora o más adelante.
+          </p>
+
+          @if (plans(); as planList) {
+            @if (planList.length > 0) {
+              <div class="signup__plan-cards">
+                @for (plan of planList; track plan.tier) {
+                  <button
+                    type="button"
+                    class="signup__plan-card"
+                    [class.signup__plan-card--selected]="selectedTier() === plan.tier"
+                    (click)="selectTier(plan.tier)"
+                  >
+                    @if (plan.tier === 'free') {
+                      <span class="signup__plan-card__badge">Ideal para probar</span>
+                    }
+                    <h3>{{ plan.displayName }}</h3>
+                    <p class="signup__plan-card__price">
+                      @if (plan.priceArs === null) {
+                        Gratis
+                      } @else if (billingCycle() === 'annual') {
+                        ${{ plan.priceArsAnnual }} ARS/año
+                      } @else {
+                        ${{ plan.priceArs }} ARS/mes
+                      }
+                    </p>
+                    <p class="signup__plan-card__detail">
+                      {{ plan.maxProducts === null ? 'Productos ilimitados' : plan.maxProducts + ' productos' }}
+                    </p>
+                  </button>
+                }
+              </div>
+
+              @if (selectedTier() !== 'free') {
+                <div class="billing-cycle-toggle">
+                  <button type="button" [class.active]="billingCycle() === 'monthly'" (click)="setBillingCycle('monthly')">
+                    Mensual
+                  </button>
+                  <button type="button" [class.active]="billingCycle() === 'annual'" (click)="setBillingCycle('annual')">
+                    Anual (2 meses gratis)
+                  </button>
+                </div>
+                <p class="field-hint">
+                  Al crear la cuenta te vamos a redirigir a Mercado Pago para completar la suscripción al plan {{ planDisplayName(selectedTier()) }}.
+                  Si algo falla en el pago, la cuenta igual queda creada en el plan Gratis.
+                </p>
+              }
+            } @else {
+              <p class="hint">No pudimos cargar los planes ahora -- tu cuenta se crea en el plan Gratis, podés subir de plan después desde "Tu plan".</p>
+            }
+          } @else {
+            <p class="hint">Cargando planes…</p>
+          }
+        </fieldset>
+      }
+
+      <!-- ======================================================== 2. COMERCIO -->
+      @if (step() === 2) {
+        <fieldset formGroupName="business">
+          <legend>Tu comercio</legend>
+
+          <label>
+            Razón social
+            <input type="text" formControlName="razonSocial" autocomplete="organization" />
+            @if (business.controls.razonSocial.touched && business.controls.razonSocial.invalid) {
+              <span class="field-error">Ingresá la razón social.</span>
+            }
+          </label>
+
+          <label>
+            CUIT
+            <input type="text" formControlName="cuit" inputmode="numeric" placeholder="30123456789" />
+            @if (business.controls.cuit.touched && business.controls.cuit.invalid) {
+              <span class="field-error">Ingresá un CUIT válido (solo números, sin guiones).</span>
+            }
+          </label>
+        </fieldset>
+      }
+
+      <!-- ====================================================== 3. SUCURSALES -->
+      @if (step() === 3) {
+        <div formArrayName="branches">
+          @for (branch of branches.controls; track branch; let i = $index) {
+            <fieldset [formGroupName]="i" class="signup__branch">
+              <legend>{{ i === 0 ? 'Tu primera sucursal' : 'Sucursal ' + (i + 1) }}</legend>
+              @if (i > 0) {
+                <button type="button" class="signup__branch-remove" (click)="removeBranch(i)" [attr.aria-label]="'Quitar sucursal ' + (i + 1)">
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Quitar
+                </button>
+              }
+
+              <label>
+                Nombre de la sucursal
+                <input type="text" formControlName="branchName" placeholder="Ej: Casa Central" />
+                @if (branch.controls.branchName.touched && branch.controls.branchName.invalid) {
+                  <span class="field-error">Ingresá un nombre para la sucursal.</span>
+                }
+              </label>
+
+              <div class="signup__row">
+                <label class="signup__grow">
+                  Calle
+                  <input type="text" formControlName="street" />
+                  @if (branch.controls.street.touched && branch.controls.street.invalid) {
+                    <span class="field-error">Obligatorio.</span>
+                  }
+                </label>
+                <label>
+                  Número
+                  <input type="text" formControlName="streetNumber" />
+                  @if (branch.controls.streetNumber.touched && branch.controls.streetNumber.invalid) {
+                    <span class="field-error">Obligatorio.</span>
+                  }
+                </label>
+              </div>
+
+              <div class="signup__row">
+                <label class="signup__grow">
+                  Ciudad
+                  <input type="text" formControlName="city" />
+                  @if (branch.controls.city.touched && branch.controls.city.invalid) {
+                    <span class="field-error">Obligatorio.</span>
+                  }
+                </label>
+                <label>
+                  Provincia
+                  <input type="text" formControlName="provinceCode" placeholder="Ej: SL" />
+                  @if (branch.controls.provinceCode.touched && branch.controls.provinceCode.invalid) {
+                    <span class="field-error">Obligatorio.</span>
+                  }
+                </label>
+                <label>
+                  Código postal
+                  <input type="text" formControlName="postalCode" />
+                  @if (branch.controls.postalCode.touched && branch.controls.postalCode.invalid) {
+                    <span class="field-error">Obligatorio.</span>
+                  }
+                </label>
+              </div>
+            </fieldset>
+          }
+        </div>
+
+        <button type="button" class="signup__add-branch" (click)="addBranch()">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar otra sucursal
+        </button>
+        <p class="hint">
+          Podés cargar todas las sucursales que tengas, ahora o más adelante desde "Sucursales". La
+          geolocalización precisa y los horarios se completan después del alta.
+        </p>
+      }
+
+      <!-- ============================================================ 4. LOGO -->
+      @if (step() === 4) {
+        <fieldset>
+          <legend>Logo de tu comercio (opcional)</legend>
+          <p class="field-hint">
+            Completá el sitio web o subí una imagen -- no hace falta las dos. Si no tenés ninguna a mano,
+            lo podés cargar más adelante.
+          </p>
+
+          <label>
+            Sitio web
+            <input
+              type="text"
+              formControlName="sitioWeb"
+              autocomplete="url"
+              placeholder="www.tunegocio.com"
+              [disabled]="!!selectedLogoFile()"
+            />
+            <span class="field-hint">Te traemos el logo de tu comercio automáticamente desde ahí.</span>
+          </label>
+
+          <label>
+            O subí una imagen
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+              (change)="onLogoFileSelected($event)"
+            />
+            @if (logoFileError()) {
+              <span class="field-error">{{ logoFileError() }}</span>
+            }
+            @if (selectedLogoFile()) {
+              <span class="field-hint">Se va a usar esta imagen (PNG, JPG, WEBP, GIF o SVG, hasta 2 MB).</span>
+            }
+          </label>
+        </fieldset>
+
+        <fieldset class="signup__summary">
+          <legend>Resumen</legend>
+          <dl>
+            <dt>Plan</dt>
+            <dd>{{ planDisplayName(selectedTier()) }}{{ selectedTier() !== 'free' ? (billingCycle() === 'annual' ? ' · anual' : ' · mensual') : '' }}</dd>
+            <dt>Comercio</dt>
+            <dd>{{ business.controls.razonSocial.value }} · CUIT {{ business.controls.cuit.value }}</dd>
+            <dt>{{ branches.length === 1 ? 'Sucursal' : 'Sucursales' }}</dt>
+            <dd>
+              @for (b of branches.controls; track b) {
+                <div>{{ b.controls.branchName.value }} — {{ b.controls.street.value }} {{ b.controls.streetNumber.value }}, {{ b.controls.city.value }}</div>
+              }
+            </dd>
+          </dl>
+        </fieldset>
+
+        @if (errorMessage()) {
+          <p class="form-error">{{ errorMessage() }}</p>
+        }
+        @if (checkoutError()) {
+          <p class="form-error">{{ checkoutError() }}</p>
+        }
+      }
+
+      <div class="wizard-nav">
+        @if (step() > 1) {
+          <button type="button" class="wizard-nav__back" (click)="prev()" [disabled]="submitting() || checkoutLoading()">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior
+          </button>
+        }
+        <span class="wizard-nav__spacer"></span>
+        @if (step() < steps.length) {
+          <button type="button" (click)="next()">
+            Siguiente <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        } @else {
+          <button type="submit" [disabled]="submitting() || checkoutLoading()">
+            @if (checkoutLoading()) {
+              Redirigiendo a Mercado Pago…
+            } @else if (submitting()) {
+              Creando cuenta…
+            } @else if (selectedTier() === 'free') {
+              Crear mi cuenta gratis
+            } @else {
+              Crear cuenta y continuar al pago
+            }
+          </button>
+        }
+      </div>
+    </form>
+  }
+</div>

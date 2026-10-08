@@ -1,0 +1,163 @@
+// 17-sep-2026 -- pantalla "Mapeos de columnas" (ver csv-mappings.ts). Tabla ancha: se sale a
+// proposito del ancho angosto del resto de los formularios del panel.
+.mappings {
+  max-width: 1100px;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.25rem;
+}
+
+.mappings__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.mappings__cta {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mappings__check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.mappings__table-wrap {
+  overflow-x: auto;
+}
+
+.mappings__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.mappings__table th,
+.mappings__table td {
+  text-align: left;
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.mappings__table--inner {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.8rem;
+}
+
+.mappings__cols {
+  color: var(--text-2);
+  max-width: 34rem;
+}
+
+.mappings__row--archived td {
+  opacity: 0.6;
+}
+
+.mappings__detail-row td {
+  background: var(--bg-elevated);
+}
+
+.mappings__detail-row h3 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.mappings__detail-row h4 {
+  margin: 0.8rem 0 0.2rem;
+  font-size: 0.9rem;
+}
+
+.mappings__cols-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+}
+
+.mappings__test {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.mappings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mappings__actions button,
+.mappings__test button {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+
+.mappings__secondary {
+  background: var(--border) !important;
+  color: var(--text-2) !important;
+}
+
+.mappings__actions button:disabled,
+.mappings__test button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mappings__name-input {
+  width: 12rem;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+}
+
+.mappings__ok {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.mappings__aviso {
+  color: var(--warning);
+  font-size: 0.85rem;
+  margin: 0.2rem 0;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text-2);
+  font-size: 0.72rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}

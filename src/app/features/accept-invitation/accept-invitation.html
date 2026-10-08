@@ -1,0 +1,38 @@
+<div class="accept-invitation">
+  @if (loading()) {
+    <p class="hint"><mat-spinner diameter="20"></mat-spinner> Cargando invitación…</p>
+  } @else if (!valid()) {
+    <div class="accept-invitation__card">
+      <h1>Invitación no disponible</h1>
+      <p class="form-error">{{ previewError() }}</p>
+      <a routerLink="/dashboard">Ir al tablero</a>
+    </div>
+  } @else if (accepted()) {
+    <div class="accept-invitation__card">
+      <h1>¡Listo!</h1>
+      <p>Te sumaste a {{ razonSocial() }}. Redirigiendo…</p>
+    </div>
+  } @else {
+    <div class="accept-invitation__card">
+      <h1>Te invitaron a sumarte</h1>
+      <p>
+        Te invitaron a <b>{{ razonSocial() }}</b> en PreciosIQ como <b>{{ role() }}</b>.
+      </p>
+      @if (invitedEmail()) {
+        <p class="hint hint--small">Esta invitación es para {{ invitedEmail() }}.</p>
+      }
+
+      @if (acceptError()) {
+        <p class="form-error">{{ acceptError() }}</p>
+      }
+
+      <button mat-flat-button color="primary" type="button" [disabled]="accepting()" (click)="accept()">
+        @if (accepting()) {
+          Aceptando…
+        } @else {
+          Aceptar invitación
+        }
+      </button>
+    </div>
+  }
+</div>

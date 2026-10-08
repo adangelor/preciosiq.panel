@@ -1,0 +1,83 @@
+/* Shell de PreciosIQ.
+
+   Casi todo el estilo del shell (.shell, .shell__sidenav, .shell__brand, .shell__nav,
+   .shell__link, .shell__toolbar, .shell__content) vive en el tema compartido de
+   buscaprecios-full/shared-theme/, para que este panel y el de DistribucionIQ no
+   vuelvan a derivar cada uno por su lado — que es exactamente lo que había pasado:
+   dos archivos de 200 líneas casi iguales, con los mismos bugs arreglados dos veces.
+
+   Acá queda SOLO lo propio de PreciosIQ. Si algo de esto sirve también en el otro
+   panel, mudalo al tema compartido en vez de copiarlo. */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* mat-sidenav pinta su propio fondo con el token de superficie de Material. El tema
+   compartido ya redefine esos tokens, pero el drawer los lee de una variable propia
+   que hay que puentear a mano. */
+.shell .mat-drawer {
+  background: var(--bg-sidebar);
+  color: var(--text);
+}
+
+.shell .mat-drawer-content {
+  background: var(--bg-page);
+}
+
+/* El logo de PreciosIQ son azules oscuros propios (#2b4c82 y compañía). Sobre el
+   sidebar claro se ve perfecto; sobre el oscuro sería azul sobre azul noche. La chapa
+   clara lo resuelve sin tocar el SVG ni inventarle un filtro que le arruine los tonos. */
+:root[data-theme='dark'] .shell__brand-logo,
+:root:not([data-theme='light']) .shell__brand-logo {
+  background: #ffffff;
+  padding: 0.1875rem;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .shell__brand-logo {
+    background: none;
+    padding: 0;
+  }
+}
+
+/* Fila del botón de colapsar: pegada abajo de todo, centrada, separada del menú. */
+.shell__collapse-row {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  justify-content: center;
+}
+
+/* --------------------------------------------------------------- barra superior */
+.shell__toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.shell__toolbar-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  border-radius: 0.25rem;
+  flex: none;
+}
+
+.shell__toolbar-brand-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 48rem) {
+  .shell__toolbar-brand-name {
+    max-width: 9rem;
+  }
+}

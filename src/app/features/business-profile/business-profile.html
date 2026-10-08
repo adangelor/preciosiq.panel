@@ -1,0 +1,149 @@
+<div class="business-profile card--page">
+  <header class="business-profile__header">
+    <h1>Datos del negocio</h1>
+    <p class="subtitle">Corregí lo que cargaste en el alta: razón social, CUIT, logo y domicilio.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="hint"><mat-spinner diameter="20"></mat-spinner> Cargando…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  } @else {
+    <section class="business-profile__card">
+      <h2>Razón social y CUIT</h2>
+      <form [formGroup]="legalForm" (ngSubmit)="saveLegal()">
+        <mat-form-field appearance="outline">
+          <mat-label>Razón social</mat-label>
+          <input matInput formControlName="razonSocial" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CUIT</mat-label>
+          <input matInput formControlName="cuit" />
+        </mat-form-field>
+
+        @if (legalError()) {
+          <p class="form-error">{{ legalError() }}</p>
+        }
+        @if (legalSuccess()) {
+          <p class="form-success">Guardado.</p>
+        }
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="legalForm.invalid || savingLegal()">
+          {{ savingLegal() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="business-profile__card">
+      <h2>Logo</h2>
+      <div class="business-profile__logo-row">
+        @if (account()?.logoUrl) {
+          <img class="business-profile__logo" [src]="resolveLogoUrl(account()!.logoUrl)" alt="" />
+        } @else {
+          <div class="business-profile__logo business-profile__logo--placeholder" aria-hidden="true"><i class="fa-solid fa-store"></i></div>
+        }
+
+        <div class="business-profile__logo-actions">
+          <div class="business-profile__logo-fetch">
+            <mat-form-field appearance="outline">
+              <mat-label>Sitio web</mat-label>
+              <input matInput [ngModel]="websiteUrl()" (ngModelChange)="websiteUrl.set($event)" [ngModelOptions]="{ standalone: true }" placeholder="https://tunegocio.com" />
+            </mat-form-field>
+            <button mat-stroked-button type="button" [disabled]="!websiteUrl() || fetchingLogo()" (click)="fetchLogo()">
+              {{ fetchingLogo() ? 'Buscando…' : 'Traer del sitio' }}
+            </button>
+          </div>
+
+          <label class="business-profile__upload-label">
+            <input type="file" accept="image/jpeg,image/png,image/gif" (change)="onLogoFileSelected($event)" [disabled]="uploadingLogo()" hidden />
+            <span class="business-profile__upload-btn">{{ uploadingLogo() ? 'Subiendo…' : 'Subir un archivo' }}</span>
+          </label>
+        </div>
+      </div>
+
+      @if (logoError()) {
+        <p class="form-error">{{ logoError() }}</p>
+      }
+    </section>
+
+    <section class="business-profile__card">
+      <h2>Domicilio</h2>
+
+      @if (branches().length === 0) {
+        <p class="hint">
+          Todavía no tenés sucursales cargadas.
+          <a routerLink="/sucursales/nueva">Agregar una sucursal →</a>
+        </p>
+      } @else {
+        @if (branches().length > 1) {
+          <mat-form-field appearance="outline" class="business-profile__branch-select">
+            <mat-label>Sucursal</mat-label>
+            <mat-select [ngModel]="selectedBranchId()" (ngModelChange)="selectBranch($event)" [ngModelOptions]="{ standalone: true }">
+              @for (branch of branches(); track branch.branchId) {
+                <mat-option [value]="branch.branchId">{{ branch.branchName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <form [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de la sucursal</mat-label>
+            <input matInput formControlName="branchName" />
+          </mat-form-field>
+
+          <div class="business-profile__address-row">
+            <mat-form-field appearance="outline" class="business-profile__street">
+              <mat-label>Calle</mat-label>
+              <input matInput formControlName="street" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="business-profile__number">
+              <mat-label>Número</mat-label>
+              <input matInput formControlName="streetNumber" />
+            </mat-form-field>
+          </div>
+
+          <div class="business-profile__address-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Ciudad</mat-label>
+              <input matInput formControlName="city" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Provincia</mat-label>
+              <input matInput formControlName="provinceCode" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Código postal</mat-label>
+              <input matInput formControlName="postalCode" />
+            </mat-form-field>
+          </div>
+
+          @if (addressError()) {
+            <p class="form-error">{{ addressError() }}</p>
+          }
+          @if (addressSuccess()) {
+            <p class="form-success">Guardado.</p>
+          }
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="addressForm.invalid || savingAddress()">
+            {{ savingAddress() ? 'Guardando…' : 'Guardar domicilio' }}
+          </button>
+        </form>
+
+        <p class="hint hint--small">
+          ¿Necesitás corregir el punto exacto en el mapa? Eso se hace desde
+          <a routerLink="/sucursales">Mis sucursales →</a>
+        </p>
+      }
+    </section>
+  }
+</div>

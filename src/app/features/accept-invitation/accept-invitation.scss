@@ -1,0 +1,38 @@
+.accept-invitation {
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+.accept-invitation__card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 2rem;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 1rem;
+    font-size: 1.4rem;
+  }
+
+  button {
+    margin-top: 1rem;
+  }
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-2);
+
+  &--small {
+    font-size: 0.85rem;
+  }
+}
+
+.form-error {
+  color: var(--danger);
+}

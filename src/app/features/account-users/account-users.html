@@ -1,0 +1,160 @@
+<div class="account-users card--page">
+  <header class="account-users__header">
+    <h1>Usuarios{{ razonSocial() ? ' de ' + razonSocial() : '' }}</h1>
+    <p class="subtitle">Invitá a alguien más de tu equipo a sumarse a esta cuenta.</p>
+  </header>
+
+  @if (loadingAccount()) {
+    <p class="hint"><mat-spinner diameter="20"></mat-spinner> Cargando…</p>
+  } @else if (!businessAccountId()) {
+    <p class="form-error">No encontramos tu cuenta. Recargá la página.</p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    @if (isOwner()) {
+      <section class="account-users__invite-card">
+        <h2>Invitar a alguien</h2>
+        <form class="invite-form" (ngSubmit)="sendInvite()">
+          <mat-form-field appearance="outline" class="invite-form__email">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [ngModel]="inviteEmail()" (ngModelChange)="inviteEmail.set($event)" name="inviteEmail" placeholder="alguien@tumarca.com" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="invite-form__role">
+            <mat-label>Rol</mat-label>
+            <mat-select [ngModel]="inviteRole()" (ngModelChange)="inviteRole.set($event)" name="inviteRole">
+              <mat-option value="Manager">Manager</mat-option>
+              <mat-option value="Owner">Owner</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="inviting()">
+            @if (inviting()) {
+              Enviando…
+            } @else {
+              Invitar
+            }
+          </button>
+        </form>
+
+        @if (inviteError()) {
+          <p class="form-error">{{ inviteError() }}</p>
+        }
+        @if (inviteSuccess()) {
+          <p class="form-success">{{ inviteSuccess() }}</p>
+        }
+
+        <p class="hint hint--small">
+          Owner puede invitar/quitar gente y administrar la cuenta. Manager puede ver todo pero no gestionar usuarios.
+        </p>
+      </section>
+    }
+
+    <section class="account-users__list-card">
+      <h2>Miembros ({{ members().length }})</h2>
+
+      @if (loadingUsers()) {
+        <p class="hint"><mat-spinner diameter="20"></mat-spinner> Cargando…</p>
+      } @else {
+        <table class="members-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Desde</th>
+              @if (isOwner()) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of members(); track member.userId) {
+              <tr>
+                <td>
+                  {{ memberDisplayName(member) }}
+                  @if (member.isCurrentUser) {
+                    <span class="you-tag">vos</span>
+                  }
+                </td>
+                <td>
+                  <mat-chip [class.role-chip--owner]="member.role === 'Owner'" class="role-chip">{{ member.role }}</mat-chip>
+                </td>
+                <td>{{ member.createdAt | date: 'dd/MM/yyyy' }}</td>
+                @if (isOwner()) {
+                  <td class="actions-cell">
+                    @if (confirmingRemoveUserId() === member.userId) {
+                      <span class="confirm-inline">
+                        ¿Seguro?
+                        <button mat-button color="warn" type="button" (click)="removeMember(member.userId)">Sí, quitar</button>
+                        <button mat-button type="button" (click)="cancelRemoveMember()">Cancelar</button>
+                      </span>
+                    } @else {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        matTooltip="Quitar de la cuenta"
+                        [disabled]="member.isCurrentUser && member.role === 'Owner'"
+                        (click)="confirmRemoveMember(member.userId)"
+                      >
+                        <mat-icon>person_remove</mat-icon>
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+
+    @if (pendingInvitations().length > 0) {
+      <section class="account-users__list-card">
+        <h2>Invitaciones pendientes ({{ pendingInvitations().length }})</h2>
+        <table class="members-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Vence</th>
+              @if (isOwner()) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (invitation of pendingInvitations(); track invitation.id) {
+              <tr [class.invitation-row--expired]="invitation.expired">
+                <td>{{ invitation.email }}</td>
+                <td><mat-chip class="role-chip">{{ invitation.role }}</mat-chip></td>
+                <td>
+                  {{ invitation.expiresAt | date: 'dd/MM/yyyy' }}
+                  @if (invitation.expired) {
+                    <span class="expired-tag">vencida</span>
+                  }
+                </td>
+                @if (isOwner()) {
+                  <td class="actions-cell">
+                    @if (confirmingRevokeInvitationId() === invitation.id) {
+                      <span class="confirm-inline">
+                        ¿Seguro?
+                        <button mat-button color="warn" type="button" (click)="revokeInvitation(invitation.id)">Sí, revocar</button>
+                        <button mat-button type="button" (click)="cancelRevokeInvitation()">Cancelar</button>
+                      </span>
+                    } @else {
+                      <button mat-icon-button type="button" matTooltip="Revocar invitación" (click)="confirmRevokeInvitation(invitation.id)">
+                        <mat-icon>cancel</mat-icon>
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  }
+</div>

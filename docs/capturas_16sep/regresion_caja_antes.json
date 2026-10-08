@@ -1,0 +1,786 @@
+[
+  {
+    "nombre": "a1 precio_unitario 2100 min 3",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": 2100,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "Llevando 3+: $2.100 c/u",
+        "textoCondicion": "Llevando 3: $2.100 c/u",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000011",
+      "listPrice": 2500,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 2100,
+      "promo1Text": "Llevando 3+: $2.100 c/u",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "a2 precio_unitario con max 6",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 3,
+        "maxQty": 6,
+        "precioPromo": 2100,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "Llevando 3+: $2.100 c/u (máx. 6)",
+        "textoCondicion": "Llevando 3: $2.100 c/u",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000011",
+      "listPrice": 2500,
+      "previousListPrice": "<x>",
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 2100,
+      "promo1Text": "Llevando 3+: $2.100 c/u (máx. 6)",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "b 3x2",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "n_x_m",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": null,
+        "grupoN": 3,
+        "pagaM": 2,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "3x2",
+        "textoCondicion": "3x2",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000028",
+      "listPrice": 1000,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 666.67,
+      "promo1Text": "3x2",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "c 2da al 50",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "enesima_porcentaje",
+        "minQty": 2,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": 50,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": 2,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "2da al 50 %",
+        "textoCondicion": "2da al 50 %",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000035",
+      "listPrice": 1000,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 750,
+      "promo1Text": "2da al 50 %",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "d1 pesable 3x2 -> 400",
+    "status": 400,
+    "body": {
+      "error": "Un producto que se vende por kg no puede tener 3x2: usa precio por cantidad o porcentaje."
+    }
+  },
+  {
+    "nombre": "d2 pesable 10 % min 2",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "porcentaje",
+        "minQty": 2,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": 10,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "10 % llevando 2+",
+        "textoCondicion": "Llevando 2: 10 % off",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000042",
+      "listPrice": 3500,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 3150,
+      "promo1Text": "10 % llevando 2+",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "v1 tipo desconocido",
+    "status": 400,
+    "body": {
+      "error": "Tipo de promo desconocido. Los que hay: precio_unitario, porcentaje, n_x_m, enesima_porcentaje."
+    }
+  },
+  {
+    "nombre": "v2 max < min",
+    "status": 400,
+    "body": {
+      "error": "El maximo no puede ser menor que el minimo."
+    }
+  },
+  {
+    "nombre": "v3 promoRule no objeto",
+    "status": 400,
+    "body": {
+      "error": "promoRule tiene que ser un objeto o null."
+    }
+  },
+  {
+    "nombre": "v4 fechas al reves",
+    "status": 400,
+    "body": {
+      "error": "La vigencia termina antes de empezar: revisa las fechas."
+    }
+  },
+  {
+    "nombre": "v5 3x2 min 2",
+    "status": 400,
+    "body": {
+      "error": "Con 3x2 el minimo tiene que ser al menos 3."
+    }
+  },
+  {
+    "nombre": "e1 ausente con promo1 de la app",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 3,
+        "maxQty": 6,
+        "precioPromo": 2100,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "Llevando 3+: $2.100 c/u (máx. 6)",
+        "textoCondicion": "Llevando 3: $2.100 c/u",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000011",
+      "listPrice": 2600,
+      "previousListPrice": "<x>",
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 2100,
+      "promo1Text": "Llevando 3+: $2.100 c/u (máx. 6)",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "t tickets",
+    "status": 200,
+    "body": {
+      "results": [
+        {
+          "ticketLocalId": "<x>",
+          "status": "guardado_con_diferencia",
+          "ticketId": "<x>",
+          "error": null
+        },
+        {
+          "ticketLocalId": "<x>",
+          "status": "guardado",
+          "ticketId": "<x>",
+          "error": null
+        },
+        {
+          "ticketLocalId": "<x>",
+          "status": "guardado_con_diferencia",
+          "ticketId": "<x>",
+          "error": null
+        },
+        {
+          "ticketLocalId": "<x>",
+          "status": "guardado",
+          "ticketId": "<x>",
+          "error": null
+        }
+      ],
+      "guardados": 4,
+      "duplicados": 0,
+      "rechazados": 0
+    }
+  },
+  {
+    "nombre": "k1 regla de cuenta",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": null,
+        "tipo": "porcentaje",
+        "minQty": 1,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": 20,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "20 % llevando 1+",
+        "textoCondicion": "Llevando 1: 20 % off",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000059",
+      "listPrice": 1000,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 800,
+      "promo1Text": "20 % llevando 1+",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "k2 mismo producto en 999-8",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": null,
+        "tipo": "porcentaje",
+        "minQty": 1,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": 20,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "20 % llevando 1+",
+        "textoCondicion": "Llevando 1: 20 % off",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-8",
+      "ean": "2990000000059",
+      "listPrice": 1000,
+      "previousListPrice": null,
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": null,
+      "promo1Text": null,
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "k3 regla de sucursal en 999-9 (gana)",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": "999-9",
+        "tipo": "n_x_m",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": null,
+        "grupoN": 3,
+        "pagaM": 2,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "3x2",
+        "textoCondicion": "3x2",
+        "activa": true
+      },
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000059",
+      "listPrice": 1000,
+      "previousListPrice": "<x>",
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": 666.67,
+      "promo1Text": "3x2",
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "catalogo 999-8 (EANs de prueba)",
+    "status": 200,
+    "body": [
+      {
+        "ean": "2990000000059",
+        "description": "BP38 prueba 2990000000059",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 1000,
+        "promo1UnitPrice": null,
+        "promo1Text": null,
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": null,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": null,
+          "tipo": "porcentaje",
+          "minQty": 1,
+          "maxQty": null,
+          "precioPromo": null,
+          "porcentaje": 20,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "20 % llevando 1+",
+          "textoCondicion": "Llevando 1: 20 % off",
+          "activa": true
+        }
+      }
+    ]
+  },
+  {
+    "nombre": "catalogo 999-9 (EANs de prueba)",
+    "status": 200,
+    "body": [
+      {
+        "ean": "2990000000011",
+        "description": "BP38 prueba 2990000000011",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 2600,
+        "promo1UnitPrice": 2100,
+        "promo1Text": "Llevando 3+: $2.100 c/u (máx. 6)",
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": -8,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": "999-9",
+          "tipo": "precio_unitario",
+          "minQty": 3,
+          "maxQty": 6,
+          "precioPromo": 2100,
+          "porcentaje": null,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "Llevando 3+: $2.100 c/u (máx. 6)",
+          "textoCondicion": "Llevando 3: $2.100 c/u",
+          "activa": true
+        }
+      },
+      {
+        "ean": "2990000000028",
+        "description": "BP38 prueba 2990000000028",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 1000,
+        "promo1UnitPrice": 666.67,
+        "promo1Text": "3x2",
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": -5,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": "999-9",
+          "tipo": "n_x_m",
+          "minQty": 3,
+          "maxQty": null,
+          "precioPromo": null,
+          "porcentaje": null,
+          "grupoN": 3,
+          "pagaM": 2,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "3x2",
+          "textoCondicion": "3x2",
+          "activa": true
+        }
+      },
+      {
+        "ean": "2990000000035",
+        "description": "BP38 prueba 2990000000035",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 1000,
+        "promo1UnitPrice": 750,
+        "promo1Text": "2da al 50 %",
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": -5,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": "999-9",
+          "tipo": "enesima_porcentaje",
+          "minQty": 2,
+          "maxQty": null,
+          "precioPromo": null,
+          "porcentaje": 50,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": 2,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "2da al 50 %",
+          "textoCondicion": "2da al 50 %",
+          "activa": true
+        }
+      },
+      {
+        "ean": "2990000000042",
+        "description": "BP38 prueba 2990000000042",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "KG",
+        "listPrice": 3500,
+        "promo1UnitPrice": 3150,
+        "promo1Text": "10 % llevando 2+",
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": -2.5,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": "999-9",
+          "tipo": "porcentaje",
+          "minQty": 2,
+          "maxQty": null,
+          "precioPromo": null,
+          "porcentaje": 10,
+          "grupoN": null,
+          "pagaM": null,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "10 % llevando 2+",
+          "textoCondicion": "Llevando 2: 10 % off",
+          "activa": true
+        }
+      },
+      {
+        "ean": "2990000000059",
+        "description": "BP38 prueba 2990000000059",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 1000,
+        "promo1UnitPrice": 666.67,
+        "promo1Text": "3x2",
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": null,
+        "updatedAtUtc": "<x>",
+        "promoRule": {
+          "id": "<x>",
+          "branchId": "999-9",
+          "tipo": "n_x_m",
+          "minQty": 3,
+          "maxQty": null,
+          "precioPromo": null,
+          "porcentaje": null,
+          "grupoN": 3,
+          "pagaM": 2,
+          "cadaN": null,
+          "validFrom": null,
+          "validTo": null,
+          "updatedAtUtc": "<x>",
+          "texto": "3x2",
+          "textoCondicion": "3x2",
+          "activa": true
+        }
+      }
+    ]
+  },
+  {
+    "nombre": "lookup e 999-8",
+    "status": 200,
+    "body": {
+      "ean": "2990000000059",
+      "source": "propio",
+      "description": "BP38 prueba 2990000000059",
+      "brand": "PRUEBA",
+      "presentationQuantity": 1,
+      "presentationUnit": "UN",
+      "listPrice": 1000,
+      "promo1UnitPrice": null,
+      "promo1Text": null,
+      "promo2UnitPrice": null,
+      "promo2Text": null,
+      "stock": null,
+      "imageUrl": null,
+      "promoRule": {
+        "id": "<x>",
+        "branchId": null,
+        "tipo": "porcentaje",
+        "minQty": 1,
+        "maxQty": null,
+        "precioPromo": null,
+        "porcentaje": 20,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "<x>",
+        "texto": "20 % llevando 1+",
+        "textoCondicion": "Llevando 1: 20 % off",
+        "activa": true
+      }
+    }
+  },
+  {
+    "nombre": "k4 null desde 999-9",
+    "status": 200,
+    "body": {
+      "stock": null,
+      "promoRule": null,
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000059",
+      "listPrice": 1000,
+      "previousListPrice": "<x>",
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": null,
+      "promo1Text": null,
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "catalogo 999-8 (EANs de prueba)",
+    "status": 200,
+    "body": [
+      {
+        "ean": "2990000000059",
+        "description": "BP38 prueba 2990000000059",
+        "brand": "PRUEBA",
+        "presentationQuantity": 1,
+        "presentationUnit": "UN",
+        "listPrice": 1000,
+        "promo1UnitPrice": null,
+        "promo1Text": null,
+        "promo2UnitPrice": null,
+        "promo2Text": null,
+        "stock": null,
+        "updatedAtUtc": "<x>",
+        "promoRule": null
+      }
+    ]
+  },
+  {
+    "nombre": "n null a",
+    "status": 200,
+    "body": {
+      "stock": -8,
+      "promoRule": null,
+      "commerceId": "999-7",
+      "bannerId": "1",
+      "branchId": "999-9",
+      "ean": "2990000000011",
+      "listPrice": 2600,
+      "previousListPrice": "<x>",
+      "wasNewProduct": "<x>",
+      "promo1UnitPrice": null,
+      "promo1Text": null,
+      "promo2UnitPrice": null,
+      "promo2Text": null
+    }
+  },
+  {
+    "nombre": "dia",
+    "status": 200,
+    "body": {
+      "date": "2026-09-01",
+      "branchId": "999-9",
+      "ticketCount": 4,
+      "total": 34775,
+      "byPaymentMethod": [
+        {
+          "paymentMethod": "efectivo",
+          "ticketCount": 4,
+          "total": 34775
+        }
+      ],
+      "topProducts": [
+        {
+          "ean": "2990000000011",
+          "description": "BP38 2990000000011",
+          "units": 8,
+          "revenue": 18400
+        },
+        {
+          "ean": "2990000000035",
+          "description": "BP38 2990000000035",
+          "units": 5,
+          "revenue": 4500
+        },
+        {
+          "ean": "2990000000028",
+          "description": "BP38 2990000000028",
+          "units": 5,
+          "revenue": 4000
+        },
+        {
+          "ean": "2990000000042",
+          "description": "BP38 2990000000042",
+          "units": 2.5,
+          "revenue": 7875
+        }
+      ],
+      "invoicesPending": 0,
+      "discountTotal": 4775
+    }
+  },
+  {
+    "nombre": "base: reglas de los EANs de prueba",
+    "body": [
+      "BranchId|Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|GrupoN|PagaM|CadaN|Activa",
+      "--------|---|----|------|------|-----------|----------|------|-----|-----|------",
+      "999-9|2990000000011|precio_unitario|3.000|NULL|2100.00|NULL|NULL|NULL|NULL|0",
+      "999-9|2990000000011|precio_unitario|3.000|6.000|2100.00|NULL|NULL|NULL|NULL|0",
+      "999-9|2990000000028|n_x_m|3.000|NULL|NULL|NULL|3|2|NULL|1",
+      "999-9|2990000000035|enesima_porcentaje|2.000|NULL|NULL|50.00|NULL|NULL|2|1",
+      "999-9|2990000000042|porcentaje|2.000|NULL|NULL|10.00|NULL|NULL|NULL|1",
+      "NULL|2990000000059|porcentaje|1.000|NULL|NULL|20.00|NULL|NULL|NULL|0",
+      "999-9|2990000000059|n_x_m|3.000|NULL|NULL|NULL|3|2|NULL|0"
+    ]
+  },
+  {
+    "nombre": "base: espejo en Products",
+    "body": [
+      "BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text",
+      "--------|---------|---------|---------------|----------",
+      "999-8|2990000000059|1000.00|NULL|NULL",
+      "999-9|2990000000011|2600.00|NULL|NULL",
+      "999-9|2990000000028|1000.00|666.67|3x2",
+      "999-9|2990000000035|1000.00|750.00|2da al 50 %",
+      "999-9|2990000000042|3500.00|3150.00|10 % llevando 2+",
+      "999-9|2990000000059|1000.00|NULL|NULL"
+    ]
+  },
+  {
+    "nombre": "base: renglones de tickets",
+    "body": [
+      "Ean|Quantity|ListPrice|Discount|LineTotal|PromoRuleId|PromoText",
+      "---|--------|---------|--------|---------|-----------|---------",
+      "2990000000011|8.000|2600.00|2400.00|18400.00|id|Llevando 3+: $2.100 c/u (m x. 6)",
+      "2990000000028|5.000|1000.00|1000.00|4000.00|id|3x2",
+      "2990000000035|5.000|1000.00|500.00|4500.00|id|2da al 50 %",
+      "2990000000042|2.500|3500.00|875.00|7875.00|id|10 % llevando 2+"
+    ]
+  }
+]

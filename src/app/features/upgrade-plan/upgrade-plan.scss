@@ -1,0 +1,198 @@
+.upgrade {
+  max-width: 900px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+// E10.5 -- banner de trial activo, ver upgrade-plan.html.
+.trial-banner {
+  background: var(--warning-soft);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.upgrade__row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--text-3);
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.link-button {
+  background: none;
+  color: var(--primary);
+  padding: 0;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.current-plan {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+}
+
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge--free {
+  background: var(--border);
+  color: var(--text-2);
+}
+
+.badge--paid {
+  background: var(--success);
+  color: var(--on-primary);
+}
+
+.current-plan__detail {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.billing-cycle-toggle {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+
+  button {
+    background: transparent;
+    color: var(--primary);
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 999px;
+
+    &.active {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+  }
+}
+
+.plan-cards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.plan-card {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plan-card--current {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.plan-card h2 {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.plan-card__price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.plan-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+// 25-ago-2026 -- tilde y cruz con Font Awesome (glifos \f00c / \f00d de la fuente
+// solid), en vez de los caracteres tipograficos que dependian de la fuente del sistema.
+.plan-card li::before {
+  font-family: 'Font Awesome 7 Free';
+  font-weight: 900;
+  content: '\f00c';
+  margin-right: 0.4rem;
+  color: var(--success);
+}
+
+.feature--off {
+  color: var(--text-3);
+}
+
+// `li.` a proposito: `.plan-card li::before` (clase + elemento + pseudo) le ganaba a
+// `.feature--off::before` (clase + pseudo) y la cruz nunca llegaba a verse -- las
+// features apagadas salian con tilde verde igual, solo mas grises.
+.plan-card li.feature--off::before {
+  content: '\f00d';
+  color: var(--text-3);
+}

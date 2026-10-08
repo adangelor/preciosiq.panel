@@ -1,0 +1,87 @@
+<div class="admin-trials card--page">
+  <h1>Trials de plan</h1>
+  <p class="subtitle">
+    Buscá una cuenta Comercio (razón social o CommerceId) y dale un trial temporal de un plan
+    pago para que lo pruebe antes de contratar. No toca lo que factura Mercado Pago -- vence
+    solo en la fecha que elijas.
+  </p>
+
+  <input
+    type="text"
+    class="admin-trials__search"
+    placeholder="Buscar por razón social o CommerceId…"
+    [ngModel]="query()"
+    (ngModelChange)="onQueryChange($event)"
+  />
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  @if (searching()) {
+    <p class="hint">Buscando…</p>
+  } @else if (query().length >= 2 && results().length === 0) {
+    <p class="hint">No encontramos ninguna cuenta con ese nombre/CommerceId.</p>
+  }
+
+  @if (results().length > 0) {
+    <table class="admin-trials__table">
+      <thead>
+        <tr>
+          <th>Razón social</th>
+          <th>Plan contratado</th>
+          <th>Trial</th>
+          <th>Otorgar / quitar</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (account of results(); track account.id) {
+          <tr>
+            <td>
+              {{ account.razonSocial }}
+              <span class="admin-trials__commerce-id">{{ account.commerceId }}</span>
+            </td>
+            <td>{{ account.subscriptionTier }}</td>
+            <td>
+              @if (isTrialActive(account)) {
+                <span class="admin-trials__badge">
+                  {{ account.trialTier }} hasta {{ account.trialExpiresAt | date: 'dd/MM/yyyy' }}
+                </span>
+              } @else {
+                <span class="admin-trials__badge admin-trials__badge--none">sin trial</span>
+              }
+            </td>
+            <td class="admin-trials__actions">
+              <select [ngModel]="tierFor(account.id)" (ngModelChange)="setTierFor(account.id, $event)">
+                @for (opt of tierOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                [ngModel]="daysFor(account.id)"
+                (ngModelChange)="setDaysFor(account.id, $event)"
+              />
+              días
+              <button type="button" [disabled]="savingId() === account.id" (click)="grantTrial(account)">
+                {{ isTrialActive(account) ? 'Extender / cambiar' : 'Dar trial' }}
+              </button>
+              @if (isTrialActive(account)) {
+                <button
+                  type="button"
+                  class="admin-trials__revoke"
+                  [disabled]="savingId() === account.id"
+                  (click)="revokeTrial(account)"
+                >
+                  Quitar
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

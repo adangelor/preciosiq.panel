@@ -1,0 +1,5 @@
+ean;descripcion;marca;precio;precio_promo;descuento;leyenda;llevando_desde;llevando_hasta
+2997000000011;BP38 pct 1 (solo %);PRUEBA;1000;;15;15 % llevando 2;2;
+2997000000028;BP38 pct 2 (precio y %);PRUEBA;1000;850;10;;;
+2997000000035;BP38 pct 3 (% invalido);PRUEBA;1000;;120;;;
+2997000000042;BP38 pct 4 (sin promo);PRUEBA;1000;;;;;

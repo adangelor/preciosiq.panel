@@ -1,0 +1,87 @@
+// El tema visual (Bootstrap "New Age", colores, tipografia) viene del stylesheet global
+// cargado en index.html (/home/css/styles.css, copiado de Buscaprecios.web/wwwroot).
+// Este archivo se usa solo para lo especifico de ESTE componente, sin tocar el CSS
+// compartido de arriba (que tambien usa distribucioniq.panel).
+
+// 19-ago-2026 -- icono de marca (LogoPreciosIQ.svg) al lado del wordmark "PreciosIQ"
+// en el navbar, pedido de Andres.
+.navbar-brand__icon {
+  height: 1.5em;
+  width: 1.5em;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+// 26-ago-2026 -- LA LANDING NO TIENE TEMA OSCURO, Y NO LO VA A TENER.
+//
+// Es markup del tema Bootstrap "New Age": fondos claros FIJOS (bg-white, bg-light, el
+// gradiente violeta) escritos en el HTML. Pero el tema compartido define los tokens en
+// :root y en modo oscuro pone `--text: #ffffff`, y como el propio tema aplica
+// `h1,h2,h3,h4 { color: var(--text) }`, todos los títulos sobre fondo claro salían
+// BLANCO SOBRE BLANCO: el H1 del hero, el nombre de cada plan y el precio mensual.
+// Invisibles, pero seleccionables y copiables -- por eso al pegarlos aparecían.
+//
+// El arreglo no es ir clase por clase poniendo `text-dark`: los tokens HEREDAN, así que
+// redefinirlos acá hace que la misma regla global del tema resuelva al valor claro para
+// todo lo que cuelgue de <app-landing>, títulos incluidos, sin tocar una sola etiqueta.
+// Los valores son los del bloque :root del tema (shared-theme/_theme.scss), no inventados.
+// `color-scheme: light` va para que los inputs del modal de demo tampoco se pinten
+// oscuros sobre la tarjeta blanca.
+// 27-ago-2026 -- SEGUNDA MITAD DEL MISMO ARREGLO, y la que faltaba.
+//
+// El bloque de abajo forzaba los tokens de TEXTO a sus valores claros, pero no el FONDO.
+// Y el fondo no lo pinta la landing: lo pinta `body { background: var(--bg-page) }` del
+// tema compartido, que en modo oscuro vale #151a30. Las secciones que en el markup New Age
+// no traen clase de fondo propia (el masthead, #features, .cta) son TRANSPARENTES, asi que
+// dejaban ver ese navy -- y encima con `--text: #222b45`, o sea gris oscuro sobre azul
+// oscuro. Ilegible. Los <p class="text-muted"> se salvaban de casualidad, porque el CSS de
+// New Age les clava `color: #6c757d !important` y ese gris SI contrasta contra el navy;
+// por eso en la captura los parrafos se leian y los titulos no.
+//
+// Redefinir --bg-page aca no alcanza: la regla que lo usa vive en `body`, no adentro del
+// componente. Hay que pintar el host, que es lo que tapa el fondo del body en la parte de
+// la pagina que ocupa la landing. min-height para que no asome el navy debajo del footer
+// si la ventana es mas alta que el contenido.
+// 07-oct-2026 -- TERCERA MITAD: el `color` heredado. Los tokens de arriba arreglan lo que
+// los LEE (títulos), pero el texto sin clase de color hereda `color` del <html>, que en modo
+// oscuro es blanco. Así seguía invisible el monto de cada plan (`.display-6 fw-bold`, sin
+// clase de color) sobre la tarjeta blanca. Lo que va sobre fondo oscuro (franja violeta,
+// footer) trae `text-white`/`text-white-50` propios y no cambia; el "SABELO" del hero es
+// texto con degradé (relleno transparente), tampoco.
+:host {
+  color-scheme: light;
+  display: block;
+  min-height: 100vh;
+  background: #ffffff;
+  color: var(--text);
+
+  --text: #222b45;
+  --text-2: #5d6a89;
+  --text-3: #8f9bb3;
+  --text-inverse: #ffffff;
+
+  // Para lo que cuelgue del componente y sí lea estos tokens (el modal de contacto).
+  --bg-page: #f2f4f8;
+  --bg-card: #ffffff;
+  --bg-card-header: #ffffff;
+  --bg-elevated: #f7f9fc;
+  --bg-input: #ffffff;
+  --border: #e4e9f2;
+  --border-soft: #edf1f7;
+  --border-strong: #c9d3e4;
+}
+
+// 07-oct-2026 -- el monto de cada plan no entraba en la tarjeta. En xl la fila tiene 5
+// columnas y la tarjeta deja 148 px útiles; a 2.5rem (lo que pone .display-6 desde 1200 px)
+// "$100.000" mide ~170 px y empujaba el "/mes" afuera del borde. A 1.625rem el monto más
+// largo ($150.000) y el "/mes" entran en una línea. nowrap para que un monto nunca se parta.
+#planes .display-6 {
+  white-space: nowrap;
+}
+
+@media (min-width: 1200px) {
+  #planes .display-6 {
+    font-size: 1.625rem;
+  }
+}

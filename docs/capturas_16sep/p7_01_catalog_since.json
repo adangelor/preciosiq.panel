@@ -1,0 +1,56 @@
+{
+  "since": "2026-09-16T21:30:00Z",
+  "items": [
+    {
+      "ean": "2994000000013",
+      "listPrice": 2000,
+      "promo1UnitPrice": 1800,
+      "promo1Text": "Oferta panel vieja",
+      "updatedAtUtc": "2026-09-16T21:36:36Z",
+      "promoRule": {
+        "id": 1841,
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 1,
+        "maxQty": null,
+        "precioPromo": 1800,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "2026-09-16T21:36:36Z",
+        "texto": "Llevando 1+: $1.800 c/u",
+        "textoCondicion": "Llevando 1: $1.800 c/u",
+        "leyenda": "Oferta panel vieja",
+        "activa": true
+      }
+    },
+    {
+      "ean": "2994000000020",
+      "listPrice": 500,
+      "promo1UnitPrice": 450,
+      "promo1Text": null,
+      "updatedAtUtc": "2026-09-16T21:36:36Z",
+      "promoRule": {
+        "id": 1842,
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 1,
+        "maxQty": null,
+        "precioPromo": 450,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "2026-09-16T21:36:36Z",
+        "texto": "Llevando 1+: $450 c/u",
+        "textoCondicion": "Llevando 1: $450 c/u",
+        "activa": true
+      }
+    }
+  ]
+}

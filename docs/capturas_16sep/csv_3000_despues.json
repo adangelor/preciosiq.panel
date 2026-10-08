@@ -1,0 +1,36 @@
+{
+  "modo": "despues",
+  "fecha": "2026-09-16T21:47:29.023Z",
+  "filas": 3000,
+  "tanda": 300,
+  "resultados": [
+    {
+      "vuelta": 1,
+      "ms": 21105,
+      "llamadas": 10,
+      "created": 3000,
+      "updated": 0,
+      "failed": 0,
+      "promosIgnoradas": 0,
+      "reglasGuardadas": 3000
+    },
+    {
+      "vuelta": 2,
+      "ms": 10654,
+      "llamadas": 10,
+      "created": 0,
+      "updated": 3000,
+      "failed": 0,
+      "promosIgnoradas": 0,
+      "reglasGuardadas": 0
+    }
+  ],
+  "base": [
+    "Productos|ConPromo1",
+    "---------|---------",
+    "3000|3000",
+    "Activa|Reglas|MinMin|MaxMax",
+    "------|------|------|------",
+    "1|3000|1.000|9999.000"
+  ]
+}

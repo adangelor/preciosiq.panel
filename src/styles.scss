@@ -1,0 +1,134 @@
+/* Estilos globales.
+
+   Casi todo vive en el tema compartido de buscaprecios-full/shared-theme/, que usan
+   este panel, el de DistribucionIQ y (cuando toque) el de admin. Antes de eso, los
+   dos paneles tenían 544 colores escritos a mano en 52 archivos y "cambiar el tema"
+   no era una operación posible: no había un lugar donde hacerlo.
+
+   Acá queda sólo lo que es específico de este proyecto. Si vas a agregar un color,
+   va como token en el tema compartido, no acá y menos en un componente.
+*/
+@use '@angular/material' as mat;
+@use '../../shared-theme/theme';
+
+/* E18.6 (26-ago-2026) -- la marca al lado de la descripcion del producto. Va global y no
+   en cada componente porque son cuatro pantallas mostrando lo mismo, que es justo lo que
+   este ticket vino a dejar de duplicar. Color mas tenue: la marca acompania al nombre del
+   producto, no compite con el. */
+.brand-tag {
+  color: var(--text-3);
+}
+
+/* mat.theme() sigue haciendo falta: define la tipografía, la densidad y la
+   estructura interna de los componentes de Material. Su PALETA la pisa el bloque
+   "puente a Angular Material" del tema compartido, que redefine los --mat-sys-*
+   desde :root (pseudo-clase) y por eso le gana a este selector html (tipo) sin
+   depender del orden. */
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$blue-palette,
+        tertiary: mat.$azure-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+/* ============================================================================
+   Impresión / "Guardar como PDF" del informe del Asesor (31-ago-2026)
+   ----------------------------------------------------------------------------
+   El botón del informe llama a window.print() y estas reglas hacen el resto: sin
+   dependencias nuevas en el bundle, con texto seleccionable y tablas que cortan
+   solas entre páginas.
+
+   VAN ACÁ Y NO EN advisor-report-dialog.scss porque tienen que alcanzar al <body>
+   y al overlay del CDK, que están FUERA del encapsulamiento del componente. El
+   diálogo de Material vive en .cdk-overlay-container, colgado del body y no del
+   árbol del componente: sin esto, imprimir manda a la impresora el panel entero
+   con el informe recortado adentro de un overlay posicionado.
+   ========================================================================== */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  /* Se imprime SOLO el overlay (el diálogo). El resto de la app desaparece. */
+  body > *:not(.cdk-overlay-container) {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* El overlay deja de estar posicionado y pasa a fluir como contenido normal:
+     de otro modo se imprime una sola página con el alto del viewport. */
+  .cdk-overlay-container,
+  .cdk-global-overlay-wrapper,
+  .cdk-overlay-pane {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    transform: none !important;
+  }
+
+  .cdk-overlay-backdrop {
+    display: none !important;
+  }
+
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface,
+  .mat-mdc-dialog-content {
+    position: static !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    background: #fff !important;
+  }
+
+  /* Controles que no tienen sentido en papel (cerrar, feedback, regenerar). */
+  .no-print,
+  .dialog-close,
+  .dialog-header-actions {
+    display: none !important;
+  }
+
+  /* Cabecera y pie que solo existen en la versión impresa. */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Tablas: encabezado repetido en cada página y filas que no se parten al medio. */
+  table {
+    page-break-inside: auto;
+    border-collapse: collapse !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  h2,
+  h3,
+  h4 {
+    page-break-after: avoid;
+  }
+
+  /* Tinta: gris claro sobre papel no se lee. */
+  .hint {
+    color: #555 !important;
+  }
+}

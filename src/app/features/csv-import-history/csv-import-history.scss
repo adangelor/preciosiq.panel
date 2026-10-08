@@ -1,0 +1,92 @@
+.signup {
+  max-width: 1000px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.success-message {
+  color: var(--success);
+  background: var(--success-soft);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--text-3);
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.preview-table th {
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.batch--reverted {
+  opacity: 0.55;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-badge--active {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.status-badge--reverted {
+  background: var(--border);
+  color: var(--text-3);
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-btn--danger {
+  color: var(--danger);
+}
+
+.link-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

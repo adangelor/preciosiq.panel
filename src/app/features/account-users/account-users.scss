@@ -1,0 +1,129 @@
+.account-users {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.account-users__header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.25rem;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--text-2);
+  }
+}
+
+.account-users__invite-card,
+.account-users__list-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+  }
+}
+
+.invite-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  &__email {
+    flex: 1 1 260px;
+  }
+
+  &__role {
+    flex: 0 0 160px;
+  }
+
+  button[type='submit'] {
+    margin-top: 4px;
+  }
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-2);
+
+  &--small {
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+  }
+}
+
+.form-error {
+  color: var(--danger);
+}
+
+.form-success {
+  color: var(--success);
+}
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-weight: 600;
+    color: var(--text-2);
+    font-size: 0.85rem;
+  }
+}
+
+.you-tag {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.expired-tag {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+.role-chip {
+  font-size: 0.75rem;
+  min-height: 22px;
+
+  &--owner {
+    background: var(--mat-sys-primary-container, var(--primary-soft));
+  }
+}
+
+.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.confirm-inline {
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.invitation-row--expired {
+  opacity: 0.6;
+}

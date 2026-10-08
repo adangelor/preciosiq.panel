@@ -1,0 +1,114 @@
+<div class="login">
+  <!-- 25-ago-2026 -- salida con un click (pedido de Andres). Sin historial propio
+       vuelve a la landing publica. -->
+  <app-back-link fallback="/" />
+
+  <!-- 19-ago-2026 -- icono de marca real (LogoPreciosIQ.svg), pedido de Andres. -->
+  <div class="login__brand">
+    <img src="/home/assets/img/logo-preciosiq.svg" alt="PreciosIQ" class="login__brand-icon" />
+    <h1>Ingresá a PreciosIQ</h1>
+  </div>
+
+  @if (step() === 'password') {
+    @if (googleAvailable()) {
+      <div class="login__google" #googleButton></div>
+      <div class="login__divider"><span>o con tu mail</span></div>
+    }
+
+    <form [formGroup]="passwordForm" (ngSubmit)="loginWithPassword()" class="login__form">
+      <label>
+        Email
+        <input type="email" formControlName="email" autocomplete="email" placeholder="vos@tucomercio.com" />
+        @if (passwordForm.controls.email.touched && passwordForm.controls.email.invalid) {
+          <span class="field-error">Ingresá un email válido.</span>
+        }
+      </label>
+
+      <label>
+        Contraseña
+        <input type="password" formControlName="password" autocomplete="current-password" />
+        @if (passwordForm.controls.password.touched && passwordForm.controls.password.invalid) {
+          <span class="field-error">Ingresá tu contraseña.</span>
+        }
+      </label>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+
+      <div class="login__links">
+        <a routerLink="/recuperar-contrasena" class="login__link">¿Olvidaste tu contraseña?</a>
+        <button type="button" class="login__link" (click)="useOtpInstead()">Prefiero un código por mail</button>
+      </div>
+
+      <p class="hint">¿No tenés cuenta? <a routerLink="/registrarme">Registrate</a>.</p>
+    </form>
+  }
+
+  @if (step() === 'email') {
+    @if (googleAvailable()) {
+      <div class="login__google" #googleButton></div>
+      <div class="login__divider"><span>o con tu mail</span></div>
+    }
+
+    <p class="subtitle">Te mandamos un código de 6 dígitos por mail. Sin contraseña.</p>
+
+    <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="login__form">
+      <label>
+        Email
+        <input type="email" formControlName="email" autocomplete="email" placeholder="vos@tucomercio.com" />
+        @if (emailForm.controls.email.touched && emailForm.controls.email.invalid) {
+          <span class="field-error">Ingresá un email válido.</span>
+        }
+      </label>
+
+      <p class="hint">¿Primera vez? Contanos tu nombre para el mail de bienvenida (opcional).</p>
+      <div class="login__row">
+        <label class="login__grow">
+          Nombre
+          <input type="text" formControlName="firstName" autocomplete="given-name" />
+        </label>
+        <label class="login__grow">
+          Apellido
+          <input type="text" formControlName="lastName" autocomplete="family-name" />
+        </label>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Enviando…' : 'Enviarme el código' }}
+      </button>
+      <button type="button" class="login__link" (click)="usePasswordInstead()">Prefiero usar mi contraseña</button>
+    </form>
+  }
+
+  @if (step() === 'otp') {
+    <p class="subtitle">Revisá tu mail y escribí el código de 6 dígitos.</p>
+
+    <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="login__form">
+      <label>
+        Código
+        <input type="text" formControlName="otp" inputmode="numeric" maxlength="6" placeholder="123456" />
+        @if (otpForm.controls.otp.touched && otpForm.controls.otp.invalid) {
+          <span class="field-error">Ingresá los 6 dígitos del código.</span>
+        }
+      </label>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Verificando…' : 'Ingresar' }}
+      </button>
+      <button type="button" class="login__link" (click)="backToEmail()">Usar otro email</button>
+    </form>
+  }
+</div>

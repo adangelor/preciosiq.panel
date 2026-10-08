@@ -1,0 +1,512 @@
+<div class="signup card--page">
+  <h1>Carga masiva de precios (CSV)</h1>
+  <p class="subtitle">
+    No hace falta el formato SEPA: subí el export que ya tenga tu sistema y le decimos
+    al panel qué columna es cada cosa. Ese mapeo queda guardado para la próxima vez.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    @if (step() === 'upload') {
+      <form [formGroup]="uploadForm" (ngSubmit)="loadPreview()" class="signup__form">
+        @if (branches().length > 1) {
+          <label>
+            Sucursal
+            <select formControlName="branchId">
+              @for (b of branches(); track b.branchId) {
+                <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+              }
+            </select>
+          </label>
+        }
+        <label>
+          Archivo CSV
+          <input type="file" accept=".csv,text/csv" (change)="onFileSelected($event)" />
+        </label>
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Leyendo…' : 'Ver columnas' }}
+        </button>
+      </form>
+    }
+
+  @if (step() === 'map' && preview(); as p) {
+    <div class="map-step">
+      <h2>Vista previa</h2>
+      <div class="preview-scroll">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              @for (h of p.headers; track h) {
+                <th>{{ h }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of p.sampleRows; track $index) {
+              <tr>
+                @for (cell of row; track $index) {
+                  <td>{{ cell }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (p.savedMappings.length > 0) {
+        <h3>Mapeo a usar</h3>
+        <!-- 25-ago-2026 -- el chip elegido se pinta lleno y con tilde (aria-pressed para
+             lectores de pantalla). "+ Nuevo mapeo" se marca igual cuando es el elegido.
+             17-sep-2026 -- se muestra SOLO el ultimo mapeo usado; el resto atras de "Otros
+             mapeos", y la administracion (ver columnas, probar, renombrar, archivar) en
+             /precios/mapeos. -->
+        <div class="saved-mappings">
+          @for (m of (verTodosLosMapeos() ? p.savedMappings : p.savedMappings.slice(0, 1)); track m.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--selected]="useExistingMapping() && selectedMappingId() === m.id"
+              [attr.aria-pressed]="useExistingMapping() && selectedMappingId() === m.id"
+              (click)="pickSavedMapping(m)"
+            >
+              @if (useExistingMapping() && selectedMappingId() === m.id) {
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+              }
+              {{ m.name }}
+            </button>
+          }
+          @if (!verTodosLosMapeos() && p.savedMappings.length > 1) {
+            <button type="button" class="chip" (click)="verTodosLosMapeos.set(true)">
+              Otros mapeos ({{ p.savedMappings.length - 1 }})
+            </button>
+          }
+          <button
+            type="button"
+            class="chip chip--new"
+            [class.chip--selected]="!useExistingMapping()"
+            [attr.aria-pressed]="!useExistingMapping()"
+            (click)="startNewMapping()"
+          >
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Nuevo mapeo
+          </button>
+        </div>
+        <p class="hint">
+          Se muestra el último mapeo que usaste.
+          <a routerLink="/precios/mapeos">Ver todos los mapeos, probarlos con un archivo o archivarlos →</a>
+        </p>
+      }
+
+      @if (!useExistingMapping() || p.savedMappings.length === 0) {
+        <h3>Nuevo mapeo</h3>
+        <form [formGroup]="mappingForm" (ngSubmit)="runImport()" class="signup__form">
+          <label>
+            Nombre del mapeo (para reconocerlo la próxima vez)
+            <input type="text" formControlName="name" placeholder="Ej: Export Tango" />
+          </label>
+
+          <div class="signup__row">
+            <label>
+              Separador de columnas
+              <select formControlName="delimiter">
+                <option value=",">Coma (,)</option>
+                <option value=";">Punto y coma (;)</option>
+              </select>
+            </label>
+            <label>
+              Separador decimal
+              <select formControlName="decimalSeparator">
+                <option value=",">Coma (1.234,56)</option>
+                <option value=".">Punto (1,234.56)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="signup__row">
+            <label>
+              Columna de EAN *
+              <select formControlName="eanColumn">
+                <option value="" disabled>Elegí una columna</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Precio *
+              <select formControlName="priceColumn">
+                <option value="" disabled>Elegí una columna</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+
+          <div class="signup__row">
+            <label>
+              Columna de Descripción
+              <select formControlName="descriptionColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Marca
+              <select formControlName="brandColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <p class="hint">Descripción y Marca solo hacen falta si el EAN no existe todavía en el catálogo.</p>
+
+          <!--
+            E12 (19-ago-2026) -- columnas de promo, opcionales. Si tu export no tiene
+            columnas de promo, dejalas en "(ninguna)" -- esta carga masiva no va a tocar
+            las promos de los productos que actualice.
+          -->
+          <div class="signup__row">
+            <label>
+              Columna de Precio Promo 1
+              <select formControlName="promo1UnitPriceColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Leyenda Promo 1
+              <select formControlName="promo1TextColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <div class="signup__row">
+            <label>
+              Columna de Precio Promo 2
+              <select formControlName="promo2UnitPriceColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Leyenda Promo 2
+              <select formControlName="promo2TextColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <!-- BP-38 (16-sep-2026) -- la promo 1 del CSV se convierte en una regla de la
+               sucursal (la misma que cobra la caja): precio por cantidad desde el mínimo. -->
+          <div class="signup__row">
+            <label>
+              Columna de cantidad mínima
+              <select formControlName="promoMinQtyColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de cantidad máxima
+              <select formControlName="promoMaxQtyColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <div class="signup__row">
+            <label>
+              Columna de Descuento %
+              <select formControlName="promoPercentColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label class="signup__grow"></label>
+          </div>
+          <p class="hint">
+            Si tus ofertas son del tipo 'llevando de 3 a 9999', mapeá acá esas columnas; sin mínimo, la promo vale desde la primera unidad.
+            Con "Descuento %" la promo se guarda como porcentaje: si después cambiás el precio de lista, el descuento se recalcula solo.
+            Si una fila trae precio promo y % a la vez, mandamos el precio y te lo avisamos en el resumen.
+          </p>
+          <p class="hint">
+            El precio promo 1 se carga como promo de la sucursal: se publica en la red y la caja la cobra.
+            Una celda de precio promo vacía quita la promo de ese producto en la sucursal; una promo que no
+            es menor que el precio de lista no se carga (te lo mostramos en el resumen). Promo 2 es solo una
+            leyenda para la red. Si tu archivo no informa promos, dejalas sin mapear.
+          </p>
+
+          <!--
+            E13 (25-ago-2026) -- costos de proveedor desde el mismo export de artículos. Es
+            lo que destraba el nivel Rentabilidad del Asesor (margen, ventas bajo costo,
+            renegociación de compras). Confidencial: solo alimenta el análisis de TU cuenta.
+          -->
+          <h4 class="mapping-section">
+            <i class="fa-solid fa-coins" aria-hidden="true"></i> Costos de proveedor (opcional)
+          </h4>
+          <div class="signup__row">
+            <label>
+              Columna de Costo sin IVA
+              <select formControlName="costPriceColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Costo con IVA
+              <select formControlName="costPriceWithTaxColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <div class="signup__row">
+            <label>
+              Columna de Proveedor
+              <select formControlName="supplierColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Columna de Fecha de vigencia del costo
+              <select formControlName="costValidFromColumn">
+                <option value="">(ninguna — se usa la fecha de hoy)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
+          <p class="hint">
+            Con el costo cargado, el Asesor de Precios puede analizar margen, ventas bajo costo y
+            renegociación de compras. Tus costos son confidenciales: solo se usan para el análisis
+            de tu propia cuenta, nunca entran en promedios de la zona. Solo se guarda un costo
+            nuevo cuando cambió respecto del último conocido de ese producto.
+          </p>
+
+          <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
+          <button type="submit" [disabled]="loading()">
+            {{ loading() ? 'Procesando…' : 'Guardar mapeo y cargar' }}
+          </button>
+        </form>
+      } @else {
+        <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
+        <button type="button" (click)="runImport()" [disabled]="loading()">
+          {{ loading() ? 'Procesando…' : 'Cargar con este mapeo' }}
+        </button>
+      }
+
+      <!-- E5.7 (25-ago-2026) -- avance de la carga por lotes (ver runInChunks en el .ts).
+           Es un template porque se muestra en los dos caminos (mapeo nuevo / guardado). -->
+      <ng-template #progressBlock>
+        @if (progress(); as p) {
+          <div class="import-progress" role="status" aria-live="polite">
+            <div class="import-progress__bar" [attr.aria-valuenow]="progressPct()" aria-valuemin="0" aria-valuemax="100" role="progressbar">
+              <div class="import-progress__fill" [style.width.%]="progressPct()"></div>
+            </div>
+            <p class="import-progress__text">
+              @if (p.total === 0) {
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Leyendo el archivo…
+              } @else {
+                <strong>{{ p.done }} / {{ p.total }}</strong> filas ({{ progressPct() }}%)
+                — {{ p.created }} nuevos, {{ p.updated }} actualizados, {{ p.failed }} con error
+              }
+            </p>
+            <p class="hint">No cierres esta pestaña hasta que termine: la carga va en tandas de a {{ chunkRows }} filas.</p>
+          </div>
+        }
+      </ng-template>
+    </div>
+  }
+
+  @if (step() === 'result' && result(); as r) {
+    <div class="result-step">
+      <h2>Listo</h2>
+      <p>
+        {{ r.totalRows }} filas procesadas — {{ r.created }} productos nuevos,
+        {{ r.updated }} precios actualizados, {{ r.failed }} con error.
+        @if (r.costsLoaded > 0) {
+          <br />
+          <i class="fa-solid fa-coins" aria-hidden="true"></i>
+          {{ r.costsLoaded }} costo{{ r.costsLoaded === 1 ? '' : 's' }} de proveedor
+          {{ r.costsLoaded === 1 ? 'nuevo o actualizado' : 'nuevos o actualizados' }} — ya los ve el Asesor de Precios.
+        }
+      </p>
+      @if ((r.promoRulesSaved ?? 0) > 0 || (r.promoRulesDeactivated ?? 0) > 0 || (r.promosIgnoradas ?? 0) > 0) {
+        <p>
+          <i class="fa-solid fa-tags" aria-hidden="true"></i>
+          Promos: {{ r.promoRulesSaved ?? 0 }} nuevas o cambiadas, {{ r.promoRulesDeactivated ?? 0 }} quitadas,
+          {{ r.promosIgnoradas ?? 0 }} ignoradas. Se publican en la red y la caja las cobra.
+        </p>
+      }
+      <p class="hint">
+        ¿Se coló algún error? <a routerLink="/precios/importaciones">Ver historial de importaciones y deshacer esta carga →</a>
+      </p>
+
+      @if (r.priceAnomalies.length > 0) {
+        <div class="anomaly-warning">
+          <h3><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> {{ r.priceAnomalies.length }} precio{{ r.priceAnomalies.length === 1 ? '' : 's' }} para revisar</h3>
+          <p>
+            Estos productos quedaron con un precio muy distinto al que tenían
+            {{ hasZoneAnomaly(r) ? 'o al promedio de la zona' : 'antes' }} — antes de dar
+            el import por bueno, fijate si no se coló un error de separador decimal
+            (coma/punto) en el archivo.
+          </p>
+          <!-- 17-sep-2026 -- corrector en linea: "Editar" habilita el precio de esta fila y se
+               guarda con el mismo endpoint que Cargar precio. Ver csv-import.ts. -->
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Campo</th>
+                <th>Precio cargado</th>
+                <th>Referencia</th>
+                <th>Diferencia</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of r.priceAnomalies; track a.ean + a.priceField) {
+                <tr>
+                  <td>{{ a.description ?? a.ean }}</td>
+                  <td>{{ anomalyFieldLabel(a) }}</td>
+                  <td>${{ a.newPrice.toFixed(2) }}</td>
+                  <td>
+                    ${{ a.referencePrice.toFixed(2) }}
+                    <span class="hint">({{ a.referenceType === 'zone' ? 'promedio de zona' : 'precio anterior' }})</span>
+                  </td>
+                  <td [class.delta--above]="a.newPrice > a.referencePrice" [class.delta--below]="a.newPrice < a.referencePrice">
+                    {{ anomalyDeltaLabel(a) }}
+                  </td>
+                  <td class="anomaly-fix__cell">
+                    @if (corregidas()[anomalyKey(a)]; as ok) {
+                      <span class="anomaly-fix__ok"><i class="fa-solid fa-check" aria-hidden="true"></i> {{ ok }}</span>
+                    } @else if (editingKey() !== anomalyKey(a)) {
+                      <button type="button" class="anomaly-fix__btn" (click)="startEdit(a)">Editar</button>
+                    }
+                  </td>
+                </tr>
+
+                @if (editingKey() === anomalyKey(a)) {
+                  <tr class="anomaly-fix__row">
+                    <td colspan="6">
+                      @if (editLoading()) {
+                        <p class="hint">Buscando el producto…</p>
+                      } @else {
+                        <div class="anomaly-fix">
+                          <label>
+                            Precio de lista
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              [ngModel]="editListPrice()"
+                              (ngModelChange)="editListPrice.set($event)"
+                              [ngModelOptions]="{ standalone: true }"
+                            />
+                          </label>
+
+                          @if (esPromo(a) && promoEditable()) {
+                            <label>
+                              Precio promo
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="vacío = sin promo"
+                                [ngModel]="editPromoPrice()"
+                                (ngModelChange)="editPromoPrice.set($event)"
+                                [ngModelOptions]="{ standalone: true }"
+                              />
+                            </label>
+                          }
+
+                          @if (a.referenceType === 'previous') {
+                            <button type="button" class="anomaly-fix__btn anomaly-fix__btn--ghost" (click)="usarReferencia(a)">
+                              Volver al anterior (${{ a.referencePrice.toFixed(2) }})
+                            </button>
+                          }
+                          <button type="button" class="anomaly-fix__btn" [disabled]="editSaving()" (click)="saveEdit(a)">
+                            {{ editSaving() ? 'Guardando…' : 'Guardar' }}
+                          </button>
+                          <button type="button" class="anomaly-fix__btn anomaly-fix__btn--ghost" (click)="cancelEdit()">Cancelar</button>
+                        </div>
+
+                        @if (esPromo(a) && !promoEditable()) {
+                          <p class="hint">
+                            La promo de este producto es “{{ editItem()?.promoRuleTexto }}”: no se corrige con un precio suelto.
+                            Editala desde <a routerLink="/precios/cargar">Cargar precio</a>. Acá podés corregir el precio de lista.
+                          </p>
+                        }
+                        @if (editItem()?.promoRule && !esPromo(a)) {
+                          <p class="hint">
+                            Este producto tiene la promo “{{ editItem()?.promoRuleTexto }}”: no se toca, pero se recalcula con el precio nuevo.
+                          </p>
+                        }
+                        @if (editError()) {
+                          <p class="form-error">{{ editError() }}</p>
+                        }
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+          <p class="hint">
+            Lo que corrijas acá se guarda igual que desde <a routerLink="/precios/cargar">Cargar precio</a>:
+            queda en el historial y se vuelve a publicar en la red.
+          </p>
+        </div>
+      }
+
+      @if (r.promosConAvisoDetalle?.length) {
+        <h3>Promos con aviso ({{ r.promosConAviso }})</h3>
+        <p class="hint">Estas promos se cargaron igual.</p>
+        <table class="preview-table">
+          <thead><tr><th>Fila</th><th>Aviso</th></tr></thead>
+          <tbody>
+            @for (e of r.promosConAvisoDetalle; track e.rowNumber) {
+              <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (r.promosIgnoradasDetalle?.length) {
+        <h3>Promos ignoradas ({{ r.promosIgnoradas }})</h3>
+        <p class="hint">El precio de estas filas se cargó igual; la promo no.</p>
+        <table class="preview-table">
+          <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
+          <tbody>
+            @for (e of r.promosIgnoradasDetalle; track e.rowNumber) {
+              <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (r.errors.length > 0) {
+        <table class="preview-table">
+          <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
+          <tbody>
+            @for (e of r.errors; track e.rowNumber) {
+              <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+      <button type="button" (click)="startOver()">Cargar otro archivo</button>
+    </div>
+  }
+  }
+</div>

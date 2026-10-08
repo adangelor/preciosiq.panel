@@ -1,0 +1,35 @@
+== 1ra corrida 18:36:35 ==
+Reglas creadas: 1807 en 101 ms.
+ReglasCreadas|Milisegundos
+-------------|------------
+1807|101
+BusinessAccountId|CommerceId|CreadasAhora|ConPromo1SinRegla|Promo1MayorOIgualALista|ReglasActivas
+-----------------|----------|------------|-----------------|-----------------------|-------------
+1|999-1|1804|0|0|1804
+3|999-3|0|0|0|0
+4|999-7|3|0|0|9
+
+real	0m0.570s
+user	0m0.015s
+sys	0m0.046s
+== 2da corrida ==
+No habia promos sin regla para convertir (ya estaba migrado o no hay datos): no se creo nada.
+ReglasCreadas|Milisegundos
+-------------|------------
+0|34
+BusinessAccountId|CommerceId|CreadasAhora|ConPromo1SinRegla|Promo1MayorOIgualALista|ReglasActivas
+-----------------|----------|------------|-----------------|-----------------------|-------------
+1|999-1|0|0|0|1804
+3|999-3|0|0|0|0
+4|999-7|0|0|0|9
+== reglas de la prueba ==
+Id|BusinessAccountId|BranchId|Ean|Tipo|MinQty|PrecioPromo|Leyenda|Origen|Activa
+--|-----------------|--------|---|----|------|-----------|-------|------|------
+1840|4|999-8|7798123456780|precio_unitario|1.000|700.00|2x1400|migracion|1
+1841|4|999-9|2994000000013|precio_unitario|1.000|1800.00|Oferta panel vieja|migracion|1
+1842|4|999-9|2994000000020|precio_unitario|1.000|450.00|NULL|migracion|1
+BusinessAccountId|Origen|n
+-----------------|------|-
+1|migracion|1804
+4|caja|6
+4|migracion|3

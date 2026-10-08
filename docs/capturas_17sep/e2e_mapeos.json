@@ -1,0 +1,59 @@
+{
+  "sinDuplicados": {
+    "primera": {
+      "status": 200,
+      "id": 8
+    },
+    "segunda": {
+      "status": 200,
+      "id": 8,
+      "nombreDevuelto": "BP38 20 filas"
+    },
+    "mismoId": true
+  },
+  "tabla": [
+    "Mapeo roto (sin encabezados) separador “;”, decimales “,” | EAN: 7791337007253 · Precio: 6680.45 · Descripción: descripcion · Marca: marca | nunca se usó | 0",
+    "BP38 20 filas separador “;”, decimales “,” | EAN: ean · Precio: precio · Descripción: descripcion · Marca: marca · +4 más | 16/09/2026 18:43 | 2"
+  ],
+  "pruebaCoincide": "Columnas de “BP38 20 filas”\nEAN:ean\nPrecio:precio\nDescripción:descripcion\nMarca:marca\nPrecio promo:precio_promo\nLeyenda de promo:leyenda\nLlevando desde:llevando_desde\nLlevando hasta:llevando_hasta\nProbar con un archivo\n\nNo se carga nada: solo te decimos qué columnas encuentra y cómo leería las primeras filas.\n\nProbar este mapeo\n\n8 columnas encontradas, 0 sin encontrar en este archivo.\n\nCampo\tColumna del mapeo\t¿Está en el archivo?\nEAN\tean\tSí\nPrecio\tprecio\tSí\nDescripcion\tdescripcion\tSí\nMarca\tmarca\tSí\nPrecio promo\tprecio_promo\tSí\nLeyenda de promo\tleyenda\tSí\nLlevando desde\tllevando_desde\tSí\nLlevando hasta\tllevando_hasta\tSí\nAsí leería las primeras filas\nFila\tEAN\tDescripción\tPrecio\tPromo\tDesc. %\tDesde\tHasta\t\n2\t2996000000001\tBP38 CSV 1 llevando de 3 a 9999\t2500\t2100\t—\t3\t9999\t\n3\t2996000000002\tBP38 CSV 2 sin minimo\t1000\t850\t—\t—\t—\t\n4\t2996000000003\tBP38 CSV 3 promo mayor a lista\t1000\t1200\t—\t2\t—\t\n5\t2996000000004\tBP38 CSV 4 minimo ilegible\t1000\t800\t—\t—\t—\t\n6\t2996000000005\tBP38 CSV 5 promo vacia (tenia regla)\t1000\t—\t—\t—\t—\t",
+  "pruebaNoCoincide": "Columnas de “BP38 20 filas”\nEAN:ean\nPrecio:precio\nDescripción:descripcion\nMarca:marca\nPrecio promo:precio_promo\nLeyenda de promo:leyenda\nLlevando desde:llevando_desde\nLlevando hasta:llevando_hasta\nProbar con un archivo\n\nNo se carga nada: solo te decimos qué columnas encuentra y cómo leería las primeras filas.\n\nProbar este mapeo\n\n0 columnas encontradas, 8 sin encontrar en este archivo.\n\n⚠ Faltan las columnas de EAN y/o Precio: con este archivo la carga no arrancaria.\n\nCampo\tColumna del mapeo\t¿Está en el archivo?\nEAN\tean\tNo\nPrecio\tprecio\tNo\nDescripcion\tdescripcion\tNo\nMarca\tmarca\tNo\nPrecio promo\tprecio_promo\tNo\nLeyenda de promo\tleyenda\tNo\nLlevando desde\tllevando_desde\tNo\nLlevando hasta\tllevando_hasta\tNo\nAsí leería las primeras filas\nFila\tEAN\tDescripción\tPrecio\tPromo\tDesc. %\tDesde\tHasta\t\n2\t—\t—\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.\n3\t—\t—\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.",
+  "pruebaMapeoRoto": "Columnas de “Mapeo roto (sin encabezados)”\nEAN:7791337007253\nPrecio:6680.45\nDescripción:descripcion\nMarca:marca\nProbar con un archivo\n\nNo se carga nada: solo te decimos qué columnas encuentra y cómo leería las primeras filas.\n\nProbar este mapeo\n\n2 columnas encontradas, 2 sin encontrar en este archivo.\n\n⚠ Faltan las columnas de EAN y/o Precio: con este archivo la carga no arrancaria.\n\n⚠ Las columnas guardadas en este mapeo parecen datos (un EAN, un precio) y no nombres de columna: seguramente se guardo contra un archivo sin encabezados. Convendria corregirlo o archivarlo.\n\nCampo\tColumna del mapeo\t¿Está en el archivo?\nEAN\t7791337007253\tNo\nPrecio\t6680.45\tNo\nDescripcion\tdescripcion\tSí\nMarca\tmarca\tSí\nAsí leería las primeras filas\nFila\tEAN\tDescripción\tPrecio\tPromo\tDesc. %\tDesde\tHasta\t\n2\t—\tBP38 CSV 1 llevando de 3 a 9999\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.\n3\t—\tBP38 CSV 2 sin minimo\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.\n4\t—\tBP38 CSV 3 promo mayor a lista\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.\n5\t—\tBP38 CSV 4 minimo ilegible\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.\n6\t—\tBP38 CSV 5 promo vacia (tenia regla)\t—\t—\t—\t—\t—\tEsta fila no tendria EAN: no se cargaria.",
+  "renombrado": [
+    "Id|Name|UpdatedAt",
+    "--|----|---------",
+    "12|Mapeo roto (revisar)|2026-09-17 19:04:18.533"
+  ],
+  "archivado": {
+    "base": [
+      "Id|Name|Estado",
+      "--|----|------",
+      "12|Mapeo roto (revisar)|archivado"
+    ],
+    "listaActivos": [
+      "BP38 20 filas"
+    ],
+    "listaConArchivados": [
+      "Mapeo roto (revisar) (archivado)",
+      "BP38 20 filas"
+    ]
+  },
+  "chipsEnCargaMasiva": [
+    "BP38 20 filas",
+    "Nuevo mapeo"
+  ],
+  "resumenDescuento": "Listo\n\n4 filas procesadas — 4 productos nuevos, 0 precios actualizados, 0 con error.\n\n Promos: 2 nuevas o cambiadas, 0 quitadas, 1 ignoradas. Se publican en la red y la caja las cobra.\n\n¿Se coló algún error? Ver historial de importaciones y deshacer esta carga →\n\nPromos con aviso (1)\n\nEstas promos se cargaron igual.\n\nFila\tAviso\n3\tLa fila trae precio promo y descuento %: se cargo el precio promo y se ignoro el %.\nPromos ignoradas (1)\n\nEl precio de estas filas se cargó igual; la promo no.\n\nFila\tMotivo\n4\tDescuento % invalido: '120' (tiene que estar entre 0 y 100).\nCargar otro archivo",
+  "reglasDescuento": [
+    "Ean|Tipo|MinQty|MaxQty|PrecioPromo|Porcentaje|Leyenda|Origen|Activa",
+    "---|----|------|------|-----------|----------|-------|------|------",
+    "2997000000011|porcentaje|2.000|NULL|NULL|15.00|15 % llevando 2|csv|1",
+    "2997000000028|precio_unitario|1.000|NULL|850.00|NULL|NULL|csv|1"
+  ],
+  "espejoDescuento": [
+    "ProductId|ListPrice|Promo1UnitPrice|Promo1Text",
+    "---------|---------|---------------|----------",
+    "2997000000011|1000.00|850.00|15 % llevando 2",
+    "2997000000028|1000.00|850.00|Llevando 1+: $850 c/u",
+    "2997000000035|1000.00|NULL|NULL",
+    "2997000000042|1000.00|NULL|NULL"
+  ]
+}

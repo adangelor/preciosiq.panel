@@ -1,0 +1,12 @@
+/* 25-ago-2026 -- fix real: el tema compartido pone overflow: hidden en html/body para
+   que el UNICO scroll viva adentro del shell (mat-sidenav-content). Eso deja sin scroll
+   a las pantallas que estan AFUERA del shell -- alta de comercio, login, registro,
+   recuperar contraseña -- y el alta, que es larga, se cortaba sin forma de bajar.
+   El scroll pasa a app-root: para las pantallas con shell no cambia nada (el shell
+   mide exactamente 100% y scrollea por dentro), y las de afuera scrollean aca. */
+:host {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

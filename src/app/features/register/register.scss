@@ -1,0 +1,72 @@
+.register {
+  max-width: 420px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+.register__form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register__row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.register__grow {
+  flex: 1;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.field-error,
+.form-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--text-3);
+  margin-top: 1rem;
+
+  a {
+    color: var(--primary);
+  }
+}

@@ -1,0 +1,217 @@
+<div class="signup card--page">
+  <h1>Cargar ventas</h1>
+  <p class="subtitle">
+    Subí el export de ventas de tu sistema (un CSV con EAN y unidades vendidas del período) y el
+    Asesor de Precios pasa a priorizar todo en pesos por mes: qué producto mover primero y cuánta
+    plata hay en juego. Tus ventas son confidenciales: solo se usan para el análisis de tu cuenta.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <!-- ============================================================ 1. archivo -->
+    @if (step() === 'upload') {
+      <form [formGroup]="uploadForm" (ngSubmit)="loadPreview()" class="signup__form">
+        @if (branches().length > 1) {
+          <label>
+            Sucursal
+            <select formControlName="branchId">
+              <option value="">Todas (total de la cuenta)</option>
+              @for (b of branches(); track b.branchId) {
+                <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+              }
+            </select>
+            <span class="hint">Si tu export ya viene consolidado, dejá "Todas".</span>
+          </label>
+        }
+        <label>
+          Archivo CSV de ventas
+          <input type="file" accept=".csv,text/csv" (change)="onFileSelected($event)" />
+          <span class="hint">Alcanza con dos columnas: EAN y unidades. Si trae el importe vendido, mejor.</span>
+        </label>
+        @if (loading()) {
+          <app-loading-bar label="Leyendo el archivo…" />
+        }
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Leyendo…' : 'Ver columnas' }}
+        </button>
+      </form>
+    }
+
+    <!-- ============================================================ 2. mapeo -->
+    @if (step() === 'map' && preview(); as p) {
+      <div class="map-step">
+        <h2>Vista previa</h2>
+        <div class="preview-scroll">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                @for (h of p.headers; track h) {
+                  <th>{{ h }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of p.sampleRows; track $index) {
+                <tr>
+                  @for (cell of row; track $index) {
+                    <td>{{ cell }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <form [formGroup]="mappingForm" (ngSubmit)="runImport()" class="signup__form">
+          <h3>¿Qué columna es cada cosa?</h3>
+          <div class="signup__row">
+            <label>
+              Columna de EAN *
+              <select formControlName="eanColumn">
+                <option value="" disabled>Elegí una columna</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+              @if (mappingForm.controls.eanColumn.touched && mappingForm.controls.eanColumn.invalid) {
+                <span class="field-error">Obligatoria.</span>
+              }
+            </label>
+            <label>
+              Columna de Unidades vendidas *
+              <select formControlName="unitsColumn">
+                <option value="" disabled>Elegí una columna</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+              @if (mappingForm.controls.unitsColumn.touched && mappingForm.controls.unitsColumn.invalid) {
+                <span class="field-error">Obligatoria.</span>
+              }
+            </label>
+          </div>
+          <div class="signup__row">
+            <label>
+              Columna de Importe vendido ($)
+              <select formControlName="revenueColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+            <label>
+              Separador decimal
+              <select formControlName="decimalSeparator">
+                <option value=",">Coma (1.234,56)</option>
+                <option value=".">Punto (1,234.56)</option>
+              </select>
+            </label>
+          </div>
+
+          <h3>¿De qué período son estas ventas?</h3>
+          <div class="period-mode">
+            <label class="period-mode__option">
+              <input type="radio" formControlName="periodMode" value="fixed" />
+              Todo el archivo es de un mismo período (ej. "ventas de julio")
+            </label>
+            <label class="period-mode__option">
+              <input type="radio" formControlName="periodMode" value="columns" />
+              Cada fila trae su fecha o período en una columna
+            </label>
+          </div>
+
+          @if (periodMode() === 'fixed') {
+            <div class="signup__row">
+              <label>
+                Desde
+                <input type="date" formControlName="periodFrom" />
+              </label>
+              <label>
+                Hasta
+                <input type="date" formControlName="periodTo" />
+              </label>
+            </div>
+            <p class="hint">
+              Si volvés a subir el mismo período, se reemplaza (no se suma). Para que el asesor calcule
+              unidades por mes, cargá al menos el último mes completo; los últimos 90 días es lo ideal.
+            </p>
+          } @else {
+            <div class="signup__row">
+              <label>
+                Columna de Fecha (o "desde")
+                <select formControlName="periodFromColumn">
+                  <option value="">Elegí una columna</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+              <label>
+                Columna de "hasta" (si hay)
+                <select formControlName="periodToColumn">
+                  <option value="">(ninguna — cada fila es un día)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+            </div>
+            <p class="hint">Fechas como dd/mm/aaaa o aaaa-mm-dd. Varias filas del mismo EAN y período se suman.</p>
+          }
+
+          @if (loading()) {
+            <app-loading-bar label="Cargando las ventas…" />
+          }
+          <div class="actions">
+            <button type="button" class="secondary" (click)="startOver()" [disabled]="loading()">
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Otro archivo
+            </button>
+            <button type="submit" [disabled]="loading()">
+              {{ loading() ? 'Cargando…' : 'Cargar ventas' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ============================================================ 3. resultado -->
+    @if (step() === 'result' && result(); as r) {
+      <div class="result-step">
+        <h2><i class="fa-solid fa-check result-ok" aria-hidden="true"></i> Listo</h2>
+        <p>
+          {{ r.totalRows }} filas procesadas — <strong>{{ r.loaded }}</strong> registros de ventas
+          cargados{{ selectedBranchName() ? ' para ' + selectedBranchName() : '' }}, período
+          {{ r.periodFrom }} a {{ r.periodTo }}.
+          @if (r.replaced > 0) {
+            {{ r.replaced }} del mismo período que ya estaban se reemplazaron.
+          }
+          @if (r.failed > 0) {
+            {{ r.failed }} con error.
+          }
+        </p>
+        <p class="hint">
+          El Asesor de Precios ya las tiene en cuenta: en el dashboard, "Analizar mi posición" pasa a
+          priorizar en pesos por mes.
+        </p>
+
+        @if (r.errors.length > 0) {
+          <table class="preview-table">
+            <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
+            <tbody>
+              @for (e of r.errors; track e.rowNumber) {
+                <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+              }
+            </tbody>
+          </table>
+        }
+        <div class="actions">
+          <button type="button" (click)="startOver()">Cargar otro archivo</button>
+          <a routerLink="/dashboard" class="link-btn">Ir al dashboard →</a>
+        </div>
+      </div>
+    }
+  }
+</div>

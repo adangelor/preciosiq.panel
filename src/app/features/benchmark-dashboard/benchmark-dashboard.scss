@@ -1,0 +1,386 @@
+.dashboard {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+.setup-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 220px;
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  font-size: 0.9rem;
+  color: var(--text-3);
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin: 1rem 0;
+}
+
+.summary-cards {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+// 19-ago-2026 -- pedido de Andres: cards estilo SB Admin 2 (borde de color a la
+// izquierda + icono grande y tenue del lado derecho, en vez del bloque plano de
+// antes). border-left en vez de todo el fondo de color -- mas sobrio, mismo lenguaje
+// visual que el admin template que puso de referencia.
+.card {
+  flex: 1;
+  min-width: 180px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.card-icon {
+  font-size: 1.9rem;
+  opacity: 0.35;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.card--blue {
+  border-left-color: var(--primary);
+}
+
+.card--yellow {
+  border-left-color: var(--warning);
+}
+
+.card--bad {
+  border-left-color: var(--danger);
+}
+
+.card--good {
+  border-left-color: var(--success);
+}
+
+.card-label {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.cat-table th,
+.cat-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+// 19-ago-2026 -- pedido de Andres: ordenar la tabla de categorias por cualquier
+// columna. Mismo estilo que ya usa benchmark-detail-dialog.scss para el detalle por
+// producto, asi las dos tablas se sienten consistentes.
+.sort-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sort-th:hover {
+  color: var(--primary);
+}
+
+.cat-table__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+// v3 (21-ago-2026, "la bomba" punto 3) -- toggle "Por categoría / Por producto".
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-toggle button {
+  background: var(--bg-card);
+  color: var(--primary);
+  border: none;
+  border-radius: 0;
+  padding: 0.45rem 1rem;
+  font-size: 0.88rem;
+}
+
+.view-toggle button + button {
+  border-left: 1px solid var(--primary);
+}
+
+.view-toggle .view-toggle--active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+// v3 ("la bomba" punto 1) -- breadcrumb del drilldown de categorias.
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.breadcrumb__current {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.breadcrumb__sep {
+  color: var(--text-3);
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+// v3 ("la bomba" punto 3) -- buscador de la vista por productos.
+.flat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.flat-search {
+  flex: 1;
+  min-width: 240px;
+}
+
+.flat-count {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+// Badges de origen del precio propio -- mismos estilos que
+// benchmark-detail-dialog.scss (duplicados por el encapsulamiento de estilos de
+// Angular): la vista por productos los muestra ahora tambien en esta pantalla.
+.source-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.source-badge--sepa {
+  background: rgba(138, 138, 138, 0.15);
+  color: var(--text-2);
+}
+
+.source-badge--self_reported {
+  background: rgba(46, 90, 172, 0.12);
+  color: var(--primary);
+}
+
+.source-badge--crowd {
+  background: rgba(217, 138, 21, 0.15);
+  color: var(--warning);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+// Asesor de Precios, fase 1 -- el boton estrella de la toolbar.
+.advisor-button {
+  background: var(--primary);
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+}
+
+.advisor-button:hover:not(:disabled) {
+  background: var(--primary-strong);
+}
+
+.export-button {
+  background: var(--success);
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+}
+
+.export-button:hover:not(:disabled) {
+  background: var(--success);
+}
+
+.row--clickable {
+  cursor: pointer;
+}
+
+.row--clickable:hover {
+  background: var(--bg-elevated);
+}
+
+.row--selected {
+  background: var(--primary-soft);
+}
+
+.cat-table__link {
+  color: var(--primary);
+  font-size: 0.8rem;
+}
+
+.insufficient {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.delta--above {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.delta--below {
+  color: var(--success);
+  font-weight: 600;
+}
+
+// 19-ago-2026 -- fix del bug "120% vs -1.9%": el % de diferencia sale matcheado por
+// EAN. 22-ago: el conteo de matcheados se mudo de un parentesis bajo la Diferencia a
+// su propia columna "A comparar" (X / Y), ordenable y orden por defecto de la tabla.
+.delta__matched-count {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+// "A comparar" en cero: la comparacion de esa fila todavia no dice nada -- gris.
+.matched--none {
+  color: var(--text-3);
+}
+
+.delta--empty {
+  color: var(--text-3);
+  font-style: italic;
+  font-weight: 400;
+}
+
+// 16-ago-2026 -- el detalle de categoria (tendencia + productos, con sus propias
+// source-badge/chain-list/hint) se muestra ahora en un MatDialog (popup real via CDK
+// Overlay), NO en este template -- ver benchmark-detail-dialog.scss para esos estilos
+// (duplicados alli por el encapsulamiento de estilos de Angular). La primera version de
+// este popup usaba un backdrop/position:fixed casero aca mismo, pero quedaba atrapado
+// dentro de <mat-sidenav-content> (Angular Material le pone transform al drawer, y eso
+// crea un containing block nuevo para cualquier descendiente position:fixed).
+//
+// Paginacion de la tabla de categorias de esta pantalla (pedido de Andres: con muchas
+// categorias la tabla completa quedaba desprolija).
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -0.5rem 0 1.5rem;
+}
+
+.pagination button {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  background: var(--bg-card);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.pagination button:disabled {
+  color: var(--text-3);
+  border-color: var(--border-strong);
+  background: var(--bg-card);
+}
+
+.pagination__info {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}

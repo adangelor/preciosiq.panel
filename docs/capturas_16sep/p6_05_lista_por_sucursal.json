@@ -1,0 +1,16 @@
+[
+  {
+    "branchId": "999-8",
+    "promoRuleTexto": "20 % llevando 1+",
+    "reglaDeCuenta": true,
+    "promo1": 800,
+    "promo1Text": "20 % llevando 1+"
+  },
+  {
+    "branchId": "999-9",
+    "promoRuleTexto": "Llevando 1+: $700 c/u",
+    "reglaDeCuenta": false,
+    "promo1": 700,
+    "promo1Text": "Llevando 1+: $700 c/u"
+  }
+]

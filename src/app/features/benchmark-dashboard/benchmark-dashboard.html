@@ -1,0 +1,337 @@
+<div class="dashboard">
+  <h1>Dashboard de benchmarking</h1>
+  <p class="subtitle">Cómo estás parado contra la competencia de tu zona, con tendencia y detalle por producto.</p>
+
+  @if (loadingContext()) {
+    <p class="empty-state">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="empty-state">
+      {{ contextErrorMessage() }}
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage() && !branches()?.length) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="loadDashboard()" class="setup-form">
+      @if (branches(); as bs) {
+        @if (bs.length > 1) {
+          <label>
+            Sucursal
+            <select formControlName="branchId">
+              @for (b of bs; track b.branchId) {
+                <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+              }
+            </select>
+          </label>
+        }
+      }
+      <label>
+        Radio (metros)
+        <input type="number" formControlName="maxDistanceMeters" step="100" />
+      </label>
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Calculando…' : 'Ver dashboard' }}
+      </button>
+    </form>
+
+    @if (selectedBranch(); as sb) {
+      <app-radius-advisor
+        [latitude]="sb.latitude"
+        [longitude]="sb.longitude"
+        [radius]="radiusValue() || 0"
+        [ownCommerceId]="ownCommerceId()"
+        [autoApply]="!hasSavedRadius()"
+        (radiusChange)="applyRadius($event)"
+      />
+    }
+
+    @if (!loading() && categories() === null && !errorMessage() && branches()?.length) {
+      <p class="empty-state">
+        Elegí el radio (o aceptá el sugerido) y tocá <strong>Ver dashboard</strong>. La próxima vez
+        que entres arranca solo con el último radio que funcionó para esta sucursal.
+      </p>
+    }
+  }
+
+  @if (loading()) {
+    <app-loading-bar
+      [label]="'Buscando competidores en un radio de ' + form.controls.maxDistanceMeters.value + ' m y armando el dashboard por categoría…'"
+    />
+  }
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  @if (categories(); as cats) {
+    @if (cats.length === 0) {
+      <p class="empty-state">
+        No encontramos categorías con datos en este radio todavía. Probá ampliar el radio
+        o esperá a que haya más productos cargados cerca (propios o de otras cadenas).
+      </p>
+    } @else {
+      @if (summary(); as s) {
+        <!-- 19-ago-2026 -- cards con iconito estilo SB Admin 2.
+             25-ago-2026 -- los iconos pasan de emoji a Font Awesome (ver angular.json). -->
+        <div class="summary-cards">
+          <div class="card card--blue">
+            <div class="card-text">
+              <span class="card-label">Subcategorías con datos suficientes</span>
+              <span class="card-value">{{ s.categoriesWithData }} / {{ leafRows().length }}</span>
+            </div>
+            <span class="card-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+          </div>
+          <div class="card" [class.card--bad]="s.avgDeltaPct > 0" [class.card--good]="s.avgDeltaPct < 0">
+            <div class="card-text">
+              <span class="card-label">Diferencia promedio vs. zona (productos coincidentes)</span>
+              <span class="card-value">{{ s.avgDeltaPct > 0 ? '+' : '' }}{{ s.avgDeltaPct.toFixed(1) }}%</span>
+            </div>
+            <span class="card-icon">
+              <i
+                class="fa-solid"
+                [class.fa-arrow-trend-up]="s.avgDeltaPct > 0"
+                [class.fa-arrow-trend-down]="s.avgDeltaPct <= 0"
+                aria-hidden="true"
+              ></i>
+            </span>
+          </div>
+          <div class="card card--yellow">
+            <div class="card-text">
+              <span class="card-label">Más caro / más barato que la zona</span>
+              <span class="card-value">{{ s.above }} / {{ s.below }}</span>
+            </div>
+            <span class="card-icon"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span>
+          </div>
+        </div>
+      } @else {
+        <p class="empty-state">
+          Todavía no encontramos categorías con precio de competencia cerca (ni una cadena
+          SEPA, ni al menos 3 cuentas de la familia) como para armar un resumen general. Mirá
+          la tabla de abajo: puede haber alguna categoría con datos igual.
+        </p>
+      }
+
+      <!-- v3 -- toggle de vista ("la bomba" punto 3): jerarquía de categorías, o
+           tabla plana de todos los productos con buscador. -->
+      <div class="cat-table__toolbar">
+        <div class="view-toggle" role="tablist">
+          <button
+            type="button"
+            [class.view-toggle--active]="viewMode() === 'categorias'"
+            (click)="setViewMode('categorias')"
+          >Por categoría</button>
+          <button
+            type="button"
+            [class.view-toggle--active]="viewMode() === 'productos'"
+            (click)="setViewMode('productos')"
+          >Por producto</button>
+        </div>
+        <div class="toolbar-actions">
+          <!-- Asesor de Precios, fase 1: el informe se genera server-side (gate por
+               plan + cache diaria en el backend). -->
+          <button type="button" class="advisor-button" (click)="openAdvisor()">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i> Analizar mi posición
+          </button>
+          <button type="button" class="export-button" [disabled]="exportingReport()" (click)="exportReport()">
+            @if (exportingReport()) {
+              Generando…
+            } @else {
+              <i class="fa-solid fa-download" aria-hidden="true"></i> Descargar reporte (Excel)
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (viewMode() === 'categorias') {
+        <!-- v3 -- navegación jerárquica ("la bomba" punto 1): raíz = las categorías
+             canónicas (filas total); drilldown = subcategorías de la elegida; el
+             click en una subcategoría abre el detalle por producto de siempre. -->
+        <nav class="breadcrumb">
+          @if (drillCategoryId() === null) {
+            <span class="breadcrumb__current">Todas las categorías</span>
+          } @else {
+            <button type="button" class="link-button" (click)="drillBack()">← Todas las categorías</button>
+            <span class="breadcrumb__sep">/</span>
+            <span class="breadcrumb__current">{{ drillCategoryName() }}</span>
+          }
+        </nav>
+
+        <table class="cat-table">
+          <thead>
+            <tr>
+              <th class="sort-th" (click)="toggleCategorySort('categoryName')">
+                {{ drillCategoryId() === null ? 'Categoría' : 'Subcategoría' }}{{ categorySortArrow('categoryName') }}
+              </th>
+              <th class="sort-th" (click)="toggleCategorySort('competitorCount')">
+                Competidores{{ categorySortArrow('competitorCount') }}
+              </th>
+              <!-- v3 -- numerales nuevos ("la bomba" punto 4), ordenables. -->
+              <th class="sort-th" (click)="toggleCategorySort('ownProducts')">
+                Tus productos{{ categorySortArrow('ownProducts') }}
+              </th>
+              <th class="sort-th" (click)="toggleCategorySort('zoneProducts')">
+                Productos en zona{{ categorySortArrow('zoneProducts') }}
+              </th>
+              <!-- 22-ago -- pedido de Andres: el KPI de calidad de la comparacion.
+                   "X / Y" = tus productos CON coincidencia en la zona (mismo EAN)
+                   sobre tus productos totales de la categoria; la resta son los no
+                   coincidentes. Tambien es el orden por defecto de la tabla. -->
+              <th class="sort-th" (click)="toggleCategorySort('matched')"
+                  title="Tus productos con coincidencia de EAN en la zona / tus productos totales">
+                A comparar{{ categorySortArrow('matched') }}
+              </th>
+              <th class="sort-th" (click)="toggleCategorySort('delta')">
+                Diferencia{{ categorySortArrow('delta') }}
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of pagedCategories(); track c.categoryId + '|' + (c.subcategoryId ?? '') + '|' + c.isCategoryTotal) {
+              <tr
+                [class.row--selected]="selectedCategory() === c"
+                [class.row--clickable]="c.isCategoryTotal || c.sufficientCoverage"
+                (click)="c.isCategoryTotal ? drillInto(c) : selectCategory(c)"
+              >
+                <td>
+                  @if (c.isCategoryTotal) {
+                    {{ c.categoryName }}
+                  } @else {
+                    {{ c.subcategoryName ?? '(sin subcategoría)' }}
+                  }
+                </td>
+                <td>{{ c.competitorCount }}</td>
+                <td>{{ c.ownProductCount }}</td>
+                <td>{{ c.zoneProductCount }}</td>
+                <td [class.matched--none]="c.matchedProductCount === 0"
+                    title="{{ c.matchedProductCount }} coincidentes con la zona, {{ c.ownProductCount - c.matchedProductCount }} sin coincidencia">
+                  {{ c.matchedProductCount }} / {{ c.ownProductCount }}
+                </td>
+                @if (c.sufficientCoverage) {
+                  <td [class.delta--above]="(c.deltaVsCompetitorsPct ?? 0) > 0" [class.delta--below]="(c.deltaVsCompetitorsPct ?? 0) < 0">
+                    <!-- 22-ago -- el "(sobre N productos)" que vivia aca se mudo a la
+                         columna "A comparar": mismo dato, lugar propio, ordenable. -->
+                    @if (c.deltaVsCompetitorsPct === null) {
+                      <span class="delta--empty">Sin productos propios coincidentes</span>
+                    } @else {
+                      {{ (c.deltaVsCompetitorsPct * 100).toFixed(1) }}%
+                    }
+                  </td>
+                  <td class="cat-table__link">{{ c.isCategoryTotal ? 'Ver subcategorías →' : 'Ver detalle →' }}</td>
+                } @else {
+                  <td class="insufficient">Sin cadenas SEPA cerca y menos de 3 cuentas de la familia</td>
+                  <td class="cat-table__link">
+                    @if (c.isCategoryTotal) {
+                      Ver subcategorías →
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (categoryTotalPages() > 1) {
+          <div class="pagination">
+            <button type="button" (click)="goToCategoryPage(categoryPage() - 1)" [disabled]="categoryPage() === 1">← Anterior</button>
+            <span class="pagination__info">Página {{ categoryPage() }} de {{ categoryTotalPages() }} ({{ currentLevelRows().length }} {{ drillCategoryId() === null ? 'categorías' : 'subcategorías' }})</span>
+            <button type="button" (click)="goToCategoryPage(categoryPage() + 1)" [disabled]="categoryPage() === categoryTotalPages()">Siguiente →</button>
+          </div>
+        }
+      } @else {
+        <!-- v3 -- vista por PRODUCTO ("la bomba" punto 3): tabla plana del catálogo
+             completo del radio, con buscador y salto a la categoría del producto. -->
+        @if (loadingAllProducts()) {
+          <app-loading-bar label="Cargando el catálogo completo del radio…" />
+        } @else if (allProductsError()) {
+          <p class="form-error">{{ allProductsError() }}</p>
+        } @else if (allProducts() !== null) {
+          <div class="flat-toolbar">
+            <input
+              type="search"
+              class="flat-search"
+              placeholder="Buscar por producto, EAN, marca o categoría…"
+              [value]="flatSearch()"
+              (input)="onFlatSearch($any($event.target).value)"
+            />
+            <span class="flat-count">{{ sortedFlatRows().length }} producto{{ sortedFlatRows().length === 1 ? '' : 's' }}</span>
+          </div>
+
+          <table class="cat-table">
+            <thead>
+              <tr>
+                <th class="sort-th" (click)="toggleFlatSort('description')">
+                  Producto{{ flatSortArrow('description') }}
+                </th>
+                <th class="sort-th" (click)="toggleFlatSort('category')">
+                  Categoría{{ flatSortArrow('category') }}
+                </th>
+                <th class="sort-th" (click)="toggleFlatSort('ownPrice')">
+                  Tu precio{{ flatSortArrow('ownPrice') }}
+                </th>
+                <th class="sort-th" (click)="toggleFlatSort('delta')">
+                  Diferencia{{ flatSortArrow('delta') }}
+                </th>
+                <th class="sort-th" (click)="toggleFlatSort('family')">
+                  Otras cuentas (zona){{ flatSortArrow('family') }}
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of pagedFlatRows(); track p.ean) {
+                <tr>
+                  <!-- E18.6 -- la marca sale por el pipe (core/brand-label.ts): un solo criterio
+                       para los cuatro lugares que mostraban "descripcion (marca)", y en un span
+                       aparte para que se distinga del nombre del producto. -->
+                  <td>
+                    {{ p.description ?? p.ean }}
+                    @if (p.brand | brandLabel; as brand) {
+                      <span class="brand-tag">({{ brand }})</span>
+                    }
+                  </td>
+                  <td>{{ p.categoryName }}{{ p.subcategoryName ? ' / ' + p.subcategoryName : '' }}</td>
+                  <td>
+                    {{ p.ownPrice ? '$' + p.ownPrice.toFixed(2) : '—' }}
+                    @if (p.ownPriceSource) {
+                      <span class="source-badge" [class]="'source-badge--' + p.ownPriceSource">
+                        {{ sourceLabel(p.ownPriceSource) }}
+                      </span>
+                    }
+                  </td>
+                  <td [class.delta--above]="(p.deltaPct ?? 0) > 0" [class.delta--below]="(p.deltaPct ?? 0) < 0">
+                    {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
+                  </td>
+                  <td>
+                    @if (p.familySufficientCoverage) {
+                      <span title="Promedio de {{ p.familyCompetitorCount }} cuentas">
+                        ${{ p.familyAvgPrice?.toFixed(2) }}
+                      </span>
+                    } @else if (p.familyCompetitorCount > 0) {
+                      <span class="insufficient">Cobertura insuficiente ({{ p.familyCompetitorCount }})</span>
+                    } @else {
+                      <span class="insufficient">—</span>
+                    }
+                  </td>
+                  <td class="cat-table__link" (click)="goToProductCategory(p)">Ver categoría →</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (flatTotalPages() > 1) {
+            <div class="pagination">
+              <button type="button" (click)="goToFlatPage(flatPage() - 1)" [disabled]="flatPage() === 1">← Anterior</button>
+              <span class="pagination__info">Página {{ flatPage() }} de {{ flatTotalPages() }} ({{ sortedFlatRows().length }} productos)</span>
+              <button type="button" (click)="goToFlatPage(flatPage() + 1)" [disabled]="flatPage() === flatTotalPages()">Siguiente →</button>
+            </div>
+          }
+        }
+      }
+    }
+  }
+
+  <!-- 16-ago-2026 -- el detalle de subcategoría (tendencia + detalle por producto) se
+       abre como MatDialog al clickear una fila hoja -- ver selectCategory()/
+       openDetailDialog() en el .ts y benchmark-detail-dialog.ts. -->
+</div>

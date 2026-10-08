@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "branchId": "999-9",
+      "ean": "2995000000019",
+      "description": "BP38 Gaseosa panel a caja 1,5 L",
+      "brand": "PRUEBA",
+      "presentationQuantity": 1,
+      "presentationUnit": "UN",
+      "listPrice": 2500,
+      "promo1UnitPrice": 2100,
+      "promo1Text": "Llevando 3+: $2.100 c/u",
+      "promo2UnitPrice": null,
+      "promo2Text": null,
+      "promoRule": {
+        "id": 1844,
+        "branchId": "999-9",
+        "tipo": "precio_unitario",
+        "minQty": 3,
+        "maxQty": null,
+        "precioPromo": 2100,
+        "porcentaje": null,
+        "grupoN": null,
+        "pagaM": null,
+        "cadaN": null,
+        "validFrom": null,
+        "validTo": null,
+        "updatedAtUtc": "2026-09-16T21:41:08Z",
+        "texto": "Llevando 3+: $2.100 c/u",
+        "textoCondicion": "Llevando 3: $2.100 c/u",
+        "activa": true
+      },
+      "promoRuleTexto": "Llevando 3+: $2.100 c/u"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "totalCount": 1,
+  "maxProducts": null
+}

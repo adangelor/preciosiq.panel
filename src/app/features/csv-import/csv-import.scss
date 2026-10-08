@@ -1,0 +1,260 @@
+.signup {
+  max-width: 900px;
+  margin: 2rem auto;
+  font-family: inherit;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+input,
+select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.signup__row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.signup__row > label {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: -0.4rem 0 0.9rem;
+}
+
+button {
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.preview-scroll {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.preview-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.saved-mappings {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--primary);
+}
+
+.chip--new {
+  background: var(--bg-elevated);
+  color: var(--text-2);
+}
+
+// 25-ago-2026 -- el mapeo elegido: relleno solido + tilde, para que se distinga del resto
+// sin depender solo del color (el tilde lo ve cualquiera).
+.chip--selected,
+.chip--selected:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.result-step p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+// E5.4 -- aviso de precios que quedaron muy distintos al anterior/promedio de zona.
+.anomaly-warning {
+  background: var(--warning-soft);
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.anomaly-warning h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--warning);
+}
+
+.anomaly-warning p {
+  margin-bottom: 0.9rem;
+  font-size: 0.9rem;
+  color: var(--warning);
+}
+
+.anomaly-warning .preview-table {
+  background: var(--bg-card);
+}
+
+.delta--above {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.delta--below {
+  color: var(--success);
+  font-weight: 600;
+}
+
+// E5.7 (25-ago-2026) -- barra de avance de la carga por lotes.
+.import-progress {
+  margin: 0.5rem 0 1rem;
+}
+
+.import-progress__bar {
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.import-progress__fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.import-progress__text {
+  margin: 0.5rem 0 0.15rem;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+// E13 -- subtítulo de la sección de costos dentro del formulario de mapeo.
+.mapping-section {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text);
+
+  i {
+    color: var(--primary);
+    margin-right: 0.35rem;
+  }
+}
+
+// 17-sep-2026 -- corrector de precios en la tabla de "precios para revisar" (ver csv-import.ts):
+// "Editar" abre una fila con el precio de lista (y el precio promo, si la promo de ese producto
+// es "precio por cantidad") y un atajo para volver al precio anterior.
+.anomaly-fix {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.anomaly-fix label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.anomaly-fix input {
+  width: 9rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+}
+
+.anomaly-fix__row td {
+  background: var(--bg-elevated);
+}
+
+.anomaly-fix__cell {
+  white-space: nowrap;
+}
+
+.anomaly-fix__btn {
+  padding: 0.35rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.anomaly-fix__btn--ghost {
+  background: var(--border);
+  color: var(--text-2);
+}
+
+.anomaly-fix__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.anomaly-fix__ok {
+  color: var(--success);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

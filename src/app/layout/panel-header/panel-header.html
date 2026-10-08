@@ -1,0 +1,249 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    #sidenavEl
+    class="shell__sidenav"
+    [class.shell__sidenav--collapsed]="!isMobile() && sidenavCollapsed()"
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="sidenavOpened()"
+    (openedChange)="sidenavOpened.set($event)"
+  >
+    <div class="shell__brand">
+      <!-- 20-ago-2026 -- pedido de Andres: el sidebar SIEMPRE muestra el cerebrito
+           (marca PreciosIQ), fijo -- no alterna con el logo propio del comercio. El
+           logo del comercio, cuando existe, va solo en la barra de arriba. -->
+      <img class="shell__brand-logo" src="/home/assets/img/logo-preciosiq.svg" alt="PreciosIQ" />
+      <div class="shell__brand-text">
+        <strong>PreciosIQ</strong>
+        @if (razonSocial()) {
+          <span class="shell__brand-sub">{{ razonSocial() }}</span>
+        }
+      </div>
+    </div>
+
+    <!--
+      25-ago-2026 -- el menu pasa de mat-nav-list a una lista propia. Motivo: el
+      list-item de Material trae su propio alto, su propio ripple y su propia idea de
+      color, y era justo la pieza que hacia que el panel se viera de otro producto. El
+      resto del shell (mat-sidenav-container) se queda: ya resuelve el modo "over" en
+      mobile y el scroll interno, y tiene dos bugs reales arreglados encima.
+
+      Los agrupadores (Precios / Analisis / Mi cuenta) son nuevos: son diez items y
+      planos se leian como una lista de supermercado. No cambia ninguna ruta.
+    -->
+    <nav>
+      <ul class="shell__nav">
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/dashboard"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Dashboard' : null"
+          >
+            <mat-icon>dashboard</mat-icon>
+            <span class="shell__link-text">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="shell__nav-section">Precios</li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/cargar"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Cargar precio' : null"
+          >
+            <mat-icon>sell</mat-icon>
+            <span class="shell__link-text">Cargar precio</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/carga-masiva"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Carga masiva' : null"
+          >
+            <mat-icon>upload_file</mat-icon>
+            <span class="shell__link-text">Carga masiva</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/mapeos"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Mapeos' : null"
+          >
+            <mat-icon>view_column</mat-icon>
+            <span class="shell__link-text">Mapeos</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/importaciones"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Importaciones' : null"
+          >
+            <mat-icon>restore</mat-icon>
+            <span class="shell__link-text">Importaciones</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/ventas/cargar"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Cargar ventas' : null"
+          >
+            <mat-icon>point_of_sale</mat-icon>
+            <span class="shell__link-text">Cargar ventas</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/historial"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Historial de precio' : null"
+          >
+            <mat-icon>history</mat-icon>
+            <span class="shell__link-text">Historial de precio</span>
+          </a>
+        </li>
+
+        <li class="shell__nav-section">Análisis</li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/benchmark"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Benchmark instantáneo' : null"
+          >
+            <mat-icon>leaderboard</mat-icon>
+            <span class="shell__link-text">Benchmark instantáneo</span>
+          </a>
+        </li>
+
+        <li class="shell__nav-section">Mi cuenta</li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/sucursales"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Sucursales' : null"
+          >
+            <mat-icon>storefront</mat-icon>
+            <span class="shell__link-text">Sucursales</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/negocio"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Datos del negocio' : null"
+          >
+            <mat-icon>badge</mat-icon>
+            <span class="shell__link-text">Datos del negocio</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/usuarios"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Usuarios' : null"
+          >
+            <mat-icon>group</mat-icon>
+            <span class="shell__link-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/plan"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Mi plan' : null"
+          >
+            <mat-icon>workspace_premium</mat-icon>
+            <span class="shell__link-text">Mi plan</span>
+          </a>
+        </li>
+
+        @if (isAdmin()) {
+          <li class="shell__nav-section">Admin</li>
+          <li>
+            <a
+              class="shell__link"
+              routerLink="/admin/cuentas"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Trials' : null"
+            >
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span class="shell__link-text">Trials</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <!-- Colapsar a solo-iconos. Solo en desktop: en mobile el sidenav ya se abre y
+         cierra entero con la hamburguesa de arriba. -->
+    @if (!isMobile()) {
+      <div class="shell__collapse-row">
+        <button
+          type="button"
+          class="shell__icon-btn"
+          (click)="toggleCollapse()"
+          [attr.aria-label]="sidenavCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+        >
+          <mat-icon>{{ sidenavCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+      </div>
+    }
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="shell__toolbar">
+      <!-- 25-ago-2026 -- en desktop la hamburguesa colapsa/expande a solo-iconos (mismo
+           efecto que el caret de abajo del menu); en mobile abre/cierra el drawer. -->
+      <button
+        type="button"
+        class="shell__icon-btn"
+        (click)="toggleSidenav()"
+        [attr.aria-label]="isMobile() ? (sidenavOpened() ? 'Cerrar menú' : 'Abrir menú') : (sidenavCollapsed() ? 'Expandir menú' : 'Colapsar menú')"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- Si el comercio cargó su logo, la barra de arriba muestra SU marca. Si no,
+           dice PreciosIQ. -->
+      @if (logoUrl()) {
+        <div class="shell__toolbar-brand">
+          <img class="shell__toolbar-logo" [src]="resolveLogoUrl(logoUrl())" alt="" />
+          <span class="shell__toolbar-brand-name">{{ razonSocial() || 'PreciosIQ' }}</span>
+        </div>
+      } @else {
+        <span class="shell__toolbar-brand-name">PreciosIQ</span>
+      }
+
+      <span class="shell__toolbar-spacer"></span>
+
+      <button
+        type="button"
+        class="shell__icon-btn"
+        (click)="themeService.toggle()"
+        [attr.aria-label]="themeService.theme() === 'light' ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'"
+      >
+        <mat-icon>{{ themeService.theme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      </button>
+
+      <app-account-menu></app-account-menu>
+    </div>
+
+    <div class="shell__content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

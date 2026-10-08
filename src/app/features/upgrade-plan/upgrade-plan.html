@@ -1,0 +1,135 @@
+<div class="upgrade card--page">
+  <h1>Tu plan</h1>
+  <!--
+    18-sep-2026 -- este texto decía que el límite era la cantidad de productos y que la carga
+    masiva por CSV era de planes pagos. Las dos cosas dejaron de ser ciertas y contradecían a
+    las tarjetas de abajo (que sí salen de PlanLimits.Plans): MaxProducts está en null en los
+    cinco planes (carga libre) y CsvBulkImport es universal desde el 21-ago-2026. Lo que
+    diferencia a los planes hoy es el análisis, en el orden en que lo da PlanLimits.
+  -->
+  <p class="subtitle">
+    Gratis / Inicial / Pyme / Avanzado / Cadena. Ningún plan te limita la cantidad de productos
+    ni de sucursales, y la carga masiva por CSV está en todos, incluido el gratis. Lo que suma
+    cada plan pago es análisis: el historial de precios desde Inicial; el dashboard completo de
+    benchmarking y el informe del Asesor desde Pyme; el análisis de margen (tus costos) desde
+    Avanzado; y el de ganancia (tus ventas) en Cadena.
+  </p>
+
+  @if (loadingContext() || loading()) {
+    <p class="hint">Cargando tu plan…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="form-error">{{ errorMessage() }}</p>
+  }
+
+  @if (status(); as s) {
+    @if (s.isTrial) {
+      <!--
+        E10.5 (19-ago-2026) -- sin esto, una cuenta con trial activo veia "Plan actual:
+        free" sin ninguna mencion al trial -- lo reporto Andres como "una mentira grande
+        como dos casas grandes" con una cadena que tiene 'cadena' de trial hasta
+        noviembre. El badge de abajo sigue mostrando el plan REALMENTE contratado (asi
+        tiene que ser: upgrade/downgrade actuan sobre ese, no sobre el trial) pero esto
+        deja clarisimo que, mientras dure el trial, la cuenta ya tiene desbloqueado todo
+        lo del plan de prueba.
+      -->
+      <div class="trial-banner">
+        <i class="fa-solid fa-gift" aria-hidden="true"></i> Estás probando el plan <strong>{{ s.trialTier }}</strong> gratis hasta el
+        {{ s.trialExpiresAt | date: 'dd/MM/yyyy' }}. Mientras dure, tenés desbloqueado todo lo de ese plan.
+        Tu plan contratado (el que se cobra) sigue siendo <strong>{{ s.tier }}</strong>.
+      </div>
+    }
+    <div class="current-plan">
+      <span class="badge" [class.badge--free]="s.tier === 'free'" [class.badge--paid]="s.tier !== 'free'">
+        Plan contratado: {{ s.tier }}
+      </span>
+      <span class="current-plan__detail">
+        {{ s.currentProductCount }} / {{ s.maxProducts === null ? '∞' : s.maxProducts }} productos cargados
+      </span>
+      <span class="current-plan__detail">{{ s.currentBranchCount }} sucursal(es) (sin límite)</span>
+      @if (s.renewsAt) {
+        <span class="current-plan__detail">
+          Renueva: {{ s.renewsAt | date: 'dd/MM/yyyy' }}
+          @if (s.billingCycle) {
+            ({{ s.billingCycle === 'annual' ? 'anual' : 'mensual' }})
+          }
+        </span>
+      }
+      @if (s.tier !== 'free') {
+        <button type="button" class="link-button" (click)="downgrade()">Bajar a plan gratis</button>
+      }
+    </div>
+
+    @if (plans(); as planList) {
+      <div class="billing-cycle-toggle">
+        <button
+          type="button"
+          [class.active]="billingCycle() === 'monthly'"
+          (click)="setBillingCycle('monthly')"
+        >
+          Mensual
+        </button>
+        <button
+          type="button"
+          [class.active]="billingCycle() === 'annual'"
+          (click)="setBillingCycle('annual')"
+        >
+          Anual (2 meses gratis)
+        </button>
+      </div>
+
+      <div class="plan-cards">
+        @for (plan of planList; track plan.tier) {
+          <div class="plan-card" [class.plan-card--current]="plan.tier === s.tier">
+            <h2>{{ plan.displayName }}</h2>
+            <p class="plan-card__price">
+              @if (plan.priceArs === null) {
+                Gratis
+              } @else if (billingCycle() === 'annual') {
+                ${{ plan.priceArsAnnual }} ARS/año
+              } @else {
+                ${{ plan.priceArs }} ARS/mes
+              }
+            </p>
+            <!--
+              18-sep-2026 -- con las cuatro primeras solas, Pyme, Avanzado y Cadena mostraban
+              LA MISMA lista y no se entendía qué se compraba de más. Las tres últimas son las
+              que separan a los planes pagos entre sí (PlanLimits: AdvisorReport desde Pyme,
+              MarginAnalysis desde Avanzado, ProfitAnalysis en Cadena).
+            -->
+            <ul>
+              <li>{{ plan.maxProducts === null ? 'Productos ilimitados' : plan.maxProducts + ' productos' }}</li>
+              <li [class.feature--off]="!plan.hasCsvBulkImport">Carga masiva por CSV</li>
+              <li [class.feature--off]="!plan.hasPriceHistory">Historial de precios</li>
+              <li [class.feature--off]="!plan.hasFullDashboard">Dashboard completo de benchmarking</li>
+              <li [class.feature--off]="!plan.hasAdvisorReport">Informe del Asesor de Precios</li>
+              <li [class.feature--off]="!plan.hasMarginAnalysis">Análisis de margen (tus costos)</li>
+              <li [class.feature--off]="!plan.hasProfitAnalysis">Análisis de ganancia (tus ventas)</li>
+            </ul>
+            @if (plan.tier === s.tier) {
+              <button type="button" disabled>Plan actual</button>
+            } @else if (plan.tier === 'free') {
+              <button type="button" (click)="downgrade()">Bajar a este plan</button>
+            } @else {
+              <button
+                type="button"
+                [disabled]="checkoutLoadingTier() === plan.tier"
+                (click)="upgrade(plan.tier)"
+              >
+                {{ checkoutLoadingTier() === plan.tier ? 'Redirigiendo…' : 'Suscribirme' }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

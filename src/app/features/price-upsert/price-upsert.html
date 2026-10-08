@@ -1,0 +1,316 @@
+<div class="signup card--page">
+  <h1>Cargar un precio</h1>
+  <p class="subtitle">
+    Buscá por EAN o descripción. Si el producto ya está en el catálogo, completamos marca y
+    descripción solos; si no aparece, cargalo vos y lo damos de alta.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="signup__form">
+    @if (branches().length > 1) {
+      <label>
+        Sucursal
+        <select formControlName="branchId">
+          @for (b of branches(); track b.branchId) {
+            <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <label class="signup__autocomplete">
+      EAN o descripción
+      <input
+        #eanInput
+        type="text"
+        formControlName="ean"
+        autocomplete="off"
+        placeholder="7790001234567 o 'leche entera'"
+      />
+      @if (suggestions().length > 0) {
+        <ul class="suggestions">
+          @for (s of suggestions(); track s.ean) {
+            <li (click)="pickSuggestion(s)">
+              <strong>{{ s.ean }}</strong> — {{ s.description }}
+              @if (s.brand | brandLabel; as brand) {
+                <span class="brand-tag">({{ brand }})</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </label>
+
+    <!-- Solo si hay algo tipeado: con el campo vacio (form recien limpiado, o recien
+         entrado a la pantalla) decir "no encontramos este EAN" no tiene sentido. -->
+    @if (!productKnown() && form.controls.ean.value) {
+      <p class="hint">No encontramos este EAN en el catálogo — completá los datos para darlo de alta.</p>
+    }
+
+    <!--
+      E10.6 (18-ago-2026) -- pedido de Andres: estos 4 campos YA NO se ocultan cuando el
+      EAN es "conocido". Hay demasiados nombres mal cargados en la base ("Aceit
+      Cañul1500lts" en vez de "Aceite Cañuelas 1.5 litros") y cantidad/unidad zafados
+      ("1 unidad" cuando son "1500 cc") como para no poder corregirlos desde aca mismo,
+      sin tener que ir a buscar el producto a otro lado. Quedan precargados si el EAN
+      matcheó (autocompletar sigue funcionando igual), pero editables siempre.
+    -->
+    <div class="signup__row">
+      <label class="signup__grow">
+        Descripción
+        <input type="text" formControlName="description" />
+      </label>
+      <label>
+        Marca
+        <input type="text" formControlName="brand" />
+      </label>
+    </div>
+    <div class="signup__row">
+      <label>
+        Cantidad de presentación
+        <input type="number" formControlName="presentationQuantity" step="0.01" />
+      </label>
+      <label>
+        Unidad
+        <select formControlName="presentationUnit">
+          @for (opt of unitOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Precio
+      <input type="number" formControlName="listPrice" step="0.01" min="0.01" />
+      @if (form.controls.listPrice.touched && form.controls.listPrice.invalid) {
+        <span class="field-error">Ingresá un precio mayor a cero.</span>
+      }
+    </label>
+
+    <!--
+      BP-38 (16-sep-2026) -- la promo es una REGLA: la misma que cobra la caja y la que se
+      publica en la red (el servidor escribe Promo1 como espejo). Mismo comportamiento que la
+      sección Promo de la pantalla Producto de la caja. Si no tocás esta sección, guardar no
+      cambia la promo que ya tenía el producto.
+    -->
+    <section class="promo" formGroupName="promo">
+      <h2 class="promo__title">Promo</h2>
+      @if (loadedRule(); as r) {
+        <p class="hint promo__loaded">
+          Promo vigente: <strong>{{ r.texto }}</strong>
+          @if (r.branchId === null) { <span class="tag">todas las sucursales</span> }
+          @if (r.leyenda) { · se publica como “{{ r.leyenda }}” }
+        </p>
+      }
+      <label>
+        Tipo
+        <select formControlName="tipo">
+          <option value="">Sin promo</option>
+          <option value="precio_unitario">Precio por cantidad (“llevando 3, $2.100 c/u”)</option>
+          <option value="porcentaje">Porcentaje (“15 % llevando 3”)</option>
+          <option value="n_x_m" [disabled]="pesable">NxM (“3x2”){{ pesable ? ' — no aplica por ' + form.controls.presentationUnit.value : '' }}</option>
+          <option value="enesima_porcentaje" [disabled]="pesable">N-ésima con descuento (“2da al 50 %”){{ pesable ? ' — no aplica por ' + form.controls.presentationUnit.value : '' }}</option>
+        </select>
+      </label>
+      @if (pesable) {
+        <p class="hint">
+          Un producto que se vende por {{ form.controls.presentationUnit.value }} no puede tener 3x2 ni “2da al 50 %”: la
+          cantidad no es entera. Usá precio por cantidad o porcentaje.
+        </p>
+      }
+
+      @if (promoTipo) {
+        <div class="signup__row promo__fields">
+          @if (promoTipo === 'precio_unitario') {
+            <label>Precio promo c/u <input type="number" formControlName="precio" step="0.01" min="0" placeholder="2100" /></label>
+          }
+          @if (promoTipo === 'porcentaje' || promoTipo === 'enesima_porcentaje') {
+            <label>Descuento % <input type="number" formControlName="porcentaje" step="0.01" min="0" max="100" placeholder="15" /></label>
+          }
+          @if (promoTipo === 'n_x_m') {
+            <label>Lleva N <input type="number" formControlName="grupoN" step="1" min="2" placeholder="3" /></label>
+            <label>Paga M <input type="number" formControlName="pagaM" step="1" min="1" placeholder="2" /></label>
+          }
+          @if (promoTipo === 'enesima_porcentaje') {
+            <label>Cada N-ésima <input type="number" formControlName="cadaN" step="1" min="2" placeholder="2" /></label>
+          }
+          <label>Mínimo <input type="number" formControlName="min" min="0" [step]="pesable ? '0.001' : '1'" placeholder="3" /></label>
+          <label>Máximo (opcional) <input type="number" formControlName="max" min="0" [step]="pesable ? '0.001' : '1'" placeholder="—" /></label>
+        </div>
+        <div class="signup__row promo__fields">
+          <label>Vigente desde (opcional) <input type="date" formControlName="desde" /></label>
+          <label>Hasta (opcional) <input type="date" formControlName="hasta" /></label>
+          <label class="signup__grow">
+            Leyenda (opcional)
+            <input type="text" formControlName="leyenda" maxlength="100" placeholder="Vacía = el texto de la regla" />
+          </label>
+        </div>
+        <label class="promo__check">
+          <input type="checkbox" formControlName="todasLasSucursales" />
+          Aplicar a todas las sucursales
+        </label>
+        @if (promoError()) {
+          <p class="field-error">{{ promoError() }}</p>
+        } @else if (promoPreview()) {
+          <p class="promo__preview">{{ promoPreview() }}</p>
+        }
+      }
+      <p class="hint">La promo se publica en la red y la caja la cobra igual: es una sola regla.</p>
+    </section>
+
+    @if (showPromo2()) {
+      <label>
+        Leyenda adicional (solo se muestra, la caja no la cobra)
+        <input type="text" formControlName="promo2Text" placeholder="Ej: Cuotas sin interés con tarjeta X" />
+      </label>
+    } @else {
+      <button type="button" class="link-button" (click)="showPromo2.set(true)">+ Leyenda adicional (solo se muestra, la caja no la cobra)</button>
+    }
+
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Guardando…' : 'Guardar precio' }}
+    </button>
+    <button type="button" class="link-button" (click)="toggleProducts()">
+      {{ productsPage() && !planLimitReached() ? 'Ocultar mis productos' : 'Ver mis productos' }}
+    </button>
+  </form>
+
+  @if (planLimitReached() || productsPage() || loadingProducts()) {
+    <div class="plan-limit" [class.plan-limit--list]="!planLimitReached()">
+      @if (planLimitReached()) {
+        <h2>Llegaste al límite de tu plan</h2>
+        <p>{{ errorMessage() }}</p>
+        <a routerLink="/plan" class="plan-limit__cta">Mejorar mi plan →</a>
+      } @else {
+        <h2>Mis productos</h2>
+      }
+
+      @if (loadingProducts()) {
+        <p class="hint">Cargando tus EAN…</p>
+      } @else if (productsPage(); as page) {
+        <p class="hint">
+          {{ page.totalCount }} EAN cargados{{ page.maxProducts ? ' de ' + page.maxProducts + ' permitidos' : '' }}.
+          @if (planLimitReached()) { Borrá o corregí uno para liberar lugar: }
+        </p>
+        <div class="plan-limit__table-wrap">
+        <table class="plan-limit__table">
+          <thead>
+            <tr>
+              <th>Sucursal</th>
+              <th>EAN</th>
+              <th>Descripción</th>
+              <th>Presentación</th>
+              <th>Precio</th>
+              <th>Promo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of page.items; track rowKeyOf(item)) {
+              <tr>
+                <td>{{ item.branchId }}</td>
+                <td>
+                  @if (editingEanKey() === rowKeyOf(item)) {
+                    <input
+                      type="text"
+                      class="plan-limit__ean-input"
+                      [ngModel]="newEanValue()"
+                      (ngModelChange)="onNewEanInput($event)"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                  } @else {
+                    {{ item.ean }}
+                  }
+                </td>
+                <td>
+                  {{ item.description }}
+                  @if (item.brand | brandLabel; as brand) {
+                    <span class="brand-tag">({{ brand }})</span>
+                  }
+                </td>
+                <td>{{ item.presentationQuantity }} {{ item.presentationUnit }}</td>
+                <td>${{ item.listPrice }}</td>
+                <!-- BP-38 -- la promo es la regla activa (la que cobra la caja y se publica). -->
+                <td>
+                  @if (item.promoRule) {
+                    <span>{{ item.promoRuleTexto }}</span>
+                    @if (item.promoRule.branchId === null) { <span class="tag">todas las sucursales</span> }
+                  } @else if (item.promo1UnitPrice) {
+                    <span class="muted">${{ item.promo1UnitPrice }} — sin regla: la caja no la cobra</span>
+                  } @else {
+                    <span class="hint">—</span>
+                  }
+                  @if (item.promo2Text) {
+                    <br /><span class="muted">{{ item.promo2Text }}</span>
+                  }
+                </td>
+                <td class="plan-limit__actions">
+                  @if (editingEanKey() === rowKeyOf(item)) {
+                    <button type="button" [disabled]="changingEan()" (click)="submitChangeEan(item)">Guardar</button>
+                    <button type="button" class="plan-limit__secondary" (click)="cancelChangeEan()">Cancelar</button>
+                    @if (changeEanError()) {
+                      <span class="field-error">{{ changeEanError() }}</span>
+                    }
+                  } @else if (confirmDeleteKey() === rowKeyOf(item)) {
+                    <button
+                      type="button"
+                      class="plan-limit__danger"
+                      [disabled]="deletingKey() === rowKeyOf(item)"
+                      (click)="confirmDelete(item)"
+                    >
+                      ¿Seguro? Borrar
+                    </button>
+                    <button type="button" class="plan-limit__secondary" (click)="cancelDelete()">Cancelar</button>
+                  } @else {
+                    <button type="button" class="plan-limit__secondary" (click)="startChangeEan(item)">Cambiar EAN</button>
+                    <button type="button" class="plan-limit__danger" (click)="askDelete(item)">Eliminar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        </div>
+
+        @if (page.totalCount > page.pageSize) {
+          <div class="plan-limit__pager">
+            <button type="button" [disabled]="page.page <= 1" (click)="loadProductsPage(page.page - 1)">← Anterior</button>
+            <span>Página {{ page.page }} de {{ totalPages(page) }}</span>
+            <button
+              type="button"
+              [disabled]="page.page * page.pageSize >= page.totalCount"
+              (click)="loadProductsPage(page.page + 1)"
+            >
+              Siguiente →
+            </button>
+          </div>
+        }
+      }
+    </div>
+  }
+  }
+</div>
+
+<!-- Confirmacion de guardado. Fuera de .signup para que el position:fixed no
+     dependa de si algun ancestro crea un contexto de apilamiento. -->
+@if (toastMessage(); as msg) {
+  <div class="toast" role="status" aria-live="polite">
+    <span class="toast__check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+    <span class="toast__text">{{ msg }}</span>
+    <button type="button" class="toast__close" (click)="dismissToast()" aria-label="Cerrar aviso">×</button>
+  </div>
+}

@@ -1,0 +1,120 @@
+<div class="signup card--page">
+  <!-- 25-ago-2026 -- pedido de Andres: /sucursales/nueva existia pero no habia ningun
+       link para llegar salvo cuando la lista estaba vacia. Ahora el boton de agregar
+       esta siempre, arriba a la derecha. -->
+  <div class="branches-header">
+    <h1>Mis sucursales</h1>
+    @if (!loadingContext() && !noAccountYet() && !contextErrorMessage()) {
+      <a routerLink="/sucursales/nueva" class="branches-header__add">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar sucursal
+      </a>
+    }
+  </div>
+  <p class="subtitle">
+    Prendé o apagá si cada sucursal aparece en la app de consumidores. Esto es solo
+    visibilidad pública: tu precio ya se usa de forma anónima para el benchmark de la
+    zona apenas cargás la sucursal, esté prendido o apagado este switch.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="hint">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="hint">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="form-error">{{ contextErrorMessage() }}</p>
+  } @else {
+    @if (errorMessage()) {
+      <p class="form-error">{{ errorMessage() }}</p>
+    }
+
+    @if (branches(); as list) {
+      @if (list.length === 0) {
+        <p class="hint">
+          Todavía no tenés sucursales cargadas.
+          <a routerLink="/sucursales/nueva">Agregar una sucursal →</a>
+        </p>
+      } @else {
+        <table class="branches-table">
+          <thead>
+            <tr>
+              <th>Sucursal</th>
+              <th>Ciudad</th>
+              <th>Ubicación</th>
+              <th>Visible en la app</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (branch of list; track branch.branchId) {
+              <tr>
+                <td>{{ branch.branchName }}</td>
+                <td>{{ branch.city }}</td>
+                <td>
+                  @if (branch.latitude != null && branch.longitude != null) {
+                    <span class="location-badge location-badge--ok">Ubicada <i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                  } @else {
+                    <span class="location-badge location-badge--missing">Sin coordenadas</span>
+                  }
+                  <button type="button" class="link-btn" (click)="openLocationEditor(branch)">
+                    {{ branch.latitude != null && branch.longitude != null ? 'Editar' : 'Capturar ubicación' }}
+                  </button>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="switch"
+                    [class.switch--on]="branch.isPublic"
+                    [disabled]="togglingBranchId() === branch.branchId"
+                    (click)="toggleVisibility(branch)"
+                  >
+                    {{ branch.isPublic ? 'Pública' : 'Oculta' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    }
+
+    @if (editingBranch(); as eb) {
+      <div class="location-editor">
+        <div class="location-editor__header">
+          <h2>Ubicación de {{ eb.branchName }}</h2>
+          <button type="button" class="link-btn" (click)="closeLocationEditor()">Cerrar <i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </div>
+        <p class="subtitle">
+          Reintentá que la busquemos automáticamente por la dirección cargada, o marcá el
+          punto exacto en el mapa (también podés arrastrar el pin una vez puesto).
+        </p>
+
+        <div class="location-editor__actions">
+          <button type="button" (click)="retryAutoGeocode()" [disabled]="regeocoding()">
+            {{ regeocoding() ? 'Buscando…' : 'Reintentar automáticamente' }}
+          </button>
+        </div>
+
+        @if (regeocodeMessage()) {
+          <p class="hint">{{ regeocodeMessage() }}</p>
+        }
+
+        <div #locationMapContainer class="location-editor__map"></div>
+
+        <div class="location-editor__footer">
+          <p class="hint">
+            {{
+              pendingLatLng()
+                ? 'Lat/Lon: ' + pendingLatLng()!.lat.toFixed(6) + ', ' + pendingLatLng()!.lng.toFixed(6)
+                : 'Todavía no marcaste ningún punto — clickeá en el mapa.'
+            }}
+          </p>
+          <button type="button" (click)="saveLocation()" [disabled]="!pendingLatLng() || savingLocation()">
+            {{ savingLocation() ? 'Guardando…' : 'Guardar ubicación' }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

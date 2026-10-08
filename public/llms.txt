@@ -1,0 +1,47 @@
+# PreciosIQ
+
+> Inteligencia de precios para comercios y cadenas de Argentina: compará tu catálogo contra la competencia, sucursal por sucursal, con precios reales de la red de datos de BuscaPrecios. El dato entra gratis; el análisis se paga.
+
+PreciosIQ (https://preciosiq.com) es una plataforma B2B (SaaS) para supermercados, autoservicios, almacenes, distribuidores y cadenas regionales de Argentina. Está construida sobre la misma red de precios que alimenta la app BuscaPrecios y el sitio Cuánto Cuesta: precios informados por las cadenas al SEPA (Sistema Electrónico de Publicidad de Precios Argentinos) más precios reportados por comercios y usuarios, actualizados todos los días, para miles de sucursales.
+
+## Qué hace
+
+- Precios de la competencia: para cada producto de tu catálogo (por código de barras EAN) muestra a cuánto lo venden las cadenas y comercios cercanos a cada una de tus sucursales.
+- Benchmark instantáneo por categoría: en qué categorías estás por encima o por debajo del mercado.
+- Carga de precios propios: manual, por CSV con mapeo de columnas, o por historial de importaciones. Sin límite de productos en ningún plan.
+- Categorización automática del catálogo.
+- Historial de precio por producto y dashboard de benchmarking.
+- Asesor de Precios: informe escrito (generado con un modelo de lenguaje sobre un resumen determinístico de tus datos) con sugerencias concretas de ajuste; con las unidades vendidas cargadas, estima el impacto en ganancia.
+
+## Para quién
+
+Comercios minoristas y cadenas de Argentina que fijan precios y hoy "mandan a alguien a mirar precios a la vuelta": supermercados independientes, cooperativas, autoservicios chinos, distribuidoras con salón de venta, cadenas regionales.
+
+## Planes
+
+Cinco planes. La carga de datos es libre en todos (catálogo completo por CSV, sin límite de productos ni de sucursales); lo que crece al subir de plan es el nivel de análisis. Cada plan incluye todo lo del anterior.
+
+- Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV y comparación contra las cadenas de tu zona, sucursal por sucursal.
+- Inicial ($15.000/mes o $150.000/año) — tu evolución: suma historial de precios.
+- Pyme ($35.000/mes o $350.000/año, el recomendado) — tu competitividad: suma dashboard completo e informe del Asesor de Precios.
+- Avanzado ($100.000/mes o $1.000.000/año) — tu rentabilidad: suma análisis de margen por producto (requiere cargar tus costos).
+- Cadena ($150.000/mes o $1.500.000/año) — tu ganancia: suma la ganancia en pesos por mes (requiere cargar tus ventas).
+
+Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 meses y se usan 12. Se cambia o se cancela cuando se quiera. Pago por Mercado Pago. Detalle vigente en https://preciosiq.com/#planes.
+
+## Páginas
+
+- [Landing](https://preciosiq.com/): propuesta, funcionalidades, planes, formulario "Solicitar demo".
+- [Crear cuenta](https://preciosiq.com/registrarme): alta gratuita con email o Google.
+- [Ingresar](https://preciosiq.com/login)
+
+## Sitios relacionados (misma red de datos)
+
+- [BuscaPrecios](https://buscaprecios.online): app gratuita para consumidores.
+- [Cuánto Cuesta](https://cuantocuesta.com.ar): índice público de la canasta por ciudad y cadena, datos abiertos.
+- [DistribucionIQ](https://distribucioniq.com): inteligencia de distribución para marcas y productoras.
+- [La familia BuscaPrecios](https://buscaprecios.online/Familia): cómo se relacionan los tres productos.
+
+## Contacto
+
+Formulario "Solicitar demo" en https://preciosiq.com/.

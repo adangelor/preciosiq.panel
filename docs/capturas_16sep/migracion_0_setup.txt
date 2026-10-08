@@ -1,0 +1,7 @@
+BranchId|ProductId|ListPrice|Promo1UnitPrice|Promo1Text
+--------|---------|---------|---------------|----------
+999-9|2994000000013|2000.00|1800.00|Oferta panel vieja
+999-9|2994000000020|500.00|450.00|NULL
+reglas
+------
+0

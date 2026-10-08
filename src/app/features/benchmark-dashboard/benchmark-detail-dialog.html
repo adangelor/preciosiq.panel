@@ -1,0 +1,121 @@
+<div class="dialog-header">
+  <h2>{{ data.category.categoryName }}{{ data.category.subcategoryName ? ' / ' + data.category.subcategoryName : '' }}</h2>
+  <button type="button" class="dialog-close" (click)="close()" aria-label="Cerrar">×</button>
+</div>
+
+<div class="dialog-body">
+  <h3>Tendencia (últimos 90 días)</h3>
+  @if (data.trendPoints(); as points) {
+    <app-benchmark-trend-chart [points]="points" />
+  } @else {
+    <p class="empty-state">Cargando tendencia…</p>
+  }
+
+  <h3>Detalle por producto</h3>
+  @if (data.loadingDetail()) {
+    <p class="empty-state">Cargando detalle…</p>
+  } @else if (data.products(); as prods) {
+    @if (prods.length === 0) {
+      <p class="empty-state">No encontramos productos propios ni de competencia en esta categoría todavía.</p>
+    } @else {
+      <!-- 16-ago-2026 -- pedido de Andres: orden por defecto = primero lo que EL cargo,
+           y entre esos primero lo mas caro respecto a la zona (ver sortedProducts() en
+           el .ts). Ademas, que pueda reordenar clickeando cualquier columna. -->
+      <div class="sort-hint">
+        @if (data.sortColumn() === 'default') {
+          <span class="hint">Orden sugerido: tus precios primero, los más caros vs. la zona arriba de todo.</span>
+        } @else {
+          <span class="hint">Orden: {{ sortLabel(data.sortColumn()) }} ({{ data.sortDirection() === 'asc' ? 'ascendente' : 'descendente' }}).</span>
+          <button type="button" class="link-button" (click)="data.resetSort()">Volver al orden sugerido</button>
+        }
+      </div>
+
+      <table class="cat-table">
+        <thead>
+          <tr>
+            <th class="sort-th" (click)="data.toggleSort('description')">
+              Producto{{ sortArrow('description') }}
+            </th>
+            <th class="sort-th" (click)="data.toggleSort('ownPrice')">
+              Tu precio{{ sortArrow('ownPrice') }}
+            </th>
+            <th class="sort-th" (click)="data.toggleSort('delta')">
+              Diferencia{{ sortArrow('delta') }}
+            </th>
+            <th>Cadenas SEPA cerca</th>
+            <th class="sort-th" (click)="data.toggleSort('family')">
+              Otras cuentas (zona){{ sortArrow('family') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of data.pagedProducts(); track p.ean) {
+            <tr>
+              <td>
+                {{ p.description ?? p.ean }}
+                @if (p.brand | brandLabel; as brand) {
+                  <span class="brand-tag">({{ brand }})</span>
+                }
+              </td>
+              <td>
+                {{ p.ownPrice ? '$' + p.ownPrice.toFixed(2) : '—' }}
+                @if (p.ownPriceSource) {
+                  <span class="source-badge" [class]="'source-badge--' + p.ownPriceSource">
+                    {{ data.sourceLabel(p.ownPriceSource) }}
+                  </span>
+                }
+              </td>
+              <td [class.delta--above]="(p.deltaPct ?? 0) > 0" [class.delta--below]="(p.deltaPct ?? 0) < 0">
+                <!-- 16-ago-2026 -- diferencia contra el promedio de todo lo visible para
+                     este producto (cadenas SEPA nombradas + family si tiene piso).
+                     Calculada en el frontend solo para ordenar/mostrar, no es un campo
+                     nuevo del backend. -->
+                {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
+              </td>
+              <td>
+                <!-- E8.6 -- cadenas obligadas por SEPA: dato publico por ley, se
+                     nombran individualmente, sin piso de cobertura minima. -->
+                @if (p.sepaChains.length > 0) {
+                  <ul class="chain-list">
+                    @for (c of p.sepaChains; track c.commerceId + '|' + c.bannerId) {
+                      <li>
+                        <strong>{{ c.chainName ?? (c.commerceId + '-' + c.bannerId) }}</strong>:
+                        ${{ c.avgPrice.toFixed(2) }}
+                        @if (c.branchCount > 1) {
+                          <span class="hint">({{ c.branchCount }} sucursales)</span>
+                        }
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <span class="insufficient">Ninguna cadena SEPA cerca</span>
+                }
+              </td>
+              <td>
+                <!-- E8.6/E8.5 -- cuentas autoreportadas de la familia PreciosIQ:
+                     siempre anonimas, solo el agregado, con piso de 3 (NDA). -->
+                @if (p.familySufficientCoverage) {
+                  <span title="Promedio de {{ p.familyCompetitorCount }} cuentas">
+                    ${{ p.familyAvgPrice?.toFixed(2) }}
+                  </span>
+                } @else if (p.familyCompetitorCount > 0) {
+                  <span class="insufficient">Cobertura insuficiente ({{ p.familyCompetitorCount }})</span>
+                } @else {
+                  <span class="insufficient">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (data.productTotalPages() > 1) {
+        <div class="pagination">
+          <button type="button" (click)="data.goToProductPage(data.productPage() - 1)" [disabled]="data.productPage() === 1">← Anterior</button>
+          <span class="pagination__info">Página {{ data.productPage() }} de {{ data.productTotalPages() }} ({{ prods.length }} productos)</span>
+          <button type="button" (click)="data.goToProductPage(data.productPage() + 1)" [disabled]="data.productPage() === data.productTotalPages()">Siguiente →</button>
+        </div>
+      }
+    }
+  }
+</div>

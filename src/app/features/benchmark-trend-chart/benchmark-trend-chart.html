@@ -1,0 +1,66 @@
+@if (layout(); as l) {
+  <div class="chart-wrap">
+    <svg
+      [attr.viewBox]="'0 0 ' + width + ' ' + height"
+      [attr.width]="width"
+      [attr.height]="height"
+      (pointermove)="onPointerMove($event)"
+      (pointerleave)="onPointerLeave()"
+    >
+      <!-- Grilla horizontal + precios "lindos" a la izquierda -->
+      @for (t of l.yTicks; track t.pos) {
+        <line [attr.x1]="plotLeft" [attr.x2]="plotRight" [attr.y1]="t.pos" [attr.y2]="t.pos" class="gridline" />
+        <text [attr.x]="plotLeft - 8" [attr.y]="t.pos" class="axis-label axis-label--y">{{ t.label }}</text>
+      }
+
+      <!-- Fechas en el eje X (maximo 5, ver xTicks en el .ts) -->
+      @for (t of l.xTicks; track t.pos) {
+        <text [attr.x]="t.pos" [attr.y]="height - 12" class="axis-label axis-label--x">{{ t.label }}</text>
+      }
+
+      <!-- Lineas de cada serie -->
+      @for (s of l.lines; track s.label) {
+        @for (seg of s.segments; track $index) {
+          <path [attr.d]="seg" fill="none" [attr.stroke]="s.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        }
+      }
+
+      <!-- Puntos, con anillo color-superficie para que no se pierdan sobre la linea -->
+      @for (b of l.buckets; track $index) {
+        @if (b.ownY !== null) {
+          <circle [attr.cx]="b.x" [attr.cy]="b.ownY" r="4" fill="#2e5aac" stroke="var(--mat-sys-surface, #fff)" stroke-width="2" />
+        }
+        @if (b.compY !== null) {
+          <circle [attr.cx]="b.x" [attr.cy]="b.compY" r="4" fill="#d98a15" stroke="var(--mat-sys-surface, #fff)" stroke-width="2" />
+        }
+      }
+
+      <!-- Crosshair: sigue al mouse y se ajusta al punto mas cercano -->
+      @if (hoverBucket(); as hb) {
+        <line [attr.x1]="hb.x" [attr.x2]="hb.x" [attr.y1]="l.plotTop" [attr.y2]="l.plotBottom" class="crosshair" />
+      }
+    </svg>
+
+    @if (hoverBucket(); as hb) {
+      <div class="chart-tooltip" [style.left.%]="tooltipLeftPct()">
+        <div class="chart-tooltip__date">{{ hb.date }}</div>
+        <div class="chart-tooltip__row">
+          <span class="chart-tooltip__key"><i style="background:#2e5aac"></i> Tu precio</span>
+          <strong>{{ hb.own !== null ? '$' + hb.own.toFixed(2) : '—' }}</strong>
+        </div>
+        <div class="chart-tooltip__row">
+          <span class="chart-tooltip__key"><i style="background:#d98a15"></i> Competencia (zona)</span>
+          <strong>{{ hb.comp !== null ? '$' + hb.comp.toFixed(2) : '—' }}</strong>
+        </div>
+      </div>
+    }
+
+    <div class="chart-legend">
+      @for (s of l.lines; track s.label) {
+        <span class="legend-item"><i [style.background]="s.color"></i> {{ s.label }}</span>
+      }
+    </div>
+  </div>
+} @else {
+  <p class="chart-empty">No hay suficiente historial en este rango de fechas para graficar la tendencia.</p>
+}

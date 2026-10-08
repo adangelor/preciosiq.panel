@@ -1,0 +1,65 @@
+<div class="profile-page card--page">
+  <header class="profile-page__header">
+    <h1>Tu perfil</h1>
+  </header>
+
+  @if (loading()) {
+    <p class="hint"><mat-spinner diameter="20"></mat-spinner> Cargando…</p>
+  } @else if (loadError()) {
+    <p class="form-error">{{ loadError() }}</p>
+  } @else {
+    @if (profile(); as p) {
+      <section class="profile-page__card">
+        <div class="profile-page__avatar-row">
+          @if (p.profilePictureUrl) {
+            <img class="profile-page__avatar" [src]="resolveProfilePictureUrl(p.profilePictureUrl)" alt="" />
+          } @else {
+            <div class="profile-page__avatar profile-page__avatar--initials">{{ profileInitials(p) }}</div>
+          }
+          <div>
+            <label class="profile-page__upload-label">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                (change)="onPictureSelected($event)"
+                [disabled]="uploadingPicture()"
+                hidden
+              />
+              <span class="profile-page__upload-btn">{{ uploadingPicture() ? 'Subiendo…' : 'Cambiar foto' }}</span>
+            </label>
+            @if (pictureError()) {
+              <p class="form-error">{{ pictureError() }}</p>
+            }
+          </div>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="firstName" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Apellido</mat-label>
+            <input matInput formControlName="lastName" />
+          </mat-form-field>
+
+          <p class="profile-page__email">{{ p.email }}</p>
+
+          @if (saveError()) {
+            <p class="form-error">{{ saveError() }}</p>
+          }
+          @if (saveSuccess()) {
+            <p class="form-success">Perfil actualizado.</p>
+          }
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+        </form>
+
+        <a class="profile-page__change-password" routerLink="/perfil/cambiar-contrasena">Cambiar contraseña</a>
+      </section>
+    }
+  }
+</div>
