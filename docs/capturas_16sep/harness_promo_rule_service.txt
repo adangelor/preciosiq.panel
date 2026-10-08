@@ -1,4 +1,4 @@
-PromoRuleService harness -- 2026-10-08 18:02:19 -- copia local, cuenta 4
+PromoRuleService harness -- 2026-10-08 18:25:08 -- copia local, cuenta 4
   [OK] alta de producto 2993000000017 en 999-9
   [OK] alta de producto 2993000000017 en 999-8
   [OK] alta de producto 2993000000024 en 999-9
@@ -50,6 +50,7 @@ PromoRuleService harness -- 2026-10-08 18:02:19 -- copia local, cuenta 4
   [OK] BP-82 'Llevando 12 o más, 5% off' -> porcentaje 5 desde 12
   [OK] BP-82 'De 0 a 1 2% OFF' -> desde 1, tope 1
   [OK] BP-82 con columna de minimo manda la columna (precio_unitario desde 2)
+  [OK] BP-82 columnas que dicen lo mismo que la leyenda (3 / 99999) -> porcentaje 5 desde 3, sin tope
   [OK] BP-82 leyenda que no dice cantidad y % -> como antes (precio desde 1)
   [OK] BP-82 espejo de 5 % desde 3 sobre $3.999 = 3799,05 con la leyenda
   [OK] precio promo ilegible -> Ignorar
@@ -73,4 +74,4 @@ PromoRuleService harness -- 2026-10-08 18:02:19 -- copia local, cuenta 4
   [OK] espejo del % = 850 con la leyenda del CSV
   [OK] regla sin descuento -> espejo vacio (precio Y texto)
 
-RESULTADO: 63 OK, 0 FALLAN
+RESULTADO: 64 OK, 0 FALLAN
