@@ -1,0 +1,162 @@
+<article class="tarjeta">
+  <header class="tarjeta__cabecera">
+    <div>
+      <h2 class="tarjeta__titulo">{{ sucursal().branchName }}</h2>
+      <p class="hint">
+        {{ sucursal().domicilio }}{{ sucursal().ciudad ? ', ' + sucursal().ciudad : '' }}
+        · {{ sucursal().productos }} {{ sucursal().productos === 1 ? 'producto' : 'productos' }}
+      </p>
+    </div>
+    @if (tienda(); as t) {
+      <span class="estado" [class.estado--ok]="t.activa">{{ t.activa ? 'Publicada' : 'Sin publicar' }}</span>
+    } @else {
+      <span class="estado">Sin tienda</span>
+    }
+  </header>
+
+  @if (mensaje()) {
+    <p class="aviso aviso--ok" role="status">{{ mensaje() }}</p>
+  }
+
+  @if (sucursal().productos === 0) {
+    <p class="aviso">
+      Todavía no cargaste precios en esta sucursal: la tienda va a aparecer vacía.
+      <a routerLink="/precios/cargar">Cargar precios →</a>
+    </p>
+  }
+
+  @if (!editando()) {
+    @if (tienda(); as t) {
+      <dl class="resumen">
+        <div><dt>Dirección</dt><dd><a [href]="urlPublica()" target="_blank" rel="noopener">{{ urlPublica() }}</a></dd></div>
+        <div><dt>Nombre</dt><dd>{{ t.nombreVisible }}</dd></div>
+        <div><dt>WhatsApp</dt><dd>{{ t.whatsApp ?? '—' }}</dd></div>
+        <div><dt>Alias</dt><dd>{{ t.alias ?? '—' }}</dd></div>
+        <div><dt>CBU/CVU</dt><dd>{{ t.cvu ?? '—' }}</dd></div>
+        <div><dt>Domicilio</dt><dd>{{ t.mostrarDomicilio ? 'Se muestra' : 'No se muestra' }}</dd></div>
+      </dl>
+
+      @if (faltaWhatsApp()) {
+        <p class="aviso">Sin WhatsApp tus clientes no te pueden mandar el pedido. Cargalo con "Editar".</p>
+      }
+      @if (t.slugsAnteriores.length > 0) {
+        <p class="hint">
+          La dirección vieja ({{ t.slugsAnteriores.join(', ') }}) sigue llevando a tu tienda por 30 días, así el QR que
+          ya imprimiste funciona mientras reemplazás el cartel.
+        </p>
+      }
+
+      <div class="acciones">
+        <button type="button" (click)="abrirEditor()">Editar</button>
+        <a class="boton-secundario" [href]="urlPublica()" target="_blank" rel="noopener">Ver mi tienda ↗</a>
+        <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', sucursal().branchId]">Cartel para la vidriera</a>
+      </div>
+
+      <section class="qr">
+        <h3>QR para que te paguen</h3>
+        <p class="hint">
+          El QR de tu billetera o de tu banco (Mercado Pago, Ualá, Cuenta DNI…). Aparece en tu tienda en "Cómo pagar":
+          el cliente te paga directo a vos.
+        </p>
+        <div class="qr__fila">
+          @if (t.qrPagoUrl) {
+            <img class="qr__imagen" [src]="t.qrPagoUrl" alt="Tu QR de pago" width="120" height="120" />
+          }
+          <div class="qr__botones">
+            <label class="boton-secundario boton-archivo">
+              {{ subiendoQr() ? 'Subiendo…' : t.qrPagoUrl ? 'Cambiar imagen' : 'Subir imagen del QR' }}
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirQr($event)" [disabled]="subiendoQr()" />
+            </label>
+            @if (t.qrPagoUrl) {
+              <button type="button" class="link-btn" (click)="quitarQr()">Sacar el QR</button>
+            }
+          </div>
+        </div>
+        @if (errores().qr) {
+          <p class="form-error">{{ errores().qr }}</p>
+        }
+      </section>
+    }
+  } @else {
+    <form class="formulario" (submit)="$event.preventDefault(); guardar()">
+      <label>
+        Dirección de tu tienda
+        <span class="slug">
+          <span class="slug__prefijo">misuper.app/</span>
+          <input type="text" [value]="slug()" (input)="cambiarSlug(valor($event))" autocomplete="off"
+                 spellcheck="false" maxlength="40" aria-describedby="slug-estado" />
+        </span>
+        <span id="slug-estado" class="slug__estado">
+          @if (errores().slug) {
+            <span class="form-error">{{ errores().slug }}</span>
+          } @else if (chequeandoSlug()) {
+            <span class="hint">Fijándonos si está libre…</span>
+          } @else if (slugEstado(); as e) {
+            @if (e.disponible) {
+              <span class="ok">✓ Disponible: {{ urlPrevia() }}</span>
+            } @else {
+              <span class="form-error">{{ e.motivo }}</span>
+            }
+          }
+        </span>
+      </label>
+
+      <label>
+        Nombre que ven tus clientes
+        <input type="text" [value]="nombre()" (input)="nombre.set(valor($event))" maxlength="120" />
+        @if (errores().nombreVisible) { <span class="form-error">{{ errores().nombreVisible }}</span> }
+      </label>
+
+      <label>
+        Presentación (opcional)
+        <textarea rows="2" maxlength="400" [value]="presentacion()" (input)="presentacion.set(valor($event))"
+                  placeholder="Ej.: Almacén de barrio desde 1998. Envíos sin cargo en el barrio."></textarea>
+        <span class="hint">{{ presentacion().length }}/400</span>
+        @if (errores().presentacion) { <span class="form-error">{{ errores().presentacion }}</span> }
+      </label>
+
+      <label>
+        WhatsApp para recibir pedidos
+        <input type="tel" [value]="whatsApp()" (input)="whatsApp.set(valor($event))" placeholder="266 4123456" inputmode="tel" />
+        <span class="hint">Con código de área. Lo pasamos solo al formato internacional.</span>
+        @if (errores().whatsApp) { <span class="form-error">{{ errores().whatsApp }}</span> }
+      </label>
+
+      <div class="formulario__fila">
+        <label>
+          Alias (opcional)
+          <input type="text" [value]="alias()" (input)="alias.set(valor($event))" maxlength="20" placeholder="almacen.jose" />
+          @if (errores().alias) { <span class="form-error">{{ errores().alias }}</span> }
+        </label>
+        <label>
+          CBU o CVU (opcional)
+          <input type="text" [value]="cvu()" (input)="cvu.set(valor($event))" inputmode="numeric" maxlength="26" />
+          @if (errores().cvu) { <span class="form-error">{{ errores().cvu }}</span> }
+        </label>
+      </div>
+      <p class="hint">Tus clientes te pagan directo a vos. misuper.app no cobra ni toca la plata.</p>
+
+      <label class="check">
+        <input type="checkbox" [checked]="mostrarDomicilio()" (change)="mostrarDomicilio.set($any($event.target).checked)" />
+        Mostrar el domicilio de la sucursal (con link a Google Maps)
+      </label>
+      <label class="check">
+        <input type="checkbox" [checked]="activa()" (change)="activa.set($any($event.target).checked)" />
+        Publicar la tienda (si lo destildás, la dirección deja de mostrarse)
+      </label>
+
+      @if (errorGeneral()) {
+        <p class="form-error">{{ errorGeneral() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="submit" [disabled]="guardando() || chequeandoSlug() || slugEstado()?.disponible === false">
+          {{ guardando() ? 'Guardando…' : tienda() ? 'Guardar cambios' : 'Crear mi tienda' }}
+        </button>
+        @if (tienda()) {
+          <button type="button" class="link-btn" (click)="cancelar()">Cancelar</button>
+        }
+      </div>
+    </form>
+  }
+</article>

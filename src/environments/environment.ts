@@ -8,6 +8,8 @@ export const environment = {
   // apiBaseUrl no sirve para esto porque tiene el sufijo /api/ pegado (mismo patron que
   // distribucioniq.panel).
   assetsBaseUrl: 'https://localhost:7214/',
+  // BP-71 (08-oct-2026) -- el sitio de las tiendas (adangelor/misuper.app). En dev, su "ng serve".
+  misuperUrl: 'http://localhost:4203',
   // TODO: mismo Web Client ID que usa la app movil (config "Google:WebClientId" del
   // backend) -- sin esto el boton de Google no valida contra la audiencia correcta.
   googleWebClientId: '',

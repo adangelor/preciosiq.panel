@@ -47,6 +47,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    // BP-71 (08-oct-2026) -- el cartel A5 para la vidriera, FUERA del shell (sin menu) para que se
+    // imprima limpio. Va antes de la ruta del shell: path '' con children agarraria todo lo demas.
+    path: 'mi-tienda/cartel/:branchId',
+    loadComponent: () => import('./features/mi-tienda/cartel').then((m) => m.CartelTiendaComponent),
+    title: 'PreciosIQ — Cartel de la tienda',
+    canActivate: [authGuard],
+  },
+  {
     // E1.6 (16-ago-2026) -- shell con logo/nombre del comercio + nav, envolviendo TODAS
     // las pantallas que ya asumen una cuenta creada (a diferencia de 'alta', que arriba
     // queda afuera del shell a proposito). Patron identico al app-shell de
@@ -79,6 +87,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/branches-list/branches-list').then((m) => m.BranchesListComponent),
         title: 'PreciosIQ — Mis sucursales',
+      },
+      {
+        // BP-71 (08-oct-2026) -- la tienda online de cada sucursal en misuper.app.
+        path: 'mi-tienda',
+        loadComponent: () => import('./features/mi-tienda/mi-tienda').then((m) => m.MiTiendaComponent),
+        title: 'PreciosIQ — Mi tienda online',
       },
       {
         path: 'precios/carga-masiva',

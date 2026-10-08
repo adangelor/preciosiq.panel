@@ -1,0 +1,121 @@
+// BP-71 -- "Mi tienda" (la pagina y las tarjetas de sucursal comparten este archivo).
+.pagina { max-width: 860px; margin: 2rem auto; }
+.subtitle { color: var(--text-2); margin-bottom: 1.5rem; }
+.hint { font-size: 0.9rem; color: var(--text-3); margin: 0.25rem 0; }
+.pie { margin-top: 1.5rem; }
+.form-error { color: var(--danger); font-size: 0.85rem; }
+.ok { color: var(--success); font-size: 0.85rem; font-weight: 600; }
+
+.tarjeta {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.tarjeta__cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.tarjeta__titulo { margin: 0; font-size: 1.15rem; }
+
+.estado {
+  flex: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.estado--ok { background: var(--success-soft); color: var(--success); border-color: transparent; }
+
+.aviso {
+  background: var(--warning-soft);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+.aviso--ok { background: var(--success-soft); }
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem 1.5rem;
+  margin: 1rem 0;
+  div { min-width: 0; }
+  dt { font-size: 0.8rem; color: var(--text-3); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+}
+
+.acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 1rem; }
+
+button {
+  padding: 0.6rem 1.3rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.boton-secundario {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--bg-card);
+  text-decoration: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.boton-archivo input { display: none; }
+
+.link-btn { background: none; color: var(--primary); padding: 0.4rem 0.5rem; text-decoration: underline; }
+
+.formulario {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
+  input[type='text'], input[type='tel'], textarea {
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font: inherit;
+    background: var(--bg-input);
+    color: var(--text);
+  }
+  .check { flex-direction: row; align-items: center; gap: 0.5rem; }
+}
+.formulario__fila { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .formulario__fila { grid-template-columns: 1fr; } }
+
+.slug {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-input);
+  input { border: 0 !important; border-radius: 0 !important; flex: 1; min-width: 0; }
+}
+.slug__prefijo {
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  border-right: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.slug__estado { min-height: 1.2rem; }
+
+.qr { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
+.qr h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+.qr__fila { display: flex; gap: 1rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+.qr__imagen { width: 120px; height: 120px; object-fit: contain; background: #fff; border-radius: 8px; border: 1px solid var(--border); }
+.qr__botones { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; }

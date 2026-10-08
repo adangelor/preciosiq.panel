@@ -137,6 +137,18 @@
             <span class="shell__link-text">Sucursales</span>
           </a>
         </li>
+        <!-- BP-71 (08-oct-2026) -- la tienda online de cada sucursal en misuper.app. -->
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/mi-tienda"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Mi tienda online' : null"
+          >
+            <mat-icon>shopping_bag</mat-icon>
+            <span class="shell__link-text">Mi tienda online</span>
+          </a>
+        </li>
         <li>
           <a
             class="shell__link"

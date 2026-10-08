@@ -5,6 +5,8 @@ export const environment = {
   // E1.6 (16-ago-2026) -- raiz del backend SIN "api/", para armar la URL absoluta de
   // assets servidos por wwwroot (ej. el logo del comercio en /images/BusinessLogos/...).
   assetsBaseUrl: 'https://api.buscaprecios.online/',
+  // BP-71 (08-oct-2026) -- el sitio de las tiendas (adangelor/misuper.app).
+  misuperUrl: 'https://misuper.app',
   // TODO: mismo Web Client ID que usa la app movil (config "Google:WebClientId" del
   // backend) -- sin esto el boton de Google no valida contra la audiencia correcta.
   googleWebClientId: '',
