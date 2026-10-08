@@ -9,6 +9,10 @@
 # cada build (ver "assets" en angular.json), asi que viaja solo con cada
 # deploy nuevo, no hay que volver a subirlo a mano.
 
+# 08-oct-2026 -- Hostinger sirve los .txt como "text/plain" sin charset: el llms.txt (con tildes) se
+# podia leer como Latin-1 ("Ã¡" en vez de "á"). Mismo arreglo que misuper.app.
+AddCharset UTF-8 .txt
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
