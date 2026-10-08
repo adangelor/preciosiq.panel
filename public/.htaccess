@@ -13,6 +13,14 @@
 # podia leer como Latin-1 ("Ã¡" en vez de "á"). Mismo arreglo que misuper.app.
 AddCharset UTF-8 .txt
 
+# 08-oct-2026 (noche) -- MEDIDO en prod: con AddCharset solo, Hostinger (LiteSpeed) sigue mandando
+# "Content-Type: text/plain" sin charset. Se fuerza el encabezado entero.
+<IfModule mod_headers.c>
+  <FilesMatch "\.txt$">
+    Header set Content-Type "text/plain; charset=utf-8"
+  </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
