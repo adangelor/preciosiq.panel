@@ -11,6 +11,8 @@ export interface AdvisorMetadata {
   tieneCostosCargados: boolean;
   tieneVentasCargadas: boolean;
   diasDeVentasCargados: number;
+  /** BP-74: precios de la competencia que no entraron a la referencia por no confirmados (0 en informes viejos). */
+  preciosCompetenciaDescartados?: number;
 }
 
 export interface AdvisorResumen {
