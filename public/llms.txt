@@ -11,6 +11,7 @@ PreciosIQ (https://preciosiq.com) es una plataforma B2B (SaaS) para supermercado
 - Carga de precios propios: manual, por CSV con mapeo de columnas, o por historial de importaciones. Sin límite de productos en ningún plan.
 - Categorización automática del catálogo.
 - Historial de precio por producto y dashboard de benchmarking.
+- Tienda online en misuper.app: con los mismos precios y promociones cargados, cada sucursal publica su tienda en https://misuper.app/<slug>, con pedido por WhatsApp y cartel A5 con QR para la vidriera.
 - Asesor de Precios: informe escrito (generado con un modelo de lenguaje sobre un resumen determinístico de tus datos) con sugerencias concretas de ajuste; con las unidades vendidas cargadas, estima el impacto en ganancia.
 
 ## Para quién
@@ -39,8 +40,9 @@ Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 m
 
 - [BuscaPrecios](https://buscaprecios.online): app gratuita para consumidores.
 - [Cuánto Cuesta](https://cuantocuesta.com.ar): índice público de la canasta por ciudad y cadena, datos abiertos.
+- [misuper.app](https://misuper.app): la tienda online de cada comercio, con los precios que carga en PreciosIQ; pedidos por WhatsApp, sin comisiones.
 - [DistribucionIQ](https://distribucioniq.com): inteligencia de distribución para marcas y productoras.
-- [La familia BuscaPrecios](https://buscaprecios.online/Familia): cómo se relacionan los tres productos.
+- [La familia BuscaPrecios](https://buscaprecios.online/Familia): todos los productos de la familia y cómo se alimentan entre sí.
 
 ## Contacto
 
