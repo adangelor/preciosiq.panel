@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { NearbyBranch, NearbyBranchesService } from '../../core/nearby-branches';
+import { CommerceClass, CommerceClassesService } from '../../core/commerce-classes';
 import { environment } from '../../../environments/environment';
 
 // 25-ago-2026 -- idea de Andres: sugerir el radio del benchmark segun cuantas sucursales
@@ -136,6 +137,9 @@ interface RadiusStats {
 })
 export class RadiusAdvisorComponent {
   private readonly nearbyService = inject(NearbyBranchesService);
+  private readonly classesService = inject(CommerceClassesService);
+  /** BP-76: rubro de cada bandera; lo que no es supermercado (Farmacity, estaciones) no cuenta. */
+  private readonly clases = signal<Map<string, CommerceClass>>(new Map());
 
   readonly latitude = input.required<number | null | undefined>();
   readonly longitude = input.required<number | null | undefined>();
@@ -162,6 +166,7 @@ export class RadiusAdvisorComponent {
   private readonly exactUpToMeters = signal<number | null>(null);
 
   constructor() {
+    this.classesService.clases().subscribe((m) => this.clases.set(m));
     // Una consulta por sucursal (lat/lng): cambia la sucursal elegida, se vuelve a contar.
     effect(() => {
       const lat = this.latitude();
@@ -203,6 +208,9 @@ export class RadiusAdvisorComponent {
     for (const b of this.nearby()) {
       if (b.distanceMeters > radiusMeters) break; // viene ordenado por distancia
       if (own && b.commerceId === own) continue;
+      // BP-76: una bandera sin clasificar cuenta como supermercado (igual que en los SP).
+      const rubro = this.clases().get(CommerceClassesService.clave(b.commerceId, b.bannerId))?.rubro ?? 'super';
+      if (rubro !== 'super') continue;
       branches++;
       if (!chains.has(b.commerceId)) chains.set(b.commerceId, b.commerceName?.trim() || b.commerceId);
     }
