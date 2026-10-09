@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AccountUsersService } from '../../core/account-users';
 import { AccountInvitationResponse, AccountMemberResponse, memberDisplayName } from '../../core/account-users.models';
@@ -73,6 +73,9 @@ export class AccountUsersComponent implements OnInit {
   // que el resto del panel).
   protected readonly confirmingRemoveUserId = signal<string | null>(null);
   protected readonly confirmingRevokeInvitationId = signal<number | null>(null);
+
+  // 09-oct-2026 -- userId del miembro al que se le esta cambiando el rol (el select queda deshabilitado).
+  protected readonly changingRoleUserId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.businessAccountService.getMine().subscribe({
@@ -158,6 +161,29 @@ export class AccountUsersComponent implements OnInit {
       error: (err) => {
         this.confirmingRemoveUserId.set(null);
         this.errorMessage.set(err?.error?.error ?? 'No se pudo quitar al miembro. Probá de nuevo.');
+      },
+    });
+  }
+
+  // 09-oct-2026 (pedido de Andres) -- antes habia que quitar a la persona y volver a invitarla.
+  // Si el backend lo rechaza (por ejemplo, bajar al unico Owner), el select vuelve al rol real.
+  // Un Owner que se baja a si mismo a Manager pierde los controles en el acto (isOwner se recalcula).
+  protected changeRole(member: AccountMemberResponse, event: MatSelectChange): void {
+    const businessAccountId = this.businessAccountId();
+    const role = event.value as 'Owner' | 'Manager';
+    if (!businessAccountId || role === member.role) return;
+
+    this.errorMessage.set(null);
+    this.changingRoleUserId.set(member.userId);
+    this.accountUsersService.changeRole(businessAccountId, member.userId, role).subscribe({
+      next: () => {
+        this.changingRoleUserId.set(null);
+        this.members.update((list) => list.map((m) => (m.userId === member.userId ? { ...m, role } : m)));
+      },
+      error: (err) => {
+        this.changingRoleUserId.set(null);
+        event.source.value = member.role;
+        this.errorMessage.set(err?.error?.error ?? 'No se pudo cambiar el rol. Probá de nuevo.');
       },
     });
   }

@@ -127,3 +127,10 @@
 .invitation-row--expired {
   opacity: 0.6;
 }
+
+// 09-oct-2026 -- selector de rol en la tabla (solo lo ve el Owner): angosto y sin el alto de un campo de formulario.
+.role-select {
+  width: 140px;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+}

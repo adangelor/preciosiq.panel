@@ -34,6 +34,11 @@ export class AccountUsersService {
     return this.http.delete<void>(`${this.accountsUrl}/${businessAccountId}/users/${userId}`);
   }
 
+  // 09-oct-2026 -- el Owner cambia el rol de un miembro. El backend no deja la cuenta sin Owner (409).
+  changeRole(businessAccountId: number, userId: string, role: 'Owner' | 'Manager'): Observable<{ userId: string; role: string }> {
+    return this.http.put<{ userId: string; role: string }>(`${this.accountsUrl}/${businessAccountId}/users/${userId}/role`, { role });
+  }
+
   revokeInvitation(businessAccountId: number, invitationId: number): Observable<void> {
     return this.http.delete<void>(`${this.accountsUrl}/${businessAccountId}/invitations/${invitationId}`);
   }

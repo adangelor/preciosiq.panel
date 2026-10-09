@@ -47,7 +47,7 @@
         }
 
         <p class="hint hint--small">
-          Owner puede invitar/quitar gente y administrar la cuenta. Manager puede ver todo pero no gestionar usuarios.
+          Owner puede invitar/quitar gente, cambiarles el rol y administrar la cuenta. Manager puede ver todo pero no gestionar usuarios.
         </p>
       </section>
     }
@@ -79,7 +79,21 @@
                   }
                 </td>
                 <td>
-                  <mat-chip [class.role-chip--owner]="member.role === 'Owner'" class="role-chip">{{ member.role }}</mat-chip>
+                  @if (isOwner()) {
+                    <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+                      <mat-select
+                        [value]="member.role"
+                        [disabled]="changingRoleUserId() === member.userId"
+                        [attr.aria-label]="'Rol de ' + memberDisplayName(member)"
+                        (selectionChange)="changeRole(member, $event)"
+                      >
+                        <mat-option value="Manager">Manager</mat-option>
+                        <mat-option value="Owner">Owner</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  } @else {
+                    <mat-chip [class.role-chip--owner]="member.role === 'Owner'" class="role-chip">{{ member.role }}</mat-chip>
+                  }
                 </td>
                 <td>{{ member.createdAt | date: 'dd/MM/yyyy' }}</td>
                 @if (isOwner()) {
