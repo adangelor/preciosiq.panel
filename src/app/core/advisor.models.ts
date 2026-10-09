@@ -13,6 +13,20 @@ export interface AdvisorMetadata {
   diasDeVentasCargados: number;
   /** BP-74: precios de la competencia que no entraron a la referencia por no confirmados (0 en informes viejos). */
   preciosCompetenciaDescartados?: number;
+  /** BP-75: la competencia del radio (cadenas por nombre; independientes solo como cantidad). */
+  competidores?: AdvisorCompetidor[] | null;
+  cadenasHastaRadioMaximo?: string[] | null;
+  radioMaximoMeters?: number;
+  /** "La Anonima" / "Vea y Market" con 1 o 2 cadenas; null = "la zona". */
+  referenciaNombrada?: string | null;
+  ampliarSumaCompetencia?: boolean;
+}
+
+export interface AdvisorCompetidor {
+  tipo: 'cadena' | 'independientes';
+  nombre: string | null;
+  sucursales: number;
+  kmMasCercana: number | null;
 }
 
 export interface AdvisorResumen {

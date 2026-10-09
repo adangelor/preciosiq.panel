@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AdvisorService } from '../../core/advisor';
@@ -51,6 +51,13 @@ export class AdvisorReportDialogComponent implements OnInit {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly report = signal<AdvisorReportResponse | null>(null);
   protected readonly reportHtml = signal<string>('');
+  /**
+   * BP-75 (09-oct-2026) -- contra quien se compara: con 1 o 2 cadenas en el radio el digest trae su nombre
+   * ("La Anonima") y la pantalla lo dice en vez de "la zona". En informes viejos o con 3+ cadenas, "la zona".
+   */
+  protected readonly zona = computed(() => this.report()?.digest?.metadatos?.referenciaNombrada ?? 'la zona');
+  /** Para columnas angostas: "Ref. zona" / "Ref. La Anonima". */
+  protected readonly refCorta = computed(() => this.report()?.digest?.metadatos?.referenciaNombrada ?? 'zona');
   protected readonly feedbackSent = signal<boolean | null>(null); // true=me sirvio false=no me sirvio
 
   ngOnInit(): void {

@@ -13,7 +13,7 @@
 <div class="dialog-body" id="advisor-printable">
   @if (loading()) {
     <div class="advisor-loading">
-      <p>Analizando tu posición contra la zona…</p>
+      <p>Analizando tu posición contra la competencia de tu radio…</p>
       <p class="hint">Esto puede tardar hasta medio minuto: estamos cruzando tu catálogo completo contra la competencia.</p>
     </div>
   } @else if (errorMessage()) {
@@ -45,7 +45,7 @@
       </div>
       <div class="kpi">
         <span class="kpi-value">{{ r.digest.resumen.productosMatcheadosConZona | number:'1.0-0' }}</span>
-        <span class="kpi-label">comparables con la zona</span>
+        <span class="kpi-label">comparables con {{ zona() }}</span>
       </div>
       <div class="kpi">
         @if (r.digest.resumen.deltaPromedioPonderadoPct !== null) {
@@ -53,7 +53,7 @@
         } @else {
           <span class="kpi-value kpi-value--muted">s/d</span>
         }
-        <span class="kpi-label">diferencia promedio vs. zona</span>
+        <span class="kpi-label">diferencia promedio vs. {{ refCorta() }}</span>
       </div>
       <div class="kpi">
         <span class="kpi-value">{{ r.digest.resumen.categoriasMasCaras }} / {{ r.digest.resumen.categoriasMasBaratas }}</span>
@@ -74,7 +74,7 @@
         Revisá estas cargas <span class="hint">— parecen pack contra unidad, no diferencia de precio</span>
       </h3>
       <table class="cat-table cat-table--warn">
-        <thead><tr><th>Producto</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Diferencia</th><th>Por qué lo marcamos</th></tr></thead>
+        <thead><tr><th>Producto</th><th class="num">Tu precio</th><th class="num">Ref. {{ refCorta() }}</th><th class="num">Diferencia</th><th>Por qué lo marcamos</th></tr></thead>
         <tbody>
           @for (x of r.digest.comparacionesSospechosas; track x.ean) {
             <tr>
@@ -97,9 +97,9 @@
 
     @if (r.digest.competitividad; as c) {
       @if (c.masCarosQueZona.length > 0) {
-        <h3 class="table-title">Más caros que la zona <span class="hint">— revisar primero</span></h3>
+        <h3 class="table-title">Más caros que {{ zona() }} <span class="hint">— revisar primero</span></h3>
         <table class="cat-table">
-          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Δ</th><th>Referencias</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. {{ refCorta() }}</th><th class="num">Δ</th><th>Referencias</th></tr></thead>
           <tbody>
             @for (p of c.masCarosQueZona; track p.ean) {
               <tr>
@@ -116,9 +116,9 @@
       }
 
       @if (c.espacioParaSubir.length > 0) {
-        <h3 class="table-title">Espacio para subir <span class="hint">— más baratos que la zona</span></h3>
+        <h3 class="table-title">Espacio para subir <span class="hint">— más baratos que {{ zona() }}</span></h3>
         <table class="cat-table">
-          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. zona</th><th class="num">Δ</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu precio</th><th class="num">Ref. {{ refCorta() }}</th><th class="num">Δ</th></tr></thead>
           <tbody>
             @for (p of c.espacioParaSubir; track p.ean) {
               <tr>
@@ -136,7 +136,7 @@
       @if (c.categoriasFueraDeLinea.length > 0) {
         <h3 class="table-title">Categorías fuera de línea</h3>
         <table class="cat-table">
-          <thead><tr><th>Categoría</th><th>Subcategoría</th><th class="num">Δ vs. zona</th><th class="num">Productos</th></tr></thead>
+          <thead><tr><th>Categoría</th><th>Subcategoría</th><th class="num">Δ vs. {{ refCorta() }}</th><th class="num">Productos</th></tr></thead>
           <tbody>
             @for (c2 of c.categoriasFueraDeLinea; track c2.categoria + '|' + (c2.subcategoria ?? '')) {
               <tr>
@@ -177,9 +177,9 @@
       }
 
       @if (m.renegociarCompra.length > 0) {
-        <h3 class="table-title">Renegociar la compra <span class="hint">— tu costo está arriba del precio de venta de la zona</span></h3>
+        <h3 class="table-title">Renegociar la compra <span class="hint">— tu costo está arriba del precio de venta de {{ zona() }}</span></h3>
         <table class="cat-table">
-          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu costo</th><th class="num">Venta zona</th><th>Proveedor</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Tu costo</th><th class="num">Venta {{ refCorta() }}</th><th>Proveedor</th></tr></thead>
           <tbody>
             @for (p of m.renegociarCompra; track p.ean) {
               <tr>
@@ -195,9 +195,9 @@
       }
 
       @if (m.margenExpuesto.length > 0) {
-        <h3 class="table-title">Margen expuesto <span class="hint">— margen alto y caro vs. la zona: hay lugar para bajar</span></h3>
+        <h3 class="table-title">Margen expuesto <span class="hint">— margen alto y caro vs. {{ zona() }}: hay lugar para bajar</span></h3>
         <table class="cat-table">
-          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Margen</th><th class="num">Δ vs. zona</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Margen</th><th class="num">Δ vs. {{ refCorta() }}</th></tr></thead>
           <tbody>
             @for (p of m.margenExpuesto; track p.ean) {
               <tr>
@@ -222,7 +222,7 @@
 
         @if (g.totalMargenEnRiesgoMensual > 0) {
           <p class="advisor-teaser">
-            Además hay <strong>{{ money(g.totalMargenEnRiesgoMensual) }} por mes de margen</strong> que perderías si bajaras a la zona
+            Además hay <strong>{{ money(g.totalMargenEnRiesgoMensual) }} por mes de margen</strong> que perderías si bajaras a {{ zona() }}
             los productos que hoy se venden bien estando caros. Están más abajo, marcados como <strong>Sostener</strong>.
           </p>
         }
@@ -232,7 +232,7 @@
         <table class="cat-table">
           <thead><tr>
             <th>Producto</th><th>Acción</th>
-            <th class="num">Δ vs. zona</th><th class="num">Rotación</th><th class="num">Margen</th>
+            <th class="num">Δ vs. {{ refCorta() }}</th><th class="num">Rotación</th><th class="num">Margen</th>
             <th class="num">$/mes</th><th>Por qué</th>
           </tr></thead>
           <tbody>

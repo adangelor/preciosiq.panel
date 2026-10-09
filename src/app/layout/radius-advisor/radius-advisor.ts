@@ -49,13 +49,23 @@ interface RadiusStats {
           </p>
         } @else if (verdict() === 'too-few' && suggestion(); as s) {
           <p class="radius-advisor__tip">
-            Con menos de {{ minChains }} cadenas el benchmark no tiene con qué comparar.
-            Con <strong>{{ s.radius }} m</strong> llegás a {{ s.stats.branches }} sucursales de {{ s.stats.chains }} cadenas.
+            @if (c.chains === 0) {
+              Sin cadenas a {{ radius() }} m el benchmark no tiene con qué comparar.
+            } @else {
+              Con {{ c.chains }} cadena{{ c.chains === 1 ? '' : 's' }} el informe compara solo contra {{ chainSummary() }}.
+            }
+            Con <strong>{{ s.radius }} m</strong> llegás a {{ s.stats.branches }} sucursales de {{ s.stats.chains }} cadenas ({{ resumen(s.stats.chainNames) }}).
             <button type="button" class="radius-advisor__apply" (click)="apply(s.radius)">Usar {{ s.radius }} m</button>
           </p>
-        } @else if (verdict() === 'too-few') {
+        } @else if (verdict() === 'too-few' && scanStats(); as todo) {
           <p class="radius-advisor__tip">
-            Ni ampliando a {{ scanMeters }} m se llega a {{ minChains }} cadenas con datos: todavía no hay competencia relevada en tu zona.
+            <!-- BP-75: si hasta el maximo no aparece ninguna cadena nueva, ampliar no sirve; se dice con nombres. -->
+            @if (todo.chains === 0) {
+              Hasta {{ scanKm }} km no hay ninguna cadena con datos: todavía no hay competencia relevada cerca tuyo.
+            } @else {
+              Ampliar el radio no suma competencia: hasta {{ scanKm }} km solo está{{ todo.chains === 1 ? '' : 'n' }} {{ resumen(todo.chainNames) }}.
+              El informe compara contra {{ todo.chains === 1 ? 'esa cadena y la nombra' : 'esas cadenas y las nombra' }}.
+            }
           </p>
         }
       </div>
@@ -142,6 +152,7 @@ export class RadiusAdvisorComponent {
   readonly radiusChange = output<number>();
 
   protected readonly scanMeters = environment.benchmark.nearbyScanMeters;
+  protected readonly scanKm = Math.round(environment.benchmark.nearbyScanMeters / 1000);
   private readonly maxResults = environment.benchmark.nearbyMaxResults;
 
   protected readonly state = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -208,12 +219,19 @@ export class RadiusAdvisorComponent {
     this.state() === 'ready' ? this.statsFor(this.radius()) : null,
   );
 
-  protected readonly chainSummary = computed(() => {
-    const names = this.current()?.chainNames ?? [];
+  protected readonly chainSummary = computed(() => this.resumen(this.current()?.chainNames ?? []));
+
+  /** Todo lo que hay hasta el maximo que se escanea (BP-75: decide si ampliar suma algo). */
+  protected readonly scanStats = computed<RadiusStats | null>(() =>
+    this.state() === 'ready' ? this.statsFor(this.scanMeters) : null,
+  );
+
+  protected resumen(names: string[]): string {
     const shown = names.slice(0, 4);
     const rest = names.length - shown.length;
-    return shown.join(', ') + (rest > 0 ? ` y ${rest} más` : '');
-  });
+    if (rest > 0) return shown.join(', ') + ` y ${rest} más`;
+    return shown.length <= 1 ? (shown[0] ?? '') : shown.slice(0, -1).join(', ') + ' y ' + shown[shown.length - 1];
+  }
 
   protected readonly verdict = computed<'ok' | 'too-many' | 'too-few'>(() => {
     const c = this.current();
@@ -232,7 +250,19 @@ export class RadiusAdvisorComponent {
     const comfortable = ladder
       .map((r) => ({ radius: r, stats: this.statsFor(r) }))
       .filter((x) => x.stats.chains >= this.minChains);
-    if (comfortable.length === 0) return null;
+    if (comfortable.length === 0) {
+      // BP-75 -- ninguno llega a minChains. Si mas lejos aparecen cadenas nuevas, se sugiere el radio mas
+      // chico que ya las tiene a todas (aunque no lleguen a minChains: el informe las nombra). Si no aparece
+      // ninguna nueva, null: el template dice que ampliar no suma competencia.
+      if (this.verdict() !== 'too-few') return null;
+      const actual = this.current()?.chains ?? 0;
+      const todo = this.statsFor(this.scanMeters).chains;
+      if (todo <= actual) return null;
+      return ladder
+        .filter((r) => r > this.radius())
+        .map((r) => ({ radius: r, stats: this.statsFor(r) }))
+        .find((x) => x.stats.chains === todo) ?? null;
+    }
     const enough = comfortable.find((x) => x.stats.branches >= environment.benchmark.comfortableBranches);
     if (this.verdict() === 'too-many') {
       // Achicar: el primero que ya alcanza (la escalera va de menor a mayor).
