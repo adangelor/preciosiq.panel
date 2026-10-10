@@ -60,6 +60,8 @@ describe('promo-calculator (los diez casos del prompt, iguales a PromoCalculator
     expect(texto(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 2100 }))).toBe('Llevando 3+: $2.100 c/u');
     expect(texto(regla({ tipo: 'porcentaje', minQty: 3, porcentaje: 15 }))).toBe('15 % llevando 3+');
     expect(texto(regla({ tipo: 'n_x_m', minQty: 3, grupoN: 3, pagaM: 2, maxQty: 6 }))).toBe('3x2 (máx. 6)');
+    // BP-46: "de 3 a 9999" es "desde 3": sin el maximo en el texto.
+    expect(texto(regla({ tipo: 'n_x_m', minQty: 3, grupoN: 3, pagaM: 2, maxQty: 9999 }))).toBe('3x2');
     expect(texto(regla({ tipo: 'enesima_porcentaje', minQty: 2, cadaN: 2, porcentaje: 50 }))).toBe('2da al 50 %');
     expect(textoCondicion(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 2100 }))).toBe('Llevando 3: $2.100 c/u');
     expect(textoCondicion(regla({ tipo: 'porcentaje', minQty: 3, porcentaje: 15 }))).toBe('Llevando 3: 15 % off');

@@ -109,6 +109,9 @@ function ordinal(n: number): string {
   }
 }
 
+/** BP-46: un máximo de 999 o más se muestra como "sin tope" (igual que PromoCalculator.MaximoSinTope en el backend). */
+export const MAXIMO_SIN_TOPE = 999;
+
 /** "Llevando 3+: $2.100 c/u", "15 % llevando 3+", "3x2", "2da al 50 %". Con maximo: " (máx. 6)". */
 export function texto(regla: PromoRule): string {
   const min = cantidadTxt(regla.minQty);
@@ -120,7 +123,9 @@ export function texto(regla: PromoRule): string {
     case 'enesima_porcentaje': t = `${ordinal(regla.cadaN ?? 2)} al ${pctTxt(regla.porcentaje ?? 0)} %`; break;
     default: t = regla.tipo;
   }
-  return regla.maxQty != null ? `${t} (máx. ${cantidadTxt(regla.maxQty)})` : t;
+  // BP-46 (10-oct-2026): un máximo de 999 o más es "sin tope" EN EL TEXTO (no en el cálculo): las planillas
+  // dicen "de 3 a 9999" para decir "desde 3". Mismo umbral que el backend (PromoCalculator.MaximoSinTope).
+  return regla.maxQty != null && regla.maxQty < MAXIMO_SIN_TOPE ? `${t} (máx. ${cantidadTxt(regla.maxQty)})` : t;
 }
 
 /** Lo que se le dice al cliente antes del minimo: "Llevando 3: $2.100 c/u", "Llevando 3: 15 % off", "3x2", "2da al 50 %". */
