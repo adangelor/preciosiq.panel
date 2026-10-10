@@ -79,6 +79,36 @@
   font-size: 0.9rem;
 }
 
+// BP-47 -- editor de columnas.
+.mappings__editar {
+  margin: 0.6rem 0 1rem;
+}
+
+.mappings__editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.mappings__editor h4 {
+  margin: 0 0 0.3rem;
+}
+
+.mappings__editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.6rem 1rem;
+  margin: 0.8rem 0;
+}
+
+.mappings__editor-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
 .mappings__catalogo {
   display: flex;
   gap: 0.6rem;

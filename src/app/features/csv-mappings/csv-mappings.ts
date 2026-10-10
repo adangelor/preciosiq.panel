@@ -6,6 +6,15 @@ import { CsvImportService } from '../../core/csv-import';
 import { CsvMapping, CsvMappingTestResult, SaveCsvMappingRequest } from '../../core/csv-import.models';
 import { BusinessContextService } from '../../core/business-context';
 
+/** Las columnas de un mapeo que se pueden reasignar (BP-47). */
+type CampoColumna = Extract<
+  keyof SaveCsvMappingRequest & keyof CsvMapping,
+  | 'eanColumn' | 'priceColumn' | 'descriptionColumn' | 'brandColumn' | 'presentationQuantityColumn'
+  | 'presentationUnitColumn' | 'promo1UnitPriceColumn' | 'promo1TextColumn' | 'promoPercentColumn'
+  | 'promoMinQtyColumn' | 'promoMaxQtyColumn' | 'promo2UnitPriceColumn' | 'promo2TextColumn'
+  | 'costPriceColumn' | 'costPriceWithTaxColumn' | 'supplierColumn' | 'costValidFromColumn'
+>;
+
 // 17-sep-2026 -- pedido de Andres: "que el mapeo de columnas se pueda guardar y administrar;
 // que en la carga masiva me muestre solo el ultimo usado, y una pagina con todos los mapeos
 // historicos que me muestre sus caracteristicas -- si no, se me acumulan 1000 mapeos y no
@@ -88,6 +97,7 @@ export class CsvMappingsComponent implements OnInit {
     this.expandedId.set(abierto ? null : m.id);
     this.testResult.set(null);
     this.testFile.set(null);
+    this.editandoId.set(null);
   }
 
   /** Las columnas mapeadas, en el orden en que se usan. Las que no se mapearon no se muestran. */
@@ -104,6 +114,7 @@ export class CsvMappingsComponent implements OnInit {
       ['Descuento %', m.promoPercentColumn],
       ['Llevando desde', m.promoMinQtyColumn],
       ['Llevando hasta', m.promoMaxQtyColumn],
+      ['Precio promo 2', m.promo2UnitPriceColumn],
       ['Leyenda adicional', m.promo2TextColumn],
       ['Costo sin IVA', m.costPriceColumn],
       ['Costo con IVA', m.costPriceWithTaxColumn],
@@ -217,6 +228,105 @@ export class CsvMappingsComponent implements OnInit {
       error: (err) => {
         this.saving.set(false);
         this.errorMessage.set(err?.error?.error ?? 'No se pudo cambiar el estado del mapeo.');
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BP-47 (10-oct-2026) -- editar las columnas de un mapeo guardado. Pedido de Andres despues de
+  // tener que mapear la columna Marca de MAG por SQL. Se edita CON UN ARCHIVO probado: los
+  // desplegables ofrecen los encabezados de ese archivo (mas la columna que el mapeo ya tenia, por
+  // si el archivo de prueba no la trae). El mapeo conserva su id, asi que el historial de
+  // importaciones y el "ultimo usado" de la carga masiva no cambian.
+  // ─────────────────────────────────────────────────────────────
+  protected readonly camposEditables: { key: CampoColumna; campo: string; obligatorio?: boolean }[] = [
+    { key: 'eanColumn', campo: 'EAN', obligatorio: true },
+    { key: 'priceColumn', campo: 'Precio', obligatorio: true },
+    { key: 'descriptionColumn', campo: 'Descripción' },
+    { key: 'brandColumn', campo: 'Marca' },
+    { key: 'presentationQuantityColumn', campo: 'Cantidad' },
+    { key: 'presentationUnitColumn', campo: 'Unidad' },
+    { key: 'promo1UnitPriceColumn', campo: 'Precio promo' },
+    { key: 'promo1TextColumn', campo: 'Leyenda de promo' },
+    { key: 'promoPercentColumn', campo: 'Descuento %' },
+    { key: 'promoMinQtyColumn', campo: 'Llevando desde' },
+    { key: 'promoMaxQtyColumn', campo: 'Llevando hasta' },
+    { key: 'promo2UnitPriceColumn', campo: 'Precio promo 2' },
+    { key: 'promo2TextColumn', campo: 'Leyenda adicional' },
+    { key: 'costPriceColumn', campo: 'Costo sin IVA' },
+    { key: 'costPriceWithTaxColumn', campo: 'Costo con IVA' },
+    { key: 'supplierColumn', campo: 'Proveedor' },
+    { key: 'costValidFromColumn', campo: 'Vigencia del costo' },
+  ];
+
+  protected readonly editandoId = signal<number | null>(null);
+  protected readonly borrador = signal<Record<string, string>>({});
+  protected readonly editError = signal<string | null>(null);
+
+  /** Se puede editar si el archivo probado es de este mapeo (sus encabezados son las opciones). */
+  protected puedeEditar(m: CsvMapping): boolean {
+    return this.testResult()?.mappingId === m.id;
+  }
+
+  protected startEditColumnas(m: CsvMapping): void {
+    const b: Record<string, string> = {
+      delimiter: m.delimiter,
+      decimalSeparator: m.decimalSeparator,
+    };
+    for (const c of this.camposEditables) b[c.key] = (m[c.key] as string | null | undefined) ?? '';
+    this.borrador.set(b);
+    this.editError.set(null);
+    this.editandoId.set(m.id);
+  }
+
+  protected cancelEditColumnas(): void {
+    this.editandoId.set(null);
+    this.editError.set(null);
+  }
+
+  protected setBorrador(key: string, value: string): void {
+    this.borrador.set({ ...this.borrador(), [key]: value });
+  }
+
+  /** Encabezados del archivo probado, mas la columna actual si el archivo no la trae. */
+  protected opciones(actual: string): string[] {
+    const headers = this.testResult()?.headers ?? [];
+    return actual && !headers.includes(actual) ? [actual, ...headers] : headers;
+  }
+
+  protected enArchivo(col: string): boolean {
+    return !col || (this.testResult()?.headers ?? []).includes(col);
+  }
+
+  protected guardarColumnas(m: CsvMapping): void {
+    const accountId = this.businessAccountId();
+    if (!accountId) return;
+    const b = this.borrador();
+    if (!b['eanColumn']?.trim() || !b['priceColumn']?.trim()) {
+      this.editError.set('EAN y Precio son obligatorios.');
+      return;
+    }
+    const cambios: Partial<SaveCsvMappingRequest> = {
+      delimiter: b['delimiter'],
+      decimalSeparator: b['decimalSeparator'],
+    };
+    for (const c of this.camposEditables) {
+      const v = b[c.key]?.trim() ?? '';
+      (cambios as Record<string, string | null>)[c.key] = c.obligatorio ? v : v || null;
+    }
+    this.saving.set(true);
+    this.editError.set(null);
+    this.csvImportService.updateMapping(m.id, this.cuerpo(m, accountId, cambios)).subscribe({
+      next: (guardado) => {
+        this.saving.set(false);
+        this.editandoId.set(null);
+        this.mappings.set(this.mappings().map((x) => (x.id === guardado.id ? guardado : x)));
+        // Se vuelve a probar con el mismo archivo: lo que se ve abajo es el mapeo nuevo.
+        if (this.testFile()) this.probar(guardado);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.editError.set(err?.error?.error ?? 'No se pudo guardar el mapeo.');
       },
     });
   }

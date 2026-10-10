@@ -140,6 +140,61 @@
                         </tbody>
                       </table>
 
+                      <!-- BP-47 (10-oct-2026) -- reasignar columnas con los encabezados de este archivo. -->
+                      @if (puedeEditar(m) && editandoId() !== m.id) {
+                        <div class="mappings__actions mappings__editar">
+                          <button type="button" (click)="startEditColumnas(m)">Editar las columnas con este archivo</button>
+                        </div>
+                      }
+                      @if (editandoId() === m.id) {
+                        <div class="mappings__editor">
+                          <h4>Editar columnas de “{{ m.name }}”</h4>
+                          <p class="hint">
+                            Las opciones son los encabezados del archivo que probaste. El mapeo es el mismo (no
+                            se crea uno nuevo): el historial de importaciones lo sigue nombrando igual.
+                          </p>
+                          <div class="mappings__editor-grid">
+                            <label>
+                              Separador de columnas
+                              <select [ngModel]="borrador()['delimiter']" (ngModelChange)="setBorrador('delimiter', $event)">
+                                <option value=",">, (coma)</option>
+                                <option value=";">; (punto y coma)</option>
+                                <option value="&#9;">tabulación</option>
+                                <option value="|">| (barra)</option>
+                              </select>
+                              @if (borrador()['delimiter'] !== t.detectedDelimiter) {
+                                <span class="mappings__aviso">en el archivo se detectó “{{ t.detectedDelimiter === '\t' ? 'tab' : t.detectedDelimiter }}”</span>
+                              }
+                            </label>
+                            <label>
+                              Separador de decimales
+                              <select [ngModel]="borrador()['decimalSeparator']" (ngModelChange)="setBorrador('decimalSeparator', $event)">
+                                <option value=",">, (coma)</option>
+                                <option value=".">. (punto)</option>
+                              </select>
+                            </label>
+                            @for (c of camposEditables; track c.key) {
+                              <label>
+                                {{ c.campo }}{{ c.obligatorio ? ' *' : '' }}
+                                <select [ngModel]="borrador()[c.key]" (ngModelChange)="setBorrador(c.key, $event)">
+                                  @if (!c.obligatorio) { <option value="">(ninguna)</option> }
+                                  @for (h of opciones(borrador()[c.key]); track h) {
+                                    <option [value]="h">{{ h }}{{ enArchivo(h) ? '' : ' (no está en este archivo)' }}</option>
+                                  }
+                                </select>
+                              </label>
+                            }
+                          </div>
+                          @if (editError()) { <p class="form-error">{{ editError() }}</p> }
+                          <div class="mappings__actions">
+                            <button type="button" [disabled]="saving()" (click)="guardarColumnas(m)">
+                              {{ saving() ? 'Guardando…' : 'Guardar columnas' }}
+                            </button>
+                            <button type="button" class="mappings__secondary" (click)="cancelEditColumnas()">Cancelar</button>
+                          </div>
+                        </div>
+                      }
+
                       @if (t.muestra.length > 0) {
                         <h4>Así leería las primeras filas</h4>
                         <div class="mappings__table-wrap">
