@@ -242,6 +242,22 @@
 
       <span class="shell__toolbar-spacer"></span>
 
+      <!-- BP-88 (10-oct-2026): solo si el usuario está en más de una empresa. Cambiar recarga el panel
+           para que ninguna pantalla quede mostrando datos de la otra. -->
+      @if (cuentas().length > 1) {
+        <select
+          class="shell__account-switch"
+          aria-label="Cambiar de empresa"
+          (change)="cambiarCuenta($any($event.target).value)"
+        >
+          @for (c of cuentas(); track c.businessAccountId) {
+            <option [value]="c.businessAccountId" [selected]="c.businessAccountId === cuentas()[0].businessAccountId">
+              {{ c.razonSocial }}
+            </option>
+          }
+        </select>
+      }
+
       <button
         type="button"
         class="shell__icon-btn"

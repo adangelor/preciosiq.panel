@@ -81,3 +81,22 @@
     max-width: 9rem;
   }
 }
+
+// BP-88 (10-oct-2026): selector de empresa en la barra de arriba (solo con mas de una).
+.shell__account-switch {
+  max-width: 220px;
+  margin-right: 8px;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.shell__account-switch option {
+  color: initial;
+}

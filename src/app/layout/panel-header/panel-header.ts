@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth';
 import { ThemeService } from '../../core/theme';
 import { BusinessAccountService } from '../../core/business-account';
-import { resolveLogoUrl } from '../../core/business-account.models';
+import { BusinessAccountResponse, resolveLogoUrl } from '../../core/business-account.models';
 import { AccountMenuComponent } from '../account-menu/account-menu';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
@@ -150,11 +150,22 @@ export class PanelHeaderComponent implements OnInit {
     this.businessAccountService.getMine().subscribe({
       next: (accounts) => {
         if (accounts.length === 0) return;
+        this.cuentas.set(accounts);   // BP-88: la elegida viene primera (ver BusinessAccountService.getMine)
         this.razonSocial.set(accounts[0].razonSocial);
         this.logoUrl.set(accounts[0].logoUrl);
       },
       error: () => {},
     });
+  }
+
+  /** BP-88: empresas del usuario, la elegida primero. El selector aparece solo si hay más de una. */
+  protected readonly cuentas = signal<BusinessAccountResponse[]>([]);
+
+  protected cambiarCuenta(businessAccountId: string): void {
+    const id = Number(businessAccountId);
+    if (!id || id === this.cuentas()[0]?.businessAccountId) return;
+    this.businessAccountService.elegirCuenta(id);
+    window.location.reload();
   }
 
   // 25-ago-2026 -- pedido de Andres: la hamburguesa de arriba hace lo mismo que el caret
