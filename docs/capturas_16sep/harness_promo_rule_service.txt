@@ -1,4 +1,4 @@
-PromoRuleService harness -- 2026-10-08 18:25:08 -- copia local, cuenta 4
+PromoRuleService harness -- 2026-10-10 19:31:20 -- copia local, cuenta 4
   [OK] alta de producto 2993000000017 en 999-9
   [OK] alta de producto 2993000000017 en 999-8
   [OK] alta de producto 2993000000024 en 999-9
@@ -74,4 +74,26 @@ PromoRuleService harness -- 2026-10-08 18:25:08 -- copia local, cuenta 4
   [OK] espejo del % = 850 con la leyenda del CSV
   [OK] regla sin descuento -> espejo vacio (precio Y texto)
 
-RESULTADO: 64 OK, 0 FALLAN
+6. BP-44: deshacer una carga CSV desanda sus reglas
+  [OK] la carga crea 2 reglas y baja la del panel de D
+  [OK] quedo anotado: 2 creadas, 1 desactivada
+  [OK] deshacer: apaga las 2 que creo y vuelve la del panel
+  [OK] deshacer devuelve los 2 EAN para re-espejar
+  [OK] D vuelve a su regla del panel (la misma fila), E queda sin regla
+  [OK] espejo: D = 800 (regla vieja), E sin promo
+  [OK] deshacer dos veces no toca nada
+  [OK] con una promo cargada despues, deshacer no la pisa (0/0 y sigue la manual)
+  [OK] sin lote (cargas viejas) no anota ni deshace nada
+
+7. BP-42: la promo sigue al producto (borrar y cambiar EAN)
+  [OK] borrar en 999-9: se apaga la regla de 999-9 y la de cuenta sigue (999-8 lo tiene)
+  [OK] borrar en la ultima sucursal: se apaga tambien la de cuenta
+  [OK] borrar un producto sin reglas no hace nada
+  [OK] cambiar EAN: la regla de sucursal se muda (H la tiene igual, G ninguna)
+  [OK] espejo del EAN nuevo = 750
+  [OK] regla de cuenta + otra sucursal con el EAN viejo: la de cuenta queda y J se lleva una copia de sucursal
+  [OK] regla de cuenta y era la ultima sucursal: la regla de cuenta pasa al EAN nuevo
+  [OK] cambiar el EAN de un producto sin reglas no hace nada
+  [OK] nunca dos activas en el mismo ambito
+
+RESULTADO: 82 OK, 0 FALLAN

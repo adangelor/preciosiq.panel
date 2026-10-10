@@ -188,6 +188,9 @@ export interface UndoCsvImportBatchResult {
   revertedAt: string;
   // 10-oct-2026 -- productos que esta carga habia pasado a "sin stock" y volvieron a publicarse.
   reactivadosCount?: number;
+  // BP-44 (10-oct-2026) -- reglas de promo que la carga había creado (se apagan) y reemplazado (vuelven).
+  promosDesactivadas?: number;
+  promosReactivadas?: number;
 }
 
 // 10-oct-2026 -- POST /batches/{id}/catalogo-completo. aplicar = false solo cuenta (para preguntar).

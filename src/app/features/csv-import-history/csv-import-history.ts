@@ -97,6 +97,10 @@ export class CsvImportHistoryComponent implements OnInit {
             // 10-oct-2026 -- catalogo completo: lo que esta carga habia pasado a "sin stock".
             (result.reactivadosCount
               ? ` Volvieron a publicarse ${result.reactivadosCount} que esta carga había pasado a sin stock.`
+              : '') +
+            // BP-44 (10-oct-2026) -- las promos de la carga también se deshacen.
+            (result.promosDesactivadas || result.promosReactivadas
+              ? ` Promos: se quitaron ${result.promosDesactivadas ?? 0} que había cargado y volvieron ${result.promosReactivadas ?? 0} que había reemplazado.`
               : ''),
         );
         this.loadBatches();
