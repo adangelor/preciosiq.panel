@@ -57,6 +57,7 @@
                   } @else {
                     <strong>{{ m.name }}</strong>
                     @if (m.archivedAt) { <span class="tag">archivado</span> }
+                    @if (m.catalogoCompleto) { <span class="tag">catálogo completo</span> }
                     <br />
                     <span class="hint">separador “{{ m.delimiter }}”, decimales “{{ m.decimalSeparator }}”</span>
                   }
@@ -95,6 +96,16 @@
                         <li><span class="hint">{{ c.campo }}:&nbsp;</span><strong>{{ c.columna }}</strong></li>
                       }
                     </ul>
+
+                    <!-- 10-oct-2026 -- catalogo completo (ver toggleCatalogo en el .ts). -->
+                    <label class="mappings__catalogo">
+                      <input type="checkbox" [checked]="m.catalogoCompleto ?? false" [disabled]="saving()" (change)="toggleCatalogo(m)" />
+                      <span>
+                        <strong>Esta planilla es mi catálogo completo</strong> — al terminar cada carga te
+                        preguntamos si pasamos a "sin stock" lo publicado que no vino en el archivo (deja de
+                        verse en BuscaPrecios; en misuper.app queda sin precio y "Sin stock").
+                      </span>
+                    </label>
 
                     <h3>Probar con un archivo</h3>
                     <p class="hint">No se carga nada: solo te decimos qué columnas encuentra y cómo leería las primeras filas.</p>

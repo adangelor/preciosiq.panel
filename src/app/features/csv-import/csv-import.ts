@@ -5,6 +5,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { retry, timer } from 'rxjs';
 import { CsvImportService } from '../../core/csv-import';
 import {
+  CatalogoCompletoResult,
   CsvImportPriceAnomaly,
   CsvImportResult,
   CsvImportRowError,
@@ -132,6 +133,8 @@ export class CsvImportComponent implements OnInit {
     promoMaxQtyColumn: [''],
     // 17-sep-2026 -- descuento %: la fila crea una regla de porcentaje.
     promoPercentColumn: [''],
+    // 10-oct-2026 -- "Esta planilla es mi catalogo completo" (ver catalogo() mas abajo).
+    catalogoCompleto: [false],
     costPriceColumn: [''],
     costPriceWithTaxColumn: [''],
     supplierColumn: [''],
@@ -201,13 +204,72 @@ export class CsvImportComponent implements OnInit {
       costPriceWithTaxColumn: mapping.costPriceWithTaxColumn ?? '',
       supplierColumn: mapping.supplierColumn ?? '',
       costValidFromColumn: mapping.costValidFromColumn ?? '',
+      catalogoCompleto: mapping.catalogoCompleto ?? false,
     });
   }
 
   protected startNewMapping(): void {
     this.useExistingMapping.set(false);
     this.selectedMappingId.set(null);
-    this.mappingForm.patchValue({ savedMappingId: null, name: '' });
+    this.mappingForm.patchValue({ savedMappingId: null, name: '', catalogoCompleto: false });
+  }
+
+  /** El mapeo elegido (guardado) dice que la planilla es el catalogo completo. */
+  protected mapeoEsCatalogoCompleto(): boolean {
+    const id = this.selectedMappingId();
+    return this.useExistingMapping() && !!this.preview()?.savedMappings.find((m) => m.id === id)?.catalogoCompleto;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 10-oct-2026 -- catalogo completo. Pedido de Andres: "si el producto NO ESTA EN LA PAGINA DE MAG,
+  // que caduque el precio anterior, porque eso quiere decir que esta sin stock". Con el mapeo marcado,
+  // al terminar la carga se pregunta cuantos productos publicados NO vinieron en el archivo, con
+  // ejemplos, y recien con el "si" pasan a "sin stock": salen de la app y misuper.app los muestra sin
+  // precio. Se deshace con la carga entera, desde Importaciones.
+  // ─────────────────────────────────────────────────────────────
+  protected readonly catalogo = signal<CatalogoCompletoResult | null>(null);
+  protected readonly catalogoLoading = signal(false);
+  protected readonly catalogoError = signal<string | null>(null);
+  protected readonly catalogoDescartado = signal(false);
+
+  private consultarCatalogo(businessAccountId: number, batchId: number): void {
+    this.catalogo.set(null);
+    this.catalogoError.set(null);
+    this.catalogoDescartado.set(false);
+    this.catalogoLoading.set(true);
+    this.csvImportService.catalogoCompleto(batchId, businessAccountId, false).subscribe({
+      next: (r) => {
+        this.catalogoLoading.set(false);
+        this.catalogo.set(r);
+      },
+      error: (err) => {
+        this.catalogoLoading.set(false);
+        this.catalogoError.set(err?.error?.error ?? 'No pudimos contar los productos que no vinieron en el archivo.');
+      },
+    });
+  }
+
+  protected aplicarCatalogo(): void {
+    const c = this.catalogo();
+    const { businessAccountId } = this.uploadForm.getRawValue();
+    if (!c || !businessAccountId) return;
+    this.catalogoLoading.set(true);
+    this.catalogoError.set(null);
+    this.csvImportService.catalogoCompleto(c.batchId, businessAccountId, true).subscribe({
+      next: (r) => {
+        this.catalogoLoading.set(false);
+        this.catalogo.set(r);
+      },
+      error: (err) => {
+        this.catalogoLoading.set(false);
+        this.catalogoError.set(err?.error?.error ?? 'No se pudieron dar de baja. Probá de nuevo.');
+      },
+    });
+  }
+
+  /** Mas de la mitad de lo publicado se iria a sin stock: casi seguro no es el catalogo entero. */
+  protected catalogoSospechoso(c: CatalogoCompletoResult): boolean {
+    return c.publicadosAntes > 0 && c.bajas > c.publicadosAntes / 2;
   }
 
   protected runImport(): void {
@@ -226,10 +288,11 @@ export class CsvImportComponent implements OnInit {
 
     const nullIfEmpty = (s: string) => (s?.trim() ? s.trim() : null);
 
-    const proceedWithMapping = (mappingId: number) => this.runInChunks(businessAccountId!, branchId, mappingId, file);
+    const proceedWithMapping = (mappingId: number, catalogoCompleto: boolean) =>
+      this.runInChunks(businessAccountId!, branchId, mappingId, file, catalogoCompleto);
 
     if (value.savedMappingId) {
-      proceedWithMapping(value.savedMappingId);
+      proceedWithMapping(value.savedMappingId, this.mapeoEsCatalogoCompleto());
       return;
     }
 
@@ -258,9 +321,10 @@ export class CsvImportComponent implements OnInit {
         costPriceWithTaxColumn: nullIfEmpty(value.costPriceWithTaxColumn),
         supplierColumn: nullIfEmpty(value.supplierColumn),
         costValidFromColumn: nullIfEmpty(value.costValidFromColumn),
+        catalogoCompleto: value.catalogoCompleto,
       })
       .subscribe({
-        next: (saved) => proceedWithMapping(saved.id),
+        next: (saved) => proceedWithMapping(saved.id, saved.catalogoCompleto ?? false),
         error: (err) => {
           this.loading.set(false);
           this.errorMessage.set(err?.error?.error ?? 'No se pudo guardar el mapeo.');
@@ -274,13 +338,23 @@ export class CsvImportComponent implements OnInit {
     this.result.set(null);
     this.selectedFile.set(null);
     this.errorMessage.set(null);
+    this.catalogo.set(null);
+    this.catalogoError.set(null);
   }
 
   // E5.4 -- true si alguna de las anomalias de este resultado vino de la señal "zone"
   // (promedio de competidores), no solo "previous" -- cambia el texto de aviso.
   // E5.7 -- una tanda por llamada, en serie. Errores y anomalias se juntan aca; los
   // contadores ya vienen acumulados del backend (son los del lote en dbo.CsvImportBatch).
-  private runInChunks(businessAccountId: number, branchId: string, mappingId: number, file: File): void {
+  private runInChunks(
+    businessAccountId: number,
+    branchId: string,
+    mappingId: number,
+    file: File,
+    catalogoCompleto = false,
+  ): void {
+    this.catalogo.set(null);
+    this.catalogoError.set(null);
     const errors: CsvImportRowError[] = [];
     const anomalies: CsvImportPriceAnomaly[] = [];
     let batchId: number | null = null;
@@ -353,6 +427,8 @@ export class CsvImportComponent implements OnInit {
               priceAnomalies: anomalies.slice(0, 6),
             });
             this.step.set('result');
+            // Cortada por el cupo del plan no se ofrece: el backend tampoco la deja (archivo incompleto).
+            if (catalogoCompleto && !r.stoppedByPlanLimit) this.consultarCatalogo(businessAccountId, r.batchId);
           },
           error: (err) => {
             this.loading.set(false);

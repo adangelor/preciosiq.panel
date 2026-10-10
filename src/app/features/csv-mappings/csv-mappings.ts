@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CsvImportService } from '../../core/csv-import';
-import { CsvMapping, CsvMappingTestResult } from '../../core/csv-import.models';
+import { CsvMapping, CsvMappingTestResult, SaveCsvMappingRequest } from '../../core/csv-import.models';
 import { BusinessContextService } from '../../core/business-context';
 
 // 17-sep-2026 -- pedido de Andres: "que el mapeo de columnas se pueda guardar y administrar;
@@ -139,9 +139,45 @@ export class CsvMappingsComponent implements OnInit {
     this.saving.set(true);
     // El PUT manda el mapeo completo (mismo cuerpo que al guardarlo): acá solo cambia el nombre.
     this.csvImportService
-      .updateMapping(m.id, {
+      .updateMapping(m.id, this.cuerpo(m, accountId, { name: nombre }))
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.renamingId.set(null);
+          this.load();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.errorMessage.set(err?.error?.error ?? 'No se pudo renombrar el mapeo.');
+        },
+      });
+  }
+
+  // 10-oct-2026 -- "Esta planilla es mi catalogo completo": prender o apagar la opcion de un mapeo ya
+  // guardado (el de MAG, por ejemplo), sin tener que armar uno nuevo.
+  protected toggleCatalogo(m: CsvMapping): void {
+    const accountId = this.businessAccountId();
+    if (!accountId) return;
+    this.saving.set(true);
+    this.csvImportService
+      .updateMapping(m.id, this.cuerpo(m, accountId, { catalogoCompleto: !m.catalogoCompleto }))
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.load();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.errorMessage.set(err?.error?.error ?? 'No se pudo cambiar el mapeo.');
+        },
+      });
+  }
+
+  /** El mapeo completo para el PUT, con lo que cambia encima. */
+  private cuerpo(m: CsvMapping, accountId: number, cambios: Partial<SaveCsvMappingRequest>): SaveCsvMappingRequest {
+    return {
         businessAccountId: accountId,
-        name: nombre,
+        name: m.name,
         delimiter: m.delimiter,
         decimalSeparator: m.decimalSeparator,
         eanColumn: m.eanColumn,
@@ -161,18 +197,9 @@ export class CsvMappingsComponent implements OnInit {
         promoMinQtyColumn: m.promoMinQtyColumn ?? null,
         promoMaxQtyColumn: m.promoMaxQtyColumn ?? null,
         promoPercentColumn: m.promoPercentColumn ?? null,
-      })
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.renamingId.set(null);
-          this.load();
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.errorMessage.set(err?.error?.error ?? 'No se pudo renombrar el mapeo.');
-        },
-      });
+        catalogoCompleto: m.catalogoCompleto ?? false,
+        ...cambios,
+    };
   }
 
   protected archivar(m: CsvMapping): void {

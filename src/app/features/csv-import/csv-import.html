@@ -293,12 +293,33 @@
             nuevo cuando cambió respecto del último conocido de ese producto.
           </p>
 
+          <!-- 10-oct-2026 -- catalogo completo (ver catalogo() en el .ts). -->
+          <label class="checkbox-row">
+            <input type="checkbox" formControlName="catalogoCompleto" />
+            <span>
+              <strong>Esta planilla es mi catálogo completo</strong> — lo que hoy tengo publicado y
+              no venga en el archivo está sin stock.
+            </span>
+          </label>
+          <p class="hint">
+            Al terminar la carga te mostramos cuántos productos no vinieron y recién si confirmás
+            dejan de aparecer en BuscaPrecios (en tu tienda de misuper.app quedan como "Sin stock",
+            sin precio). Se deshace junto con la carga, desde Importaciones.
+          </p>
+
           <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
           <button type="submit" [disabled]="loading()">
             {{ loading() ? 'Procesando…' : 'Guardar mapeo y cargar' }}
           </button>
         </form>
       } @else {
+        @if (mapeoEsCatalogoCompleto()) {
+          <p class="hint">
+            <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+            Este mapeo es tu <strong>catálogo completo</strong>: al terminar te preguntamos si damos
+            de baja (sin stock) lo publicado que no venga en el archivo.
+          </p>
+        }
         <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
         <button type="button" (click)="runImport()" [disabled]="loading()">
           {{ loading() ? 'Procesando…' : 'Cargar con este mapeo' }}
@@ -348,6 +369,53 @@
           {{ r.promosIgnoradas ?? 0 }} ignoradas. Se publican en la red y la caja las cobra.
         </p>
       }
+      <!-- 10-oct-2026 -- catalogo completo: lo publicado que no vino, con confirmacion. -->
+      @if (catalogoLoading() && !catalogo()) {
+        <p role="status"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Buscando lo que no vino en el archivo…</p>
+      }
+      @if (catalogoError(); as e) {
+        <p class="form-error" role="alert">{{ e }}</p>
+      }
+      @if (catalogo(); as c) {
+        <div class="catalogo-box" [class.anomaly-warning]="!c.aplicado && catalogoSospechoso(c)">
+          @if (c.aplicado) {
+            <h3><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ c.bajas }} producto{{ c.bajas === 1 ? '' : 's' }} sin stock</h3>
+            <p>
+              Ya no aparecen en BuscaPrecios; en tu tienda de misuper.app se ven como "Sin stock".
+              Cuando vuelvan en una planilla, se publican solos.
+            </p>
+          } @else if (c.bajas === 0) {
+            <p>
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              Catálogo completo: vino todo lo que tenías publicado, no hay nada para dar de baja.
+            </p>
+          } @else if (!catalogoDescartado()) {
+            <h3><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> {{ c.bajas }} producto{{ c.bajas === 1 ? '' : 's' }} no vinieron en el archivo</h3>
+            <p>
+              Tenías {{ c.publicadosAntes }} publicados y el archivo trajo {{ c.vinieronEnElArchivo }}.
+              Si los damos de baja, dejan de aparecer en BuscaPrecios y en misuper.app quedan como
+              "Sin stock", sin precio.
+            </p>
+            @if (catalogoSospechoso(c)) {
+              <p><strong>Ojo: es más de la mitad de lo que tenías publicado.</strong> ¿Seguro que el archivo es el catálogo entero?</p>
+            }
+            @if (c.ejemplos.length > 0) {
+              <p class="hint">Por ejemplo: {{ c.ejemplos.join(' · ') }}{{ c.bajas > c.ejemplos.length ? '…' : '' }}</p>
+            }
+            <div class="catalogo-box__acciones">
+              <button type="button" (click)="aplicarCatalogo()" [disabled]="catalogoLoading()">
+                {{ catalogoLoading() ? 'Dando de baja…' : 'Sí, pasarlos a sin stock' }}
+              </button>
+              <button type="button" class="catalogo-box__no" (click)="catalogoDescartado.set(true)" [disabled]="catalogoLoading()">
+                No, dejarlos publicados
+              </button>
+            </div>
+          } @else {
+            <p class="hint">Quedaron publicados los {{ c.bajas }} que no vinieron en el archivo.</p>
+          }
+        </div>
+      }
+
       <p class="hint">
         ¿Se coló algún error? <a routerLink="/precios/importaciones">Ver historial de importaciones y deshacer esta carga →</a>
       </p>

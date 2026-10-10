@@ -33,6 +33,9 @@ export interface CsvMapping {
   archivedAt?: string | null;
   timesUsed?: number;
   lastUsedAt?: string | null;
+  // 10-oct-2026 -- "Esta planilla es mi catálogo completo": al terminar la carga, lo publicado que no
+  // vino en el archivo pasa a "sin stock" (sale de la app; misuper.app lo muestra sin precio).
+  catalogoCompleto?: boolean;
 }
 
 // 17-sep-2026 -- "probar este mapeo con un archivo": no carga nada, solo dice que columnas
@@ -100,6 +103,8 @@ export interface SaveCsvMappingRequest {
   promoMaxQtyColumn: string | null;
   // 17-sep-2026 -- descuento %.
   promoPercentColumn: string | null;
+  // 10-oct-2026 -- ver CsvMapping.catalogoCompleto.
+  catalogoCompleto?: boolean;
 }
 
 export interface CsvImportRowError {
@@ -181,4 +186,17 @@ export interface UndoCsvImportBatchResult {
   restoredCount: number;
   deletedCount: number;
   revertedAt: string;
+  // 10-oct-2026 -- productos que esta carga habia pasado a "sin stock" y volvieron a publicarse.
+  reactivadosCount?: number;
+}
+
+// 10-oct-2026 -- POST /batches/{id}/catalogo-completo. aplicar = false solo cuenta (para preguntar).
+export interface CatalogoCompletoResult {
+  batchId: number;
+  aplicado: boolean;
+  bajas: number;
+  publicadosAntes: number;
+  vinieronEnElArchivo: number;
+  ejemplos: string[];
+  aplicadoAt: string | null;
 }

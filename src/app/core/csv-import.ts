@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  CatalogoCompletoResult,
   CsvImportBatch,
   CsvImportChunkOptions,
   CsvImportResult,
@@ -92,6 +93,15 @@ export class CsvImportService {
   undoBatch(batchId: number, businessAccountId: number): Observable<UndoCsvImportBatchResult> {
     return this.http.post<UndoCsvImportBatchResult>(`${this.baseUrl}/batches/${batchId}/undo`, {
       businessAccountId,
+    });
+  }
+
+  // 10-oct-2026 -- catalogo completo: con aplicar = false solo cuenta lo que se daria de baja
+  // (lo publicado que no vino en el archivo); con true lo pasa a "sin stock".
+  catalogoCompleto(batchId: number, businessAccountId: number, aplicar: boolean): Observable<CatalogoCompletoResult> {
+    return this.http.post<CatalogoCompletoResult>(`${this.baseUrl}/batches/${batchId}/catalogo-completo`, {
+      businessAccountId,
+      aplicar,
     });
   }
 }

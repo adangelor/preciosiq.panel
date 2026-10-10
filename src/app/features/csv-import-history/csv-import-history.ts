@@ -93,7 +93,11 @@ export class CsvImportHistoryComponent implements OnInit {
         this.undoingId.set(null);
         this.undoMessage.set(
           `Listo: se restauraron ${result.restoredCount} precio${result.restoredCount === 1 ? '' : 's'} ` +
-            `y se eliminaron ${result.deletedCount} producto${result.deletedCount === 1 ? '' : 's'} nuevo${result.deletedCount === 1 ? '' : 's'}.`,
+            `y se eliminaron ${result.deletedCount} producto${result.deletedCount === 1 ? '' : 's'} nuevo${result.deletedCount === 1 ? '' : 's'}.` +
+            // 10-oct-2026 -- catalogo completo: lo que esta carga habia pasado a "sin stock".
+            (result.reactivadosCount
+              ? ` Volvieron a publicarse ${result.reactivadosCount} que esta carga había pasado a sin stock.`
+              : ''),
         );
         this.loadBatches();
       },

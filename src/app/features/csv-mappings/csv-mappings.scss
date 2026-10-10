@@ -79,6 +79,20 @@
   font-size: 0.9rem;
 }
 
+.mappings__catalogo {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.mappings__catalogo input {
+  margin-top: 0.2rem;
+  width: auto;
+}
+
 .mappings__cols-list {
   margin: 0;
   padding: 0;
