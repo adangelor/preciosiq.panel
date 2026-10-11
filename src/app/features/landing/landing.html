@@ -57,13 +57,19 @@
             <rect x="-32.54" y="78.39" width="305.92" height="84.05" rx="42.03" transform="translate(120.42 -49.88) rotate(45)"></rect>
             <rect x="-32.54" y="78.39" width="305.92" height="84.05" rx="42.03" transform="translate(-49.88 120.42) rotate(-45)"></rect>
           </svg><svg class="shape-2 d-none d-sm-block" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"></circle></svg>
-          <div class="device-wrapper">
-            <div class="device" data-device="iPhoneX" data-orientation="portrait" data-color="black">
-              <div class="screen bg-black">
-                <img src="/home/assets/img/demo-screen.jpg" alt="Panel de precios PreciosIQ" style="max-width: 100%; height: 100%; object-fit: cover" />
-              </div>
+          <!-- 11-oct-2026 -- captura REAL del panel dentro de un marco de ventana de navegador. Antes iba
+               demo-screen.jpg (una pantalla de la app vieja de BuscaPrecios, la misma en PreciosIQ y en
+               DistribucionIQ) adentro del iPhone X, que es el unico mockup que trae el tema New Age y no
+               sirve para un panel de escritorio. El marco es CSS propio: .browser-mockup en landing.scss.
+               La imagen es una captura del panel EN PRODUCCION a 1440x900 (html2canvas a 2x), escalada a
+               1600x1000 JPEG; como se hizo y como rehacerla esta en BP-95 de BACKLOG.md (raiz del repo). -->
+          <figure class="browser-mockup mb-0">
+            <div class="browser-mockup__bar" aria-hidden="true">
+              <span></span><span></span><span></span>
+              <div class="browser-mockup__url">preciosiq.com/dashboard</div>
             </div>
-          </div>
+            <img class="browser-mockup__screen" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" />
+          </figure>
         </div>
       </div>
     </div>

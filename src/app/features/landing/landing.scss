@@ -85,3 +85,71 @@
     font-size: 1.625rem;
   }
 }
+
+// 11-oct-2026 -- EL HERO MUESTRA EL PANEL DE VERDAD, EN UN MARCO DE NAVEGADOR.
+//
+// Hasta hoy el masthead traia el iPhone X del tema New Age (el unico mockup que incluye su CSS)
+// con demo-screen.jpg adentro: una captura de la app vieja de BuscaPrecios, identica en PreciosIQ y
+// en DistribucionIQ. El producto que se vende aca es un panel web de escritorio, asi que el telefono
+// se reemplaza por un marco de ventana de navegador propio (barra con tres puntos + URL + captura).
+// El contenedor .masthead-device-mockup, el circulo degrade y las dos formas del tema quedan como
+// estaban, detras; solo cambia lo que va adelante. Los anchos siguen los mismos cortes que el tema
+// le daba al telefono (10/12.5/15/17 rem), pero mas generosos porque la captura es apaisada.
+.masthead .masthead-device-mockup .browser-mockup {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 20rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow:
+    0 1.5rem 3rem rgba(33, 37, 41, 0.22),
+    0 0 0 1px rgba(33, 37, 41, 0.08);
+
+  @media (min-width: 576px) { max-width: 26rem; }
+  @media (min-width: 768px) { max-width: 30rem; }
+  @media (min-width: 992px) { max-width: 100%; }
+}
+
+.browser-mockup__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  background: #eef1f6;
+  border-bottom: 1px solid #dde3ee;
+
+  span {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #c9d3e4;
+  }
+  span:nth-child(1) { background: #ff5f57; }
+  span:nth-child(2) { background: #febc2e; }
+  span:nth-child(3) { background: #28c840; }
+}
+
+.browser-mockup__url {
+  flex: 1;
+  margin-left: 0.5rem;
+  height: 1.1rem;
+  line-height: 1.1rem;
+  padding: 0 0.6rem;
+  border-radius: 0.35rem;
+  background: #ffffff;
+  color: #8f9bb3;
+  font-size: 0.65rem;
+  font-family: var(--bs-body-font-family);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.browser-mockup__screen {
+  display: block;
+  width: 100%;
+  height: auto;
+}
