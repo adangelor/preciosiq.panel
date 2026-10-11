@@ -167,9 +167,9 @@
      en null para TODOS los planes y CsvBulkImport pasó a ser universal. El eje ahora es
      el NIVEL DE ANÁLISIS (N0..N3).
 
-     Precios: Billing:Plans de appsettings.json (mensual y anual). Anual = 10 meses.
-     Features por tarjeta: PlanLimits.Plans. Si cambia cualquiera de los dos, esta
-     sección hay que actualizarla a mano -- hoy está hardcodeada.
+     Precios: BP-101 (11-oct-2026), los trae la API (GET business/subscriptions/plans, que
+     lee Billing:Plans); cambiar un precio ya no pide tocar esta página. Anual = 10 meses.
+     Features por tarjeta: PlanLimits.Plans; esas sí están escritas a mano acá.
 
      BP-85 (11-oct-2026): PlanLimits ya tiene la matriz de la caja y de la tienda. Acá se
      muestra solo lo que existe hoy (la tienda en misuper.app, gratis en todos); la caja, la
@@ -181,6 +181,18 @@
       Cargá tu catálogo completo por CSV en cualquier plan, incluido el gratuito: sin límite de
       productos ni de sucursales. Lo que crece al subir de plan es cuánto te decimos sobre él.
     </p>
+
+    <!-- El monto de un plan pago. Mientras la API no contesta la tarjeta guarda el lugar; si
+         no contesta, no se inventa un precio. -->
+    <ng-template #precio let-tier>
+      @if (precios()[tier]; as p) {
+        <div class="mb-1"><span class="display-6 fw-bold">{{ p.mes }}</span><span class="text-muted small">/mes</span></div>
+        <p class="text-muted small mb-3">o {{ p.anio }} al año</p>
+      } @else {
+        <div class="mb-1"><span class="display-6 fw-bold">&nbsp;</span></div>
+        <p class="text-muted small mb-3">@if (preciosCaidos()) { Consultanos el precio } @else { &nbsp; }</p>
+      }
+    </ng-template>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 align-items-stretch">
 
@@ -201,13 +213,12 @@
         </div>
       </div>
 
-      <!-- inicial -- $20.000 / $200.000 -->
+      <!-- inicial -->
       <div class="col">
         <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
           <h3 class="font-alt h5 mb-1">Inicial</h3>
           <p class="text-muted small mb-3">Tu evolución</p>
-          <div class="mb-1"><span class="display-6 fw-bold">$20.000</span><span class="text-muted small">/mes</span></div>
-          <p class="text-muted small mb-3">o $200.000 al año</p>
+          <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'inicial' }" />
           <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
             <li class="mb-2">Todo lo del plan Gratis, más:</li>
             <li class="mb-2">✓ Historial de precios</li>
@@ -216,14 +227,13 @@
         </div>
       </div>
 
-      <!-- pyme -- $50.000 / $500.000 -- N1 -->
+      <!-- pyme -- N1 -->
       <div class="col">
         <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column border border-primary border-2 position-relative">
           <span class="badge bg-primary rounded-pill position-absolute top-0 start-50 translate-middle">Recomendado</span>
           <h3 class="font-alt h5 mb-1">Pyme</h3>
           <p class="text-muted small mb-3">Tu competitividad</p>
-          <div class="mb-1"><span class="display-6 fw-bold">$50.000</span><span class="text-muted small">/mes</span></div>
-          <p class="text-muted small mb-3">o $500.000 al año</p>
+          <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'pyme' }" />
           <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
             <li class="mb-2">Todo lo del plan Inicial, más:</li>
             <li class="mb-2">✓ Dashboard completo</li>
@@ -233,13 +243,12 @@
         </div>
       </div>
 
-      <!-- avanzado -- $150.000 / $1.500.000 -- N2 -->
+      <!-- avanzado -- N2 -->
       <div class="col">
         <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
           <h3 class="font-alt h5 mb-1">Avanzado</h3>
           <p class="text-muted small mb-3">Tu rentabilidad</p>
-          <div class="mb-1"><span class="display-6 fw-bold">$150.000</span><span class="text-muted small">/mes</span></div>
-          <p class="text-muted small mb-3">o $1.500.000 al año</p>
+          <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'avanzado' }" />
           <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
             <li class="mb-2">Todo lo del plan Pyme, más:</li>
             <li class="mb-2">✓ Análisis de margen por producto</li>
@@ -249,13 +258,12 @@
         </div>
       </div>
 
-      <!-- cadena -- $200.000 / $2.000.000 -- N3 -->
+      <!-- cadena -- N3 -->
       <div class="col">
         <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
           <h3 class="font-alt h5 mb-1">Cadena</h3>
           <p class="text-muted small mb-3">Tu ganancia</p>
-          <div class="mb-1"><span class="display-6 fw-bold">$200.000</span><span class="text-muted small">/mes</span></div>
-          <p class="text-muted small mb-3">o $2.000.000 al año</p>
+          <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'cadena' }" />
           <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
             <li class="mb-2">Todo lo del plan Avanzado, más:</li>
             <li class="mb-2">✓ Ganancia en pesos por mes</li>

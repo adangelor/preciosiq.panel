@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BusinessSubscriptionService } from '../../core/business-subscription';
 import { LeadService } from '../../core/lead';
 import { AgendaOmnivoxComponent } from './agenda-omnivox';
 
@@ -12,13 +14,14 @@ import { AgendaOmnivoxComponent } from './agenda-omnivox';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AgendaOmnivoxComponent],
+  imports: [NgTemplateOutlet, ReactiveFormsModule, RouterLink, AgendaOmnivoxComponent],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly leadService = inject(LeadService);
+  private readonly subscriptionService = inject(BusinessSubscriptionService);
 
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
@@ -29,6 +32,29 @@ export class LandingComponent {
   // agendaCaida: el bundle de Omnivox no cargo; el modal vuelve al formulario de contacto de abajo.
   protected readonly agendaPedida = signal(false);
   protected readonly agendaCaida = signal(false);
+
+  // BP-101 (11-oct-2026) -- los precios de las tarjetas salen de la API (Billing:Plans), el mismo
+  // lugar del que cobra el checkout. tier -> montos ya formateados ("$20.000").
+  protected readonly precios = signal<Record<string, { mes: string; anio: string }>>({});
+  protected readonly preciosCaidos = signal(false);
+
+  ngOnInit(): void {
+    const pesos = (n: number) => '$' + n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+    this.subscriptionService.getPlans().subscribe({
+      next: (planes) => {
+        const precios: Record<string, { mes: string; anio: string }> = {};
+        for (const p of planes) {
+          if (p.priceArs !== null && p.priceArsAnnual !== null) {
+            precios[p.tier] = { mes: pesos(p.priceArs), anio: pesos(p.priceArsAnnual) };
+          }
+        }
+        this.precios.set(precios);
+        // Un plan sin monto configurado en el servidor cae en "Consultanos el precio".
+        this.preciosCaidos.set(true);
+      },
+      error: () => this.preciosCaidos.set(true),
+    });
+  }
 
   protected readonly demoForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
