@@ -1,4 +1,4 @@
-PromoRuleService harness -- 2026-10-10 19:31:20 -- copia local, cuenta 4
+PromoRuleService harness -- 2026-10-10 22:21:39 -- copia local, cuenta 4
   [OK] alta de producto 2993000000017 en 999-9
   [OK] alta de producto 2993000000017 en 999-8
   [OK] alta de producto 2993000000024 en 999-9
@@ -21,7 +21,17 @@ PromoRuleService harness -- 2026-10-10 19:31:20 -- copia local, cuenta 4
   [OK] espejo 999-8 (regla de cuenta) = 2000 '20 % llevando 1+'
   [OK] EspejarAsync cambio las 2 filas
   [OK] EspejarAsync otra vez no cambia nada
-  [OK] null desde 999-9 desactiva la de 999-9 Y la de cuenta
+  [OK] BP-40: null desde 999-9 la apaga en 999-9 y la de cuenta sigue en 999-8
+  [OK] BP-40: en 999-9 queda una regla 'sin_promo' (la que le gana a la de la cuenta)
+  [OK] BP-40: espejo vacio en 999-9 y la promo de cuenta en 999-8
+  [OK] BP-40: repetir 'sin promo' no apila bloqueos
+  [OK] BP-40: 'usar la de la cuenta' saca el bloqueo y 999-9 vuelve a la promo de cuenta
+  [OK] BP-40: con regla propia + de cuenta, 'sin promo' deja 999-9 sin ninguna
+  [OK] BP-40: cargar una promo en 999-9 reemplaza al bloqueo (1 activa, y es la promo)
+  [OK] BP-40: una promo de cuenta cargada desde la sucursal que la tenia apagada levanta el bloqueo
+  [OK] BP-40: la celda vacia del CSV no saca el 'sin promo aca' (0/0 y sigue apagada)
+  [OK] BP-40: 'sin promo en todas' apaga la de cuenta y lo de la sucursal (ninguna activa)
+  [OK] BP-40: sin promo de cuenta, 'sin promo' solo apaga la de la sucursal (no deja bloqueo)
   [OK] sin regla activa el espejo limpia los dos campos (en las dos sucursales)
   [OK] ausente no toca nada (GuardarAsync devuelve null)
 
@@ -96,4 +106,4 @@ PromoRuleService harness -- 2026-10-10 19:31:20 -- copia local, cuenta 4
   [OK] cambiar el EAN de un producto sin reglas no hace nada
   [OK] nunca dos activas en el mismo ambito
 
-RESULTADO: 82 OK, 0 FALLAN
+RESULTADO: 92 OK, 0 FALLAN

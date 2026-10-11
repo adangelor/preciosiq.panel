@@ -57,8 +57,14 @@ export interface UpsertBusinessPriceRequest {
   promo2Text?: string | null;
   /** Ausente = no tocar la regla; null = desactivarla; objeto = reemplazarla. */
   promoRule?: PromoRule | null;
-  /** true = la regla vale para todas las sucursales de la cuenta. */
+  /**
+   * true = la regla vale para todas las sucursales de la cuenta.
+   * BP-40 (10-oct-2026): también con promoRule = null. false = "sin promo" solo en esta sucursal (si la
+   * cuenta tiene una promo, sigue en las demás); true = apagarla en todas.
+   */
   promoRuleTodasLasSucursales?: boolean;
+  /** BP-40 -- true = sacar lo propio de esta sucursal y volver a la promo de toda la cuenta. */
+  promoRuleUsarLaDeCuenta?: boolean;
 }
 
 export interface BusinessPriceResponse {
@@ -101,6 +107,13 @@ export interface BusinessAccountProductItem {
   /** BP-38 -- regla activa de esta fila (branchId null = de toda la cuenta) y su texto. */
   promoRule?: PromoRule | null;
   promoRuleTexto?: string | null;
+  /**
+   * BP-40 (10-oct-2026) -- la promo por ámbito. promoApagadaAca = la cuenta tiene una promo para este
+   * producto y esta sucursal la apagó (promoRule viene null). promoDeCuentaTexto = la promo de toda la
+   * cuenta que está apagada acá, o la que queda tapada por una regla propia de la sucursal.
+   */
+  promoApagadaAca?: boolean;
+  promoDeCuentaTexto?: string | null;
 }
 
 export interface PagedBusinessAccountProductsResponse {

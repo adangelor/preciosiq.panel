@@ -230,9 +230,34 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // BP-40 (10-oct-2026) -- la promo por ámbito. Con una promo de TODA la cuenta, "Sin promo" la apaga
+  // solo en la sucursal del formulario (las demás la siguen teniendo); para apagarla en todas hay que
+  // tildarlo. Y una sucursal que la tiene apagada puede volver a usarla.
+  // ─────────────────────────────────────────────────────────────
+  /** Esta sucursal tiene apagada la promo de toda la cuenta. */
+  protected readonly promoApagadaAca = signal(false);
+  /** La promo de toda la cuenta que está apagada acá, o tapada por una regla propia de la sucursal. */
+  protected readonly promoDeCuentaTexto = signal<string | null>(null);
+  private usarLaDeCuentaPedido = false;
+
+  /** Hay una promo de toda la cuenta en juego para este producto (vigente acá, tapada o apagada). */
+  protected hayPromoDeCuenta(): boolean {
+    return this.loadedRule()?.branchId === null || !!this.promoDeCuentaTexto();
+  }
+
+  /** "Volver a usar la promo de la cuenta": saca lo propio de esta sucursal y guarda. */
+  protected usarLaDeCuenta(): void {
+    this.usarLaDeCuentaPedido = true;
+    this.submit();
+    this.usarLaDeCuentaPedido = false;
+  }
+
   private applyOwnProduct(item: BusinessAccountProductItem | null): void {
     this.loadedRuleOrigin.set(item ? 'propio' : null);
     this.loadedRule.set(item?.promoRule ?? null);
+    this.promoApagadaAca.set(!!item?.promoApagadaAca);
+    this.promoDeCuentaTexto.set(item?.promoDeCuentaTexto ?? null);
     if (item) {
       const v = this.form.getRawValue();
       this.form.patchValue(
@@ -295,6 +320,10 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
       case 'precio_unitario':
       case 'porcentaje':
         if (min == null) c.min.setValue(3);
+        break;
+      case '':
+        // BP-40 -- "Sin promo" arranca en "solo en esta sucursal": apagarla en todas hay que tildarlo.
+        c.todasLasSucursales.setValue(false);
         break;
     }
     this.recomputePromo();
@@ -407,7 +436,10 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     };
 
     // BP-38 -- promoRule solo si la sección se tocó: ausente = el servidor no toca la regla.
-    if (this.form.controls.promo.dirty) {
+    if (this.usarLaDeCuentaPedido) {
+      // BP-40 -- volver a la promo de toda la cuenta: no viaja promoRule, solo el pedido.
+      request.promoRuleUsarLaDeCuenta = true;
+    } else if (this.form.controls.promo.dirty) {
       try {
         request.promoRule = this.buildRule();
       } catch (e) {
@@ -415,7 +447,11 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
         this.errorMessage.set((e as Error).message);
         return;
       }
-      request.promoRuleTodasLasSucursales = request.promoRule ? value.promo.todasLasSucursales : false;
+      // BP-40 -- con "Sin promo" (promoRule null) el tilde decide: solo esta sucursal o todas. Solo
+      // tiene sentido si hay una promo de cuenta en juego.
+      request.promoRuleTodasLasSucursales = request.promoRule
+        ? value.promo.todasLasSucursales
+        : this.hayPromoDeCuenta() && value.promo.todasLasSucursales;
     }
 
     this.submitting.set(true);
@@ -504,6 +540,8 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     this.lastOwnLookup = '';
     this.loadedRule.set(null);
     this.loadedRuleOrigin.set(null);
+    this.promoApagadaAca.set(false);
+    this.promoDeCuentaTexto.set(null);
     this.showPromo2.set(false);
     this.patchRule(null);
 

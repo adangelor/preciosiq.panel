@@ -108,8 +108,29 @@
       @if (loadedRule(); as r) {
         <p class="hint promo__loaded">
           Promo vigente: <strong>{{ r.texto }}</strong>
-          @if (r.branchId === null) { <span class="tag">todas las sucursales</span> }
+          @if (r.branchId === null) {
+            <span class="tag">todas las sucursales</span>
+          } @else {
+            <span class="tag">solo esta sucursal</span>
+          }
           @if (r.leyenda) { · se publica como “{{ r.leyenda }}” }
+        </p>
+        <!-- BP-40 (10-oct-2026) -- la propia de la sucursal tapa a la de toda la cuenta. -->
+        @if (r.branchId !== null && promoDeCuentaTexto(); as deCuenta) {
+          <p class="hint promo__loaded">
+            Las demás sucursales tienen la promo de toda la cuenta: <strong>{{ deCuenta }}</strong>.
+            <button type="button" class="promo__link" [disabled]="submitting()" (click)="usarLaDeCuenta()">
+              Usar esa también acá
+            </button>
+          </p>
+        }
+      } @else if (promoApagadaAca()) {
+        <!-- BP-40 -- esta sucursal apagó la promo de la cuenta. -->
+        <p class="hint promo__loaded">
+          En esta sucursal está <strong>apagada</strong> la promo de toda la cuenta: <strong>{{ promoDeCuentaTexto() }}</strong>.
+          <button type="button" class="promo__link" [disabled]="submitting()" (click)="usarLaDeCuenta()">
+            Volver a usarla acá
+          </button>
         </p>
       }
       <label>
@@ -122,6 +143,16 @@
           <option value="enesima_porcentaje" [disabled]="pesable">N-ésima con descuento (“2da al 50 %”){{ pesable ? ' — no aplica por ' + form.controls.presentationUnit.value : '' }}</option>
         </select>
       </label>
+      <!-- BP-40 (10-oct-2026) -- "Sin promo" con una promo de toda la cuenta: ¿solo acá o en todas? -->
+      @if (!promoTipo && loadedRule()?.branchId === null && form.controls.promo.dirty) {
+        <label class="promo__check">
+          <input type="checkbox" formControlName="todasLasSucursales" />
+          Quitarla en todas las sucursales
+        </label>
+        <p class="hint">
+          Sin tildar, la promo se apaga <strong>solo en esta sucursal</strong> y las demás la siguen teniendo.
+        </p>
+      }
       @if (pesable) {
         <p class="hint">
           Un producto que se vende por {{ form.controls.presentationUnit.value }} no puede tener 3x2 ni “2da al 50 %”: la
@@ -248,7 +279,18 @@
                 <td>
                   @if (item.promoRule) {
                     <span>{{ item.promoRuleTexto }}</span>
-                    @if (item.promoRule.branchId === null) { <span class="tag">todas las sucursales</span> }
+                    <!-- BP-40 (10-oct-2026) -- cada promo con su ámbito. -->
+                    @if (item.promoRule.branchId === null) {
+                      <span class="tag">todas las sucursales</span>
+                    } @else {
+                      <span class="tag">solo esta sucursal</span>
+                      @if (item.promoDeCuentaTexto) {
+                        <br /><span class="muted">tapa la de toda la cuenta: {{ item.promoDeCuentaTexto }}</span>
+                      }
+                    }
+                  } @else if (item.promoApagadaAca) {
+                    <span class="muted">Apagada acá</span>
+                    <br /><span class="muted">la cuenta tiene: {{ item.promoDeCuentaTexto }}</span>
                   } @else if (item.promo1UnitPrice) {
                     <span class="muted">${{ item.promo1UnitPrice }} — sin regla: la caja no la cobra</span>
                   } @else {

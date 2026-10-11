@@ -572,7 +572,9 @@ export class CsvImportComponent implements OnInit {
               leyenda: rule?.leyenda ?? null,
             }
           : null;
-      request.promoRuleTodasLasSucursales = rule ? rule.branchId === null : false;
+      // BP-40 (10-oct-2026) -- corregir el precio de una promo de cuenta la sigue guardando como de
+      // cuenta; SACARLA desde acá la apaga solo en esta sucursal (para todas, desde Cargar precio).
+      request.promoRuleTodasLasSucursales = request.promoRule && rule ? rule.branchId === null : false;
     }
 
     this.editSaving.set(true);
