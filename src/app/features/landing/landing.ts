@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LeadService } from '../../core/lead';
+import { AgendaOmnivoxComponent } from './agenda-omnivox';
 
 // Landing publica de PreciosIQ -- misma pieza visual que antes vivia como vista Razor
 // en Buscaprecios.web (Views/PreciosIq/Index.cshtml). Ahora es la ruta raiz del propio
@@ -11,7 +12,7 @@ import { LeadService } from '../../core/lead';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AgendaOmnivoxComponent],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
@@ -22,6 +23,12 @@ export class LandingComponent {
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+
+  // 11-oct-2026 -- el modal de demo muestra el calendario de Omnivox (ver agenda-omnivox.ts).
+  // agendaPedida: alguien toco un boton de demo; recien ahi se crea el calendario (y pega al API).
+  // agendaCaida: el bundle de Omnivox no cargo; el modal vuelve al formulario de contacto de abajo.
+  protected readonly agendaPedida = signal(false);
+  protected readonly agendaCaida = signal(false);
 
   protected readonly demoForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],

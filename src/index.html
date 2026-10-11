@@ -142,5 +142,9 @@
       async
       defer
     ></script>
+    <!-- Omnivox Agenda (11-oct-2026) -- calendario de turnos del modal "Agendar demo" de la landing.
+       SIN data-tenant a proposito: asi el bundle no se monta solo al cargar y se limita a dejar el
+       global window.OmnivoxAgenda, que features/landing/agenda-omnivox.ts monta cuando su div existe. -->
+    <script src="https://omnivox.chat/js/omnivox.agenda.js" defer></script>
   </body>
 </html>

@@ -17,10 +17,10 @@
         <li class="nav-item"><a class="nav-link me-lg-3" href="#planes">Planes</a></li>
         <li class="nav-item"><a class="nav-link me-lg-3" routerLink="/login">Ingresar / Crear cuenta</a></li>
       </ul>
-      <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+      <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">
         <span class="d-flex align-items-center">
-          <i class="bi-chat-text-fill me-2"></i>
-          <span class="small">Solicitar demo</span>
+          <i class="bi-calendar-check me-2"></i>
+          <span class="small">Agendar demo</span>
         </span>
       </button>
     </div>
@@ -146,7 +146,7 @@
         <br />
         ¿Vos sabés cuánto cobra ella?
       </h3>
-      <button class="btn btn-outline-light py-3 px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#feedbackModal">Quiero una demo</button>
+      <button class="btn btn-outline-light py-3 px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">Quiero una demo</button>
     </div>
   </div>
 </section>
@@ -258,7 +258,7 @@
       Cambiás o cancelás cuando quieras.
     </p>
     <div class="text-center mt-2">
-      <button class="btn btn-light rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#feedbackModal">Hablemos de tu caso</button>
+      <button class="btn btn-light rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">Hablemos de tu caso</button>
     </div>
   </div>
 </section>
@@ -273,58 +273,69 @@
     </div>
   </div>
 </footer>
-<!-- Feedback / demo request Modal-->
+<!-- Modal de demo. Desde el 11-oct-2026 abre el CALENDARIO de turnos de Omnivox (tenant "preciosiq",
+     servicio "Demo de PreciosIQ") en lugar del formulario de contacto: el visitante elige dia y hora y
+     el turno queda en la misma agenda que el bot y el panel de Omnivox. El calendario se crea recien
+     con el primer click en cualquiera de los tres botones (agendaPedida), asi la landing no pega al API
+     de Omnivox en cada visita. El formulario viejo (LeadService -> /api/public/leads) queda SOLO como
+     respaldo si el bundle de Omnivox no carga (agendaCaida, ver agenda-omnivox.ts). modal-lg porque la
+     semana del calendario son 7 columnas. -->
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title font-alt text-white" id="feedbackModalLabel">Solicitá una demo de PreciosIQ</h5>
+        <h5 class="modal-title font-alt text-white" id="feedbackModalLabel">Agendá una demo de PreciosIQ</h5>
         <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body border-0 p-4">
-        @if (submitted()) {
-          <div class="text-center mb-3">
-            <div class="fw-bolder">¡Gracias! Te vamos a contactar a la brevedad.</div>
-          </div>
-        } @else {
-          <form [formGroup]="demoForm" (ngSubmit)="submitDemo()">
-            <div class="form-floating mb-3">
-              <input class="form-control" id="name" type="text" formControlName="name" placeholder="Ingresá tu nombre..." />
-              <label for="name">Nombre y apellido</label>
-              @if (demoForm.controls.name.touched && demoForm.controls.name.invalid) {
-                <div class="invalid-feedback d-block">El nombre es obligatorio.</div>
-              }
+      <div class="modal-body border-0 p-3 p-md-4">
+        @if (agendaCaida()) {
+          <p class="text-muted small mb-3">No pudimos cargar la agenda. Dejanos tus datos y te contactamos para coordinar la demo.</p>
+          @if (submitted()) {
+            <div class="text-center mb-3">
+              <div class="fw-bolder">¡Gracias! Te vamos a contactar a la brevedad.</div>
             </div>
-            <div class="form-floating mb-3">
-              <input class="form-control" id="businessName" type="text" formControlName="businessName" placeholder="Nombre de tu comercio o cadena..." />
-              <label for="businessName">Comercio / cadena</label>
-            </div>
-            <div class="form-floating mb-3">
-              <input class="form-control" id="email" type="email" formControlName="email" placeholder="nombre@ejemplo.com" />
-              <label for="email">Correo electrónico</label>
-              @if (demoForm.controls.email.touched && demoForm.controls.email.invalid) {
-                <div class="invalid-feedback d-block">Ingresá un correo válido.</div>
-              }
-            </div>
-            <div class="form-floating mb-3">
-              <input class="form-control" id="phone" type="tel" formControlName="phone" placeholder="(011) 1234-5678" />
-              <label for="phone">Teléfono</label>
-            </div>
-            <div class="form-floating mb-3">
-              <textarea class="form-control" id="message" formControlName="message" placeholder="Contanos sobre tu negocio..." style="height: 8rem"></textarea>
-              <label for="message">¿Qué querés lograr con PreciosIQ?</label>
-            </div>
+          } @else {
+            <form [formGroup]="demoForm" (ngSubmit)="submitDemo()">
+              <div class="form-floating mb-3">
+                <input class="form-control" id="name" type="text" formControlName="name" placeholder="Ingresá tu nombre..." />
+                <label for="name">Nombre y apellido</label>
+                @if (demoForm.controls.name.touched && demoForm.controls.name.invalid) {
+                  <div class="invalid-feedback d-block">El nombre es obligatorio.</div>
+                }
+              </div>
+              <div class="form-floating mb-3">
+                <input class="form-control" id="businessName" type="text" formControlName="businessName" placeholder="Nombre de tu comercio o cadena..." />
+                <label for="businessName">Comercio / cadena</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input class="form-control" id="email" type="email" formControlName="email" placeholder="nombre@ejemplo.com" />
+                <label for="email">Correo electrónico</label>
+                @if (demoForm.controls.email.touched && demoForm.controls.email.invalid) {
+                  <div class="invalid-feedback d-block">Ingresá un correo válido.</div>
+                }
+              </div>
+              <div class="form-floating mb-3">
+                <input class="form-control" id="phone" type="tel" formControlName="phone" placeholder="(011) 1234-5678" />
+                <label for="phone">Teléfono</label>
+              </div>
+              <div class="form-floating mb-3">
+                <textarea class="form-control" id="message" formControlName="message" placeholder="Contanos sobre tu negocio..." style="height: 8rem"></textarea>
+                <label for="message">¿Qué querés lograr con PreciosIQ?</label>
+              </div>
 
-            @if (errorMessage()) {
-              <p class="text-danger small">{{ errorMessage() }}</p>
-            }
+              @if (errorMessage()) {
+                <p class="text-danger small">{{ errorMessage() }}</p>
+              }
 
-            <div class="d-grid">
-              <button class="btn btn-primary rounded-pill btn-lg" type="submit" [disabled]="submitting()">
-                {{ submitting() ? 'Enviando…' : 'Enviar' }}
-              </button>
-            </div>
-          </form>
+              <div class="d-grid">
+                <button class="btn btn-primary rounded-pill btn-lg" type="submit" [disabled]="submitting()">
+                  {{ submitting() ? 'Enviando…' : 'Enviar' }}
+                </button>
+              </div>
+            </form>
+          }
+        } @else if (agendaPedida()) {
+          <app-agenda-omnivox (fallo)="agendaCaida.set(true)" />
         }
       </div>
     </div>
