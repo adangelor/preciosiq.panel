@@ -153,3 +153,144 @@
   width: 100%;
   height: auto;
 }
+
+// 11-oct-2026 (BP-96) -- CLICK EN LA CAPTURA DEL HERO = SE VE EN GRANDE.
+//
+// La imagen del marco va adentro de un <button> (asi tambien se abre con Tab + Enter) que dispara el
+// modal #heroZoomModal de landing.html. El cartelito "Ampliar" avisa que se puede: en escritorio aparece
+// al pasar el mouse o al enfocar; en pantallas tactiles no hay hover, asi que queda siempre a la vista.
+.browser-mockup__zoom {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    outline: 3px solid #2937f0;
+    outline-offset: -3px;
+  }
+}
+
+.browser-mockup__hint {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 10rem;
+  background: rgba(33, 37, 41, 0.82);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(0.25rem);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+
+  @media (hover: none) {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.browser-mockup__zoom:hover .browser-mockup__hint,
+.browser-mockup__zoom:focus-visible .browser-mockup__hint {
+  opacity: 1;
+  transform: none;
+}
+
+// El modal. Fondo mas oscuro que el de los otros modales (Bootstrap lo lee de --bs-backdrop-opacity,
+// pero el backdrop cuelga de <body>, fuera del componente: no se puede tocar desde aca), asi que el
+// oscurecido extra lo pone el propio .modal, que si es de este template.
+.hero-zoom {
+  background: rgba(10, 12, 24, 0.55);
+}
+
+.hero-zoom .hero-zoom__dialog {
+  // La captura mide 1600x1000: nunca mas ancha que eso (se pixelaria) ni que la ventana.
+  max-width: min(96vw, 1600px);
+  margin: 0.5rem auto;
+}
+
+// El contenido se ajusta al ancho de la imagen (no al del dialogo): asi lo que queda a los costados es
+// el fondo del modal y un click ahi cierra, en vez de caer en una franja muerta.
+.hero-zoom__content {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 0;
+  background: transparent;
+}
+
+.hero-zoom__scroll {
+  max-width: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+}
+
+.hero-zoom__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  // Deja lugar para el margen del dialogo: la imagen entera siempre entra en la ventana.
+  max-height: calc(100vh - 2rem);
+  cursor: zoom-out;
+}
+
+.hero-zoom__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(33, 37, 41, 0.82);
+  color: #ffffff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: #212529;
+  }
+  &:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
+// Telefono parado: la captura de un panel de 1440 px apretada en 375 no se lee. Ahi ocupa el alto de
+// la pantalla y se recorre de costado con el dedo (el scroll queda adentro de .hero-zoom__scroll).
+@media (max-width: 767.98px) {
+  .hero-zoom__scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .hero-zoom__img {
+    max-width: none;
+    max-height: none;
+    height: min(78vh, 1000px);
+  }
+}

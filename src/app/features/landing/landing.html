@@ -68,7 +68,10 @@
               <span></span><span></span><span></span>
               <div class="browser-mockup__url">preciosiq.com/dashboard</div>
             </div>
-            <img class="browser-mockup__screen" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" />
+            <button class="browser-mockup__zoom" type="button" data-bs-toggle="modal" data-bs-target="#heroZoomModal" aria-label="Ver la captura del panel en grande">
+              <img class="browser-mockup__screen" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" />
+              <span class="browser-mockup__hint" aria-hidden="true"><i class="bi-arrows-fullscreen"></i> Ampliar</span>
+            </button>
           </figure>
         </div>
       </div>
@@ -343,6 +346,24 @@
         } @else if (agendaPedida()) {
           <app-agenda-omnivox (fallo)="agendaCaida.set(true)" />
         }
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 11-oct-2026 (BP-96) -- la captura del hero EN GRANDE. Se abre con un click sobre la imagen del
+     masthead (el <button class="browser-mockup__zoom">) y se cierra con otro click en la imagen, con la
+     X, con Esc o tocando afuera: es un modal de Bootstrap como los demas, asi que el foco, el Esc y el
+     fondo los maneja Bootstrap. En escritorio la imagen entra entera en la ventana; en el telefono, donde
+     entera seria ilegible, ocupa el alto y se recorre de costado con el dedo. Estilos: .hero-zoom en
+     landing.scss. Usa el mismo hero-panel.jpg, no hay una segunda imagen que mantener. -->
+<div class="modal fade hero-zoom" id="heroZoomModal" tabindex="-1" aria-label="Captura del panel en grande" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered hero-zoom__dialog">
+    <div class="modal-content hero-zoom__content">
+      <button class="hero-zoom__close" type="button" data-bs-dismiss="modal" aria-label="Cerrar">
+        <i class="bi-x" aria-hidden="true"></i>
+      </button>
+      <div class="hero-zoom__scroll">
+        <img class="hero-zoom__img" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" data-bs-dismiss="modal" />
       </div>
     </div>
   </div>
