@@ -1,17 +1,17 @@
-// BP-38 (16-sep-2026) -- copia de caja.app/src/app/services/promo-calculator.spec.ts: los
-// mismos diez casos que la caja y que PromoCalculator.cs.
-import { calcular, lineTotal, texto, textoCondicion } from './promo-calculator';
-import { PromoRule } from './business-price.models';
+// ============================================================================================
+// TEST DE LA CALCULADORA DE PROMOS -- COPIA GENERADA, NO EDITAR ACÁ.
+// El original: Buscaprecios.web/shared-ts/promo-calculator.spec.ts (ver promo-calculator.ts).
+// Corre igual en el `ng test` de la caja, del panel de PreciosIQ y de misuper.app.
+// ============================================================================================
+import { PromoRule, calcular, lineTotal, texto, textoCondicion, vistaPrevia } from './promo-calculator';
 
 // Los diez casos de PROMPT_Caja_promos_por_cantidad_15sep.md §2.1. El harness de C#
 // (Caja_promos_estado_16sep.md) corre exactamente los mismos contra PromoCalculator.cs.
 const HOY = '2026-09-16';
 const AYER = '2026-09-15';
 
-function regla(r: Partial<PromoRule> & { tipo: PromoRule['tipo']; minQty: number }): PromoRule {
+function regla(r: Partial<PromoRule> & { tipo: string; minQty: number }): PromoRule {
   return {
-    id: null,
-    branchId: null,
     maxQty: null,
     precioPromo: null,
     porcentaje: null,
@@ -65,5 +65,14 @@ describe('promo-calculator (los diez casos del prompt, iguales a PromoCalculator
     expect(texto(regla({ tipo: 'enesima_porcentaje', minQty: 2, cadaN: 2, porcentaje: 50 }))).toBe('2da al 50 %');
     expect(textoCondicion(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 2100 }))).toBe('Llevando 3: $2.100 c/u');
     expect(textoCondicion(regla({ tipo: 'porcentaje', minQty: 3, porcentaje: 15 }))).toBe('Llevando 3: 15 % off');
+  });
+
+  it('vista previa de la pantalla Producto', () => {
+    expect(vistaPrevia(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 2100 }), 2500, HOY))
+      .toBe('Llevando 3 de $2.500: $6.300 (ahorra $1.200)');
+    // La vista previa ignora la vigencia (muestra cómo va a quedar) y da null si no abarata nada.
+    expect(vistaPrevia(regla({ tipo: 'porcentaje', minQty: 2, porcentaje: 10, validTo: AYER }), 1000, HOY))
+      .toBe('Llevando 2 de $1.000: $1.800 (ahorra $200)');
+    expect(vistaPrevia(regla({ tipo: 'precio_unitario', minQty: 1, precioPromo: 3000 }), 2500, HOY)).toBeNull();
   });
 });

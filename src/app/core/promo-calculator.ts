@@ -1,15 +1,39 @@
-// BP-38 (16-sep-2026) -- Copia de la de la caja; las dos tienen que dar lo mismo que
-// PromoCalculator.cs. Si cambiás una, cambiás las tres.
-// (caja.app/src/app/services/promo-calculator.ts, sin cambios de lógica: solo el import de
-// PromoRule. Un paquete compartido queda en el backlog.)
-import { PromoRule } from './business-price.models';
+// ============================================================================================
+// CALCULADORA DE PROMOS -- COPIA GENERADA, NO EDITAR ACÁ.
+//
+// El original vive en el repo del backend: Buscaprecios.web/shared-ts/promo-calculator.ts, al lado de
+// Services/PromoCalculator.cs, que tiene que dar EXACTAMENTE lo mismo (si no, el ticket entra al
+// servidor como 'guardado_con_diferencia', y eso es un bug, no una tolerancia).
+//
+// La usan la caja (caja.app/src/app/services), el panel de PreciosIQ (preciosiq.panel/src/app/core)
+// y misuper.app (misuper.app/src/app/core). BP-41 (10-oct-2026): antes eran tres copias mantenidas a
+// mano. Para cambiarla: se edita el original y se corre
+//     pwsh Buscaprecios.web/shared-ts/Sync-PromoCalculator.ps1          (copia a los tres repos)
+//     pwsh Buscaprecios.web/shared-ts/Sync-PromoCalculator.ps1 -Check   (falla si alguna difiere)
+// El test (promo-calculator.spec.ts) viaja igual y corre en el `ng test` de cada uno.
+//
+// No importa nada de ningún proyecto: declara su propia PromoRule con lo que necesita. Los modelos de
+// cada app (que tienen además id, sucursal, leyenda...) son compatibles y se le pasan tal cual.
+// ============================================================================================
+
+/** La regla de promo, con los mismos campos que usan la caja y el panel. */
+export interface PromoRule {
+  tipo: string;
+  minQty: number;
+  maxQty: number | null;
+  precioPromo: number | null;
+  porcentaje: number | null;
+  grupoN: number | null;
+  pagaM: number | null;
+  cadaN: number | null;
+  validFrom: string | null;
+  validTo: string | null;
+  activa?: boolean;
+}
 
 /**
  * Caja v1.1 (16-sep-2026) -- la MISMA funcion que
- * Buscaprecios.web/Services/PromoCalculator.cs, linea por linea. Si los dos calculos no
- * dan lo mismo, el ticket entra al servidor como 'guardado_con_diferencia' y eso es un
- * bug, no una tolerancia. Los diez casos del prompt estan en promo-calculator.spec.ts y
- * en el harness de C# (ver Caja_promos_estado_16sep.md).
+ * Buscaprecios.web/Services/PromoCalculator.cs, linea por linea.
  *
  * Pura: sin base, sin reloj. `hoy` entra como 'YYYY-MM-DD' (fecha del dispositivo).
  */
