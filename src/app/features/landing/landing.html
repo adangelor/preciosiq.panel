@@ -169,7 +169,11 @@
 
      Precios: Billing:Plans de appsettings.json (mensual y anual). Anual = 10 meses.
      Features por tarjeta: PlanLimits.Plans. Si cambia cualquiera de los dos, esta
-     sección hay que actualizarla a mano -- hoy está hardcodeada. -->
+     sección hay que actualizarla a mano -- hoy está hardcodeada.
+
+     BP-85 (11-oct-2026): PlanLimits ya tiene la matriz de la caja y de la tienda. Acá se
+     muestra solo lo que existe hoy (la tienda en misuper.app, gratis en todos); la caja, la
+     factura, el subdominio y el dominio propio entran a las tarjetas cuando se publiquen. -->
 <section class="bg-gradient-primary-to-secondary" id="planes">
   <div class="container px-5">
     <h2 class="text-center text-white font-alt mb-3">El dato entra gratis. El análisis se paga.</h2>
@@ -191,6 +195,7 @@
             <li class="mb-2">✓ Carga libre de catálogo por CSV</li>
             <li class="mb-2">✓ Comparación contra las cadenas de tu zona</li>
             <li class="mb-2">✓ Sucursal por sucursal</li>
+            <li class="mb-2">✓ Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
           </ul>
           <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezá gratis</a>
         </div>

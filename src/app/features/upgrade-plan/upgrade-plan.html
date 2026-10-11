@@ -108,6 +108,7 @@
             <ul>
               <li>{{ plan.maxProducts === null ? 'Productos ilimitados' : plan.maxProducts + ' productos' }}</li>
               <li [class.feature--off]="!plan.hasCsvBulkImport">Carga masiva por CSV</li>
+              <li>Tienda online en misuper.app</li>
               <li [class.feature--off]="!plan.hasPriceHistory">Historial de precios</li>
               <li [class.feature--off]="!plan.hasFullDashboard">Dashboard completo de benchmarking</li>
               <li [class.feature--off]="!plan.hasAdvisorReport">Informe del Asesor de Precios</li>

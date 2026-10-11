@@ -22,7 +22,7 @@ Comercios minoristas y cadenas de Argentina que fijan precios y hoy "mandan a al
 
 Cinco planes. La carga de datos es libre en todos (catálogo completo por CSV, sin límite de productos ni de sucursales); lo que crece al subir de plan es el nivel de análisis. Cada plan incluye todo lo del anterior.
 
-- Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV y comparación contra las cadenas de tu zona, sucursal por sucursal.
+- Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV, comparación contra las cadenas de tu zona, sucursal por sucursal, y tu tienda online en misuper.app (pedidos por WhatsApp, cobro directo con tu alias, CVU o QR, cartel con QR para la vidriera).
 - Inicial ($15.000/mes o $150.000/año) — tu evolución: suma historial de precios.
 - Pyme ($35.000/mes o $350.000/año, el recomendado) — tu competitividad: suma dashboard completo e informe del Asesor de Precios.
 - Avanzado ($100.000/mes o $1.000.000/año) — tu rentabilidad: suma análisis de margen por producto (requiere cargar tus costos).
