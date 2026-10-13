@@ -1,0 +1,148 @@
+// BP-78 (13-oct-2026) -- pantalla "Productos testigo". Tabla ancha, como Mapeos: se sale del ancho
+// angosto de los formularios. Botones, pills, tiles y tabla salen del tema compartido.
+.testigos {
+  max-width: 1180px;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.25rem;
+  max-width: 52rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.testigos__filtros {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+  }
+}
+
+.testigos__filtros-nota {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.testigos__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.testigos__valor--pelear {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.testigos__valor--bien {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.testigos__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.testigos__buscar {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 22rem;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.testigos__panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin-bottom: 0.4rem;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    max-width: 52rem;
+  }
+}
+
+.testigos__panel-acciones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+// La sugerencia son hasta 150 filas: con scroll propio para que los botones de arriba no se vayan.
+.testigos__scroll {
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+.testigos__col-check {
+  width: 2.5rem;
+}
+
+.testigos__ean {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.testigos__lista-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.testigos__sacar {
+  padding: 0.3rem 0.7rem;
+}
+
+.testigos__nota {
+  margin-top: 0.9rem;
+  font-size: 0.8125rem;
+  max-width: 60rem;
+}
+
+// La tabla del tema usa 1.25rem de padding lateral: con ocho columnas, en pantallas chicas no entra.
+table.data th,
+table.data td {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

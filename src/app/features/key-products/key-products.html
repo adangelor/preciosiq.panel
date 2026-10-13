@@ -1,0 +1,306 @@
+<div class="testigos card--page">
+  <h1>Productos testigo</h1>
+  <p class="subtitle">
+    Son los pocos productos por los que tu cliente decide si sos caro: la leche, el aceite, la gaseosa.
+    Marcalos acá y el Asesor de Precios los trata distinto: en los testigos te compara contra la cadena
+    nacional más barata de tu radio, y en el resto del surtido deja de sugerirte bajar salvo que la
+    diferencia sea grande. Ahí está tu margen.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="muted">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="alert alert--danger">{{ contextErrorMessage() }}</p>
+  } @else if (planMessage()) {
+    <!-- El plan no trae el Asesor: los testigos solo sirven para su informe. -->
+    <div class="alert alert--info">
+      <span>
+        Los productos testigo son parte del Asesor de Precios, que viene desde el plan Pyme.
+        <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <p class="alert alert--danger">{{ errorMessage() }}</p>
+    }
+    @if (aviso()) {
+      <p class="alert alert--success">{{ aviso() }}</p>
+    }
+    @if (data() && !data()!.tablaLista) {
+      <p class="alert alert--warning">Los productos testigo todavía no están habilitados en este servidor.</p>
+    }
+
+    <!-- ============================================================ dónde se mide -->
+    <div class="testigos__filtros">
+      @if (branches().length > 1) {
+        <label>
+          Sucursal
+          <select (change)="onSucursal($event)">
+            @for (b of branches(); track b.branchId) {
+              <option [value]="b.branchId" [selected]="b.branchId === branchId()">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+            }
+          </select>
+        </label>
+      }
+      <label>
+        Radio
+        <select (change)="onRadio($event)">
+          @for (r of radios(); track r) {
+            <option [value]="r" [selected]="r === radio()">{{ num(r) }} m</option>
+          }
+        </select>
+      </label>
+      <p class="muted testigos__filtros-nota">
+        La lista es una sola para toda la cuenta. La posición de cada testigo se mide por sucursal, contra
+        las cadenas de ese radio.
+      </p>
+    </div>
+
+    <!-- ============================================================ resumen -->
+    @if (data(); as d) {
+      @if (d.resumen; as r) {
+        <div class="testigos__tiles">
+          <div class="tile">
+            <div>
+              <div class="tile__label">Testigos</div>
+              <div class="tile__value">{{ d.confirmados }}</div>
+              <div class="tile__hint">{{ r.comparables }} se pueden comparar acá</div>
+            </div>
+          </div>
+          <div class="tile">
+            <div>
+              <div class="tile__label">Para pelear</div>
+              <div class="tile__value testigos__valor--pelear">{{ r.aPelearCantidad }}</div>
+              <div class="tile__hint">a más de {{ num(r.metaPct) }}% de la referencia</div>
+            </div>
+          </div>
+          <div class="tile">
+            <div>
+              <div class="tile__label">Bien parados</div>
+              <div class="tile__value testigos__valor--bien">{{ r.enMetaCantidad + r.masBaratosCantidad }}</div>
+              <div class="tile__hint">{{ r.enMetaCantidad }} en meta · {{ r.masBaratosCantidad }} más baratos</div>
+            </div>
+          </div>
+          <div class="tile">
+            <div>
+              <div class="tile__label">Con promo de una cadena</div>
+              <div class="tile__value">{{ r.conPromoCantidad }}</div>
+              <div class="tile__hint">el cliente ve la promo, no la lista</div>
+            </div>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ============================================================ acciones -->
+    <div class="testigos__acciones">
+      <button type="button" class="btn" (click)="sugerir()" [disabled]="cargandoSugerencia() || guardando()">
+        {{ cargandoSugerencia() ? 'Armando la sugerencia…' : 'Sugerirme testigos' }}
+      </button>
+      <form class="testigos__buscar" (submit)="buscar(); $event.preventDefault()">
+        <input
+          type="search"
+          placeholder="Buscar en tu catálogo por nombre, marca o código"
+          aria-label="Buscar un producto de tu catálogo para agregarlo como testigo"
+          [value]="texto()"
+          (input)="onTexto($event)"
+        />
+        <button type="submit" class="btn btn--ghost" [disabled]="buscando() || texto().trim().length < 2">
+          {{ buscando() ? 'Buscando…' : 'Buscar' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- ============================================================ sugerencia -->
+    @if (sugerencia(); as s) {
+      <section class="testigos__panel" aria-label="Sugerencia de productos testigo">
+        <h2>Sugerencia</h2>
+        @if (sugeridosNuevos().length === 0) {
+          <p class="muted">
+            No encontramos más productos para sugerirte: los que cumplen ya están entre tus testigos.
+          </p>
+          <button type="button" class="btn btn--ghost" (click)="cerrarSugerencia()">Cerrar</button>
+        } @else {
+          <p class="muted">
+            @if (s.conVentas) {
+              Son tus {{ sugeridosNuevos().length }} productos más vendidos entre los que están en
+              {{ s.minCadenas }} cadenas o más del país: los que tu cliente puede comparar.
+            } @else {
+              Todavía no cargaste ventas, así que te sugerimos los {{ sugeridosNuevos().length }} productos
+              de tu catálogo que están en más cadenas del país.
+              <a routerLink="/ventas/cargar">Con tus ventas cargadas</a> la sugerencia sale de lo que más vendés.
+            }
+            Destildá los que no quieras y confirmá. Nada se guarda hasta que confirmes.
+          </p>
+          <div class="testigos__panel-acciones">
+            <button type="button" class="btn" (click)="confirmarSugerencia()" [disabled]="guardando() || cantidadMarcados() === 0">
+              {{ guardando() ? 'Guardando…' : 'Agregar los ' + cantidadMarcados() + ' marcados' }}
+            </button>
+            <button type="button" class="btn btn--ghost" (click)="marcarTodos(true)">Marcar todos</button>
+            <button type="button" class="btn btn--ghost" (click)="marcarTodos(false)">Desmarcar todos</button>
+            <button type="button" class="btn btn--ghost" (click)="cerrarSugerencia()">Cancelar</button>
+          </div>
+          <div class="table-wrap testigos__scroll">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th class="testigos__col-check"><span class="visually-hidden">Agregar</span></th>
+                  <th>Producto</th>
+                  <th class="num">Cadenas</th>
+                  @if (s.conVentas) { <th class="num">Unidades / mes</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of sugeridosNuevos(); track p.ean) {
+                  <tr>
+                    <td class="testigos__col-check">
+                      <input
+                        type="checkbox"
+                        [checked]="marcados().has(p.ean)"
+                        (change)="alternar(p.ean)"
+                        [attr.aria-label]="'Agregar ' + (p.descripcion ?? p.ean)"
+                      />
+                    </td>
+                    <td class="strong">
+                      {{ p.descripcion ?? p.ean }}
+                      <span class="muted testigos__ean">{{ p.marca ? p.marca + ' · ' : '' }}{{ p.ean }}</span>
+                    </td>
+                    <td class="num">{{ p.cadenas }}</td>
+                    @if (s.conVentas) {
+                      <td class="num">{{ p.unidadesMensuales !== null ? num(p.unidadesMensuales, 0) : '—' }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============================================================ resultados de la búsqueda -->
+    @if (resultados(); as rs) {
+      <section class="testigos__panel" aria-label="Resultados de la búsqueda">
+        <h2>Resultados</h2>
+        @if (rs.length === 0) {
+          <p class="muted">No encontramos ese producto en tu catálogo. Solo podés marcar como testigo un producto que vendés.</p>
+        } @else {
+          <div class="table-wrap">
+            <table class="data">
+              <tbody>
+                @for (p of rs; track p.ean) {
+                  <tr>
+                    <td class="strong">
+                      {{ p.descripcion ?? p.ean }}
+                      <span class="muted testigos__ean">{{ p.marca ? p.marca + ' · ' : '' }}{{ p.ean }}</span>
+                    </td>
+                    <td class="num">
+                      @if (p.yaEsTestigo) {
+                        <span class="pill pill--success">Ya es testigo</span>
+                      } @else {
+                        <button type="button" class="btn btn--ghost" (click)="agregarUno(p)" [disabled]="guardando()">Agregar</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ============================================================ la lista -->
+    @if (loading()) {
+      <app-loading-bar label="Comparando tus testigos contra las cadenas del radio…" />
+    } @else if (data(); as d) {
+      @if (d.items.length === 0) {
+        <div class="empty">
+          Todavía no marcaste ningún producto testigo. Empezá por <strong>Sugerirme testigos</strong>:
+          te proponemos una lista y vos decidís cuáles quedan.
+        </div>
+      } @else {
+        <div class="testigos__lista-cab">
+          <h2>Tus testigos <span class="muted">({{ d.confirmados }} de {{ d.maximo }})</span></h2>
+          <button type="button" class="btn btn--ghost" (click)="cargar()">Actualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Estado</th>
+                <th class="num">Tu precio</th>
+                <th class="num">Referencia</th>
+                <th class="num">Brecha</th>
+                <th class="num">Meta</th>
+                <th>Promo publicada</th>
+                <th><span class="visually-hidden">Sacar</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of filas(); track item.ean) {
+                <tr>
+                  <td class="strong">
+                    {{ item.descripcion ?? item.ean }}
+                    <span class="muted testigos__ean">{{ item.marca ? item.marca + ' · ' : '' }}{{ item.ean }}</span>
+                  </td>
+                  @if (item.posicion; as p) {
+                    <td><span [class]="estadoClase(p.estado)" [attr.title]="estadoAyuda(p.estado)">{{ estadoLabel(p.estado) }}</span></td>
+                    <td class="num">{{ p.precioPropio !== null ? money(p.precioPropio) : '—' }}</td>
+                    <td class="num">
+                      @if (p.precioReferencia !== null) {
+                        {{ money(p.precioReferencia) }}
+                        <span class="muted testigos__ean">
+                          {{ p.cadenaReferencia }}{{ p.referenciaEsNacional ? '' : ' (no hay nacional)' }}
+                        </span>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td class="num" [class.testigos__valor--pelear]="p.estado === 'a-pelear'" [class.testigos__valor--bien]="p.estado === 'mas-barato'">
+                      {{ p.brechaPct !== null ? signed(p.brechaPct) : '—' }}
+                    </td>
+                    <td class="num">{{ p.estado === 'a-pelear' && p.precioMeta !== null ? money(p.precioMeta) : '—' }}</td>
+                    <td>
+                      @if (p.promoMasBaja !== null) {
+                        {{ money(p.promoMasBaja) }} en {{ p.promoCadena }}
+                        <span class="muted testigos__ean">{{ p.promoTexto }}</span>
+                      } @else {
+                        <span class="muted">—</span>
+                      }
+                    </td>
+                  } @else {
+                    <td colspan="6" class="muted">Elegí una sucursal con ubicación cargada para ver cómo está.</td>
+                  }
+                  <td class="num">
+                    <button
+                      type="button"
+                      class="btn btn--ghost testigos__sacar"
+                      (click)="quitar(item)"
+                      [disabled]="quitando() !== null"
+                      [attr.aria-label]="'Sacar ' + (item.descripcion ?? item.ean) + ' de los testigos'"
+                    >
+                      {{ quitando() === item.ean ? 'Sacando…' : 'Sacar' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="muted testigos__nota">
+          La referencia es el precio de lista de la cadena nacional más barata del radio para cada producto, y la
+          meta es quedar a menos de {{ num(d.metaPct) }}% de ese precio. La promo es la más baja que
+          publica una de esas cadenas. No vemos los descuentos de bancos ni de billeteras. Cuando cambiás la
+          lista, el próximo informe del Asesor se arma de nuevo.
+        </p>
+      }
+    }
+  }
+</div>

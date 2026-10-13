@@ -131,6 +131,12 @@ export const routes: Routes = [
         title: 'PreciosIQ — Dashboard de benchmarking',
       },
       {
+        // BP-78 (13-oct-2026) -- los productos por los que el cliente compara: el Asesor los trata aparte.
+        path: 'testigos',
+        loadComponent: () => import('./features/key-products/key-products').then((m) => m.KeyProductsComponent),
+        title: 'PreciosIQ — Productos testigo',
+      },
+      {
         path: 'plan',
         loadComponent: () => import('./features/upgrade-plan/upgrade-plan').then((m) => m.UpgradePlanComponent),
         title: 'PreciosIQ — Tu plan',

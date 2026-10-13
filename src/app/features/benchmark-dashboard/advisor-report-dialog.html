@@ -95,6 +95,64 @@
       <p class="hint suspect-note">Estos productos quedan fuera del resto del informe: no ensucian tu posición ni los números en pesos.</p>
     }
 
+    <!-- BP-78 (13-oct-2026) -- productos testigo: van antes que el resto del surtido, porque es
+         donde el cliente compara. Sin testigos confirmados, solo el acceso para armarlos. -->
+    @if (r.digest.testigos; as t) {
+      <h3 class="section-title">Productos testigo
+        <span class="hint">
+          — {{ t.confirmados }} marcados · {{ t.aPelearCantidad }} para pelear ·
+          {{ t.enMetaCantidad + t.masBaratosCantidad }} bien parados
+        </span>
+      </h3>
+
+      @if (t.aPelear.length > 0) {
+        <h3 class="table-title">Testigos para pelear
+          <span class="hint">— a más de {{ pct(t.metaPct) }} de la cadena nacional más barata del radio</span>
+        </h3>
+        <table class="cat-table">
+          <thead><tr>
+            <th>Producto</th><th class="num">Tu precio</th><th class="num">Referencia</th>
+            <th class="num">Brecha</th><th class="num">Meta</th><th>Promo publicada</th>
+          </tr></thead>
+          <tbody>
+            @for (p of t.aPelear; track p.ean) {
+              <tr>
+                <td>{{ p.descripcion ?? p.ean }}</td>
+                <td class="num">{{ p.precioPropio !== null ? money(p.precioPropio!) : '—' }}</td>
+                <td class="num">
+                  {{ p.precioReferencia !== null ? money(p.precioReferencia!) : '—' }}
+                  <span class="hint block">{{ p.cadenaReferencia }}{{ p.referenciaEsNacional ? '' : ' (no hay nacional)' }}</span>
+                </td>
+                <td class="num delta--above">{{ p.brechaPct !== null ? signed(p.brechaPct!) : '—' }}</td>
+                <td class="num">{{ p.precioMeta !== null ? money(p.precioMeta!) : '—' }}</td>
+                <td class="hint">
+                  @if (p.promoMasBaja !== null) {
+                    {{ money(p.promoMasBaja!) }} en {{ p.promoCadena }}
+                    <span class="hint block">{{ p.promoTexto }}</span>
+                  } @else {
+                    —
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (t.aPelearCantidad > t.aPelear.length) {
+          <p class="hint suspect-note">Son los {{ t.aPelear.length }} de mayor brecha; hay {{ t.aPelearCantidad }} en total.</p>
+        }
+      }
+      <p class="hint suspect-note no-print">
+        <button type="button" class="link-button" (click)="irATestigos()">Ver y editar todos tus productos testigo →</button>
+      </p>
+      <h3 class="section-title">Resto del surtido
+        <span class="hint">— acá no te sugerimos bajar salvo que pases el {{ pct(t.umbralBajarRestoPct) }} sobre {{ zona() }}</span>
+      </h3>
+    } @else {
+      <p class="hint suspect-note no-print">
+        <button type="button" class="link-button" (click)="irATestigos()">Marcar mis productos testigo →</button>
+      </p>
+    }
+
     @if (r.digest.competitividad; as c) {
       @if (c.masCarosQueZona.length > 0) {
         <h3 class="table-title">Más caros que {{ zona() }} <span class="hint">— revisar primero</span></h3>

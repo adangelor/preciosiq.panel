@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { AdvisorService } from '../../core/advisor';
 import { AdvisorReportResponse } from '../../core/advisor.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
@@ -46,6 +47,7 @@ export class AdvisorReportDialogComponent implements OnInit {
   protected readonly dialogRef = inject(MatDialogRef<AdvisorReportDialogComponent>);
   protected readonly data = inject<AdvisorReportDialogData>(MAT_DIALOG_DATA);
   private readonly advisorService = inject(AdvisorService);
+  private readonly router = inject(Router);
 
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
@@ -97,6 +99,12 @@ export class AdvisorReportDialogComponent implements OnInit {
 
   protected close(): void {
     this.dialogRef.close();
+  }
+
+  // BP-78 -- la pantalla de testigos esta fuera del dialogo: se cierra y se navega.
+  protected irATestigos(): void {
+    this.dialogRef.close();
+    void this.router.navigate(['/testigos']);
   }
 
   // "Guardar como PDF" es el propio dialogo de impresion del navegador: sin

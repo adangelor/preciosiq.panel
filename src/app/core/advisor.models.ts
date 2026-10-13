@@ -20,6 +20,9 @@ export interface AdvisorMetadata {
   /** "La Anonima" / "Vea y Market" con 1 o 2 cadenas; null = "la zona". */
   referenciaNombrada?: string | null;
   ampliarSumaCompetencia?: boolean;
+  /** BP-78: cuantos productos testigo confirmo la cuenta (0 o ausente en informes viejos). */
+  testigosConfirmados?: number;
+  testigosHuella?: string | null;
 }
 
 export interface AdvisorCompetidor {
@@ -157,6 +160,105 @@ export interface AdvisorDigest {
   teasers: AdvisorTeaser[];
   // Puede venir null si el informe es de cache y se genero antes del 31-ago-2026.
   comparacionesSospechosas: AdvisorComparacionSospechosa[] | null;
+  /** BP-78: null (o ausente) si la cuenta no confirmo ningun testigo. */
+  testigos?: AdvisorTestigos | null;
+}
+
+// ---- BP-78 (13-oct-2026): productos testigo. Espejo de AdvisorTestigos / AdvisorTestigo (AdvisorDtos.cs). ----
+
+export type EstadoTestigo =
+  | 'a-pelear'            // a mas de metaPct de la referencia
+  | 'en-meta'             // entre la referencia y la meta
+  | 'mas-barato'          // por debajo de la referencia
+  | 'sin-precio-propio'   // no tiene precio cargado en esta sucursal
+  | 'sin-referencia'      // ninguna cadena del radio lo publica
+  | 'comparacion-dudosa'; // la diferencia parece de unidad de venta (pack contra unidad)
+
+export interface AdvisorTestigo {
+  ean: string;
+  descripcion: string | null;
+  categoria: string | null;
+  estado: EstadoTestigo;
+  precioPropio: number | null;
+  /** La cadena nacional mas barata del radio para ese producto (o la mas barata a secas si no hay nacional). */
+  cadenaReferencia: string | null;
+  referenciaEsNacional: boolean;
+  /** Precio de LISTA de esa cadena. La brecha se calcula contra este. */
+  precioReferencia: number | null;
+  /** La promo mas baja que publica una cadena del radio para el producto; puede ser otra que la de referencia. */
+  promoMasBaja: number | null;
+  promoCadena: string | null;
+  promoTexto: string | null;
+  brechaPct: number | null;
+  /** Hasta donde bajar para entrar en la meta: referencia + metaPct. */
+  precioMeta: number | null;
+}
+
+export interface AdvisorTestigos {
+  confirmados: number;
+  comparables: number;
+  aPelearCantidad: number;
+  enMetaCantidad: number;
+  masBaratosCantidad: number;
+  sinCompararCantidad: number;
+  sinNacionalCantidad: number;
+  conPromoCantidad: number;
+  metaPct: number;
+  umbralBajarRestoPct: number;
+  /** Los de mayor brecha (lista corta). El detalle completo esta en la pantalla Productos testigo. */
+  aPelear: AdvisorTestigo[];
+}
+
+// ---- Pantalla Productos testigo (/api/business/advisor/key-products) ----
+
+export interface KeyProductItem {
+  ean: string;
+  descripcion: string | null;
+  marca: string | null;
+  origen: 'sugerido' | 'manual';
+  /** Solo si se pidio una sucursal: la posicion es por sucursal y radio. */
+  posicion: AdvisorTestigo | null;
+}
+
+export interface KeyProductsResponse {
+  /** false = el servidor todavia no tiene la tabla de testigos. */
+  tablaLista: boolean;
+  confirmados: number;
+  maximo: number;
+  metaPct: number;
+  umbralBajarRestoPct: number;
+  resumen: AdvisorTestigos | null;
+  items: KeyProductItem[];
+}
+
+export interface KeyProductSuggestion {
+  ean: string;
+  descripcion: string | null;
+  marca: string | null;
+  cadenas: number;
+  unidadesMensuales: number | null;
+  yaEsTestigo: boolean;
+}
+
+export interface KeyProductSuggestionsResponse {
+  /** true = ordenada por lo mas vendido; false = sin ventas cargadas, por cantidad de cadenas. */
+  conVentas: boolean;
+  minCadenas: number;
+  items: KeyProductSuggestion[];
+}
+
+export interface KeyProductSearchItem {
+  ean: string;
+  descripcion: string | null;
+  marca: string | null;
+  yaEsTestigo: boolean;
+}
+
+export interface KeyProductsChangeResponse {
+  agregados: number;
+  noSonPropios: number;
+  fueraDeTope: number;
+  confirmados: number;
 }
 
 export interface AdvisorReportResponse {
