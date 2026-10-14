@@ -32,7 +32,10 @@ import { planGateErrorMessage } from '../../core/plan-gate';
 // doble red.
 export interface AdvisorReportDialogData {
   businessAccountId: number;
-  branchId: string;
+  /** El informe de una sucursal... */
+  branchId?: string;
+  /** ...o, desde BP-77 (14-oct-2026), el de una zona de precio. Uno de los dos. */
+  priceZoneId?: number;
   maxDistanceMeters: number;
 }
 
@@ -61,6 +64,18 @@ export class AdvisorReportDialogComponent implements OnInit {
   /** Para columnas angostas: "Ref. zona" / "Ref. La Anonima". */
   protected readonly refCorta = computed(() => this.report()?.digest?.metadatos?.referenciaNombrada ?? 'zona');
   protected readonly feedbackSent = signal<boolean | null>(null); // true=me sirvio false=no me sirvio
+  /**
+   * BP-77 -- de que es el informe, para la linea de arriba: "Centro · radio 3.000 m", o con zona
+   * "Córdoba Capital · 3 sucursales · radio 3.000 m alrededor de cada una".
+   */
+  protected readonly alcance = computed(() => {
+    const md = this.report()?.digest?.metadatos;
+    if (!md) return '';
+    const radio = `radio ${md.maxDistanceMeters.toLocaleString('es-AR')} m`;
+    if (!md.zona) return `${md.branchName} · ${radio}`;
+    const n = md.zona.sucursales.length;
+    return `${md.zona.nombre} · ${n} ${n === 1 ? 'sucursal' : 'sucursales'} · ${radio} alrededor de cada una`;
+  });
 
   ngOnInit(): void {
     this.load(false);
@@ -71,8 +86,9 @@ export class AdvisorReportDialogComponent implements OnInit {
     this.errorMessage.set(null);
     this.feedbackSent.set(null);
 
+    const de = this.data.priceZoneId != null ? { priceZoneId: this.data.priceZoneId } : { branchId: this.data.branchId ?? '' };
     this.advisorService
-      .generateReport(this.data.businessAccountId, this.data.branchId, this.data.maxDistanceMeters, refresh)
+      .generateReport(this.data.businessAccountId, de, this.data.maxDistanceMeters, refresh)
       .subscribe({
         next: (response) => {
           this.loading.set(false);

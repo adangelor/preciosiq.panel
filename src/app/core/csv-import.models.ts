@@ -36,6 +36,8 @@ export interface CsvMapping {
   // 10-oct-2026 -- "Esta planilla es mi catálogo completo": al terminar la carga, lo publicado que no
   // vino en el archivo pasa a "sin stock" (sale de la app; misuper.app lo muestra sin precio).
   catalogoCompleto?: boolean;
+  // BP-77 (14-oct-2026) -- columna con el nombre de la zona de precio del costo (vacia = toda la cuenta).
+  costZoneColumn?: string | null;
 }
 
 // 17-sep-2026 -- "probar este mapeo con un archivo": no carga nada, solo dice que columnas
@@ -105,6 +107,8 @@ export interface SaveCsvMappingRequest {
   promoPercentColumn: string | null;
   // 10-oct-2026 -- ver CsvMapping.catalogoCompleto.
   catalogoCompleto?: boolean;
+  // BP-77 -- ver CsvMapping.costZoneColumn.
+  costZoneColumn?: string | null;
 }
 
 export interface CsvImportRowError {
@@ -158,6 +162,8 @@ export interface CsvImportResult {
   // promo y descuento % a la vez y gano el precio).
   promosConAviso?: number;
   promosConAvisoDetalle?: CsvImportRowError[] | null;
+  // BP-77 (14-oct-2026) -- filas con costo de una zona que la cuenta no tiene: el precio se cargo, el costo no.
+  costosZonaDesconocida?: CsvImportRowError[] | null;
 }
 
 export interface CsvImportChunkOptions {

@@ -1,0 +1,148 @@
+<div class="zonas card--page">
+  <h1>Zonas de precio</h1>
+  <p class="subtitle">
+    Una zona es un grupo de sucursales que comparten la lista de precios: por ejemplo, las de una misma ciudad.
+    El Asesor de Precios te da un informe por zona: compara contra la competencia de todas sus sucursales
+    juntas y te muestra los productos que tienen precios distintos entre ellas. Una sucursal que no está en
+    ninguna zona sigue con su propio informe.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="muted">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="alert alert--danger">{{ contextErrorMessage() }}</p>
+  } @else if (planMessage()) {
+    <div class="alert alert--info">
+      <span>
+        Las zonas de precio son parte del Asesor de Precios, que viene desde el plan Pyme.
+        <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    @if (loading()) {
+      <app-loading-bar label="Cargando tus zonas…" />
+    }
+    @if (errorMessage()) {
+      <p class="alert alert--danger">{{ errorMessage() }}</p>
+    }
+    @if (aviso()) {
+      <p class="alert alert--success">{{ aviso() }}</p>
+    }
+
+    @if (data(); as d) {
+      @if (!d.tablaLista) {
+        <p class="alert alert--warning">Las zonas de precio todavía no están habilitadas en este servidor.</p>
+      } @else {
+        <!-- ============================================================ formulario -->
+        @if (editando(); as ed) {
+          <section class="zonas__form">
+            <h2>{{ ed.id == null ? 'Zona nueva' : 'Editar zona' }}</h2>
+            <label class="zonas__nombre">
+              Nombre
+              <input type="text" maxlength="80" placeholder="Por ejemplo: Córdoba Capital"
+                     [value]="nombre()" (input)="onNombre($event)" />
+            </label>
+            <p class="muted zonas__ayuda">Elegí las sucursales que comparten la lista de precios.</p>
+            <ul class="zonas__checks">
+              @for (s of d.sucursales; track s.branchId) {
+                <li>
+                  <label>
+                    <input type="checkbox" [checked]="marcadas().has(s.branchId)" (change)="alternar(s.branchId)" />
+                    <span>{{ s.nombre }}</span>
+                    @if (otraZona(s); as otra) {
+                      <span class="pill pill--neutral" title="Al guardar se mueve a esta zona">ahora en {{ otra }}</span>
+                    }
+                    @if (!s.tieneCoordenadas) {
+                      <span class="pill pill--warning" title="Sin ubicación cargada: no suma competencia al informe">sin ubicación</span>
+                    }
+                  </label>
+                </li>
+              }
+            </ul>
+            <div class="zonas__acciones">
+              <button type="button" class="btn" (click)="guardar()" [disabled]="guardando()">
+                {{ guardando() ? 'Guardando…' : 'Guardar zona' }}
+              </button>
+              <button type="button" class="btn btn--ghost" (click)="cancelar()" [disabled]="guardando()">Cancelar</button>
+              <span class="muted">{{ marcadas().size }} {{ marcadas().size === 1 ? 'sucursal' : 'sucursales' }}</span>
+            </div>
+          </section>
+        } @else {
+          <div class="zonas__barra">
+            <button type="button" class="btn" (click)="nueva()"
+                    [disabled]="d.zonas.length >= d.maxZonas || d.sucursales.length === 0">
+              <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva zona
+            </button>
+            @if (d.zonas.length > 0) {
+              <label class="zonas__radio">
+                Radio del informe
+                <select (change)="onRadio($event)">
+                  @for (r of radios; track r) {
+                    <option [value]="r" [selected]="r === radio()">{{ num(r) }} m alrededor de cada sucursal</option>
+                  }
+                </select>
+              </label>
+            }
+          </div>
+        }
+
+        <!-- ============================================================ zonas -->
+        @if (d.zonas.length === 0 && !editando()) {
+          <p class="muted">
+            Todavía no armaste ninguna zona. Si tus sucursales de una misma ciudad tienen la misma lista, juntalas
+            en una zona y vas a recibir un solo informe para todas.
+          </p>
+        }
+        <div class="zonas__lista">
+          @for (z of d.zonas; track z.id) {
+            <article class="zonas__card">
+              <header>
+                <h2>{{ z.nombre }}</h2>
+                <span class="muted">{{ z.sucursales.length }} {{ z.sucursales.length === 1 ? 'sucursal' : 'sucursales' }}</span>
+              </header>
+              <ul class="zonas__chips">
+                @for (s of z.sucursales; track s.branchId) {
+                  <li class="pill pill--neutral">{{ s.nombre }}</li>
+                } @empty {
+                  <li class="muted">Sin sucursales.</li>
+                }
+              </ul>
+              @if (z.costosPropios > 0) {
+                <p class="muted zonas__nota">{{ z.costosPropios }} productos con costo propio de la zona.</p>
+              }
+              <div class="zonas__acciones">
+                <button type="button" class="btn" (click)="informe(z)"
+                        [disabled]="conCoordenadas(z) === 0 || guardando()"
+                        [attr.title]="conCoordenadas(z) === 0 ? 'Ninguna sucursal de la zona tiene ubicación cargada' : null">
+                  <i class="fa-solid fa-robot" aria-hidden="true"></i> Informe del Asesor
+                </button>
+                <button type="button" class="btn btn--ghost" (click)="editar(z)" [disabled]="guardando() || !!editando()">Editar</button>
+                <button type="button" class="btn btn--ghost" (click)="borrar(z)" [disabled]="guardando() || !!editando()">Borrar</button>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (d.zonas.length > 0 && sueltas().length > 0) {
+          <h2 class="zonas__sueltas-titulo">Sucursales sin zona</h2>
+          <p class="muted">Cada una sigue con su propio informe en el tablero.</p>
+          <ul class="zonas__chips">
+            @for (s of sueltas(); track s.branchId) {
+              <li class="pill pill--neutral">{{ s.nombre }}</li>
+            }
+          </ul>
+        }
+
+        <p class="muted zonas__nota">
+          Los costos son de toda la cuenta salvo que cargues costos por zona: en tu mapeo de carga masiva podés
+          indicar la columna "Zona del costo" con el nombre de la zona.
+        </p>
+      }
+    }
+  }
+</div>

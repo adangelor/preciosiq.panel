@@ -23,6 +23,56 @@ export interface AdvisorMetadata {
   /** BP-78: cuantos productos testigo confirmo la cuenta (0 o ausente en informes viejos). */
   testigosConfirmados?: number;
   testigosHuella?: string | null;
+  /** BP-77: solo en el informe de una zona de precio (branchId trae entonces "zona-<id>"). */
+  zona?: AdvisorZona | null;
+  /** BP-77: cuantos productos tienen precios distintos entre las sucursales de la zona (la lista va recortada). */
+  preciosDisparesTotal?: number;
+}
+
+// ---- BP-77 (14-oct-2026): zonas de precio. Espejo de AdvisorZona / AdvisorPrecioDispar (AdvisorDtos.cs). ----
+
+export interface AdvisorZona {
+  id: number;
+  nombre: string;
+  sucursales: { branchId: string; nombre: string }[];
+}
+
+export interface AdvisorPrecioDispar {
+  ean: string;
+  descripcion: string | null;
+  /** El que entro a la comparacion: el mas repetido en la zona (con empate, el menor). */
+  precioUsado: number;
+  diferenciaPct: number;
+  precios: { branchId: string; sucursal: string; precio: number }[];
+}
+
+export interface PriceZoneBranch {
+  branchId: string;
+  nombre: string;
+  tieneCoordenadas: boolean;
+  /** null = suelta (es su propia zona). */
+  zonaId: number | null;
+}
+
+export interface PriceZoneItem {
+  id: number;
+  nombre: string;
+  /** Costos cargados para esta zona: borrar la zona los borra. */
+  costosPropios: number;
+  sucursales: PriceZoneBranch[];
+}
+
+export interface PriceZonesResponse {
+  /** false = falta Deploy_BP77_ZonasDePrecio_14oct.sql en el servidor. */
+  tablaLista: boolean;
+  maxZonas: number;
+  zonas: PriceZoneItem[];
+  sucursales: PriceZoneBranch[];
+}
+
+export interface PriceZoneDeleteResponse {
+  costosBorrados: number;
+  zonas: PriceZonesResponse;
 }
 
 export interface AdvisorCompetidor {
@@ -162,6 +212,8 @@ export interface AdvisorDigest {
   comparacionesSospechosas: AdvisorComparacionSospechosa[] | null;
   /** BP-78: null (o ausente) si la cuenta no confirmo ningun testigo. */
   testigos?: AdvisorTestigos | null;
+  /** BP-77: solo en el informe de una zona; ausente en el de una sucursal. */
+  preciosDispares?: AdvisorPrecioDispar[] | null;
 }
 
 // ---- BP-78 (13-oct-2026): productos testigo. Espejo de AdvisorTestigos / AdvisorTestigo (AdvisorDtos.cs). ----

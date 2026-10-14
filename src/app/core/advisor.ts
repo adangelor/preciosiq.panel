@@ -8,6 +8,8 @@ import {
   KeyProductSuggestionsResponse,
   KeyProductsChangeResponse,
   KeyProductsResponse,
+  PriceZoneDeleteResponse,
+  PriceZonesResponse,
 } from './advisor.models';
 
 // Cliente de /api/business/advisor (BusinessAdvisorEndpoints.cs) -- Asesor de
@@ -18,15 +20,40 @@ export class AdvisorService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}business/advisor`;
 
+  /** De una sucursal ({ branchId }) o, desde BP-77, de una zona de precio ({ priceZoneId }). */
   generateReport(
     businessAccountId: number,
-    branchId: string,
+    de: { branchId: string } | { priceZoneId: number },
     maxDistanceMeters: number,
     refresh = false,
   ): Observable<AdvisorReportResponse> {
     return this.http.post<AdvisorReportResponse>(`${this.baseUrl}/report`, null, {
-      params: { businessAccountId, branchId, maxDistanceMeters, refresh },
+      params: { businessAccountId, ...de, maxDistanceMeters, refresh },
     });
+  }
+
+  // ---- BP-77: zonas de precio ----
+
+  getPriceZones(businessAccountId: number): Observable<PriceZonesResponse> {
+    return this.http.get<PriceZonesResponse>(`${this.baseUrl}/price-zones`, { params: { businessAccountId } });
+  }
+
+  createPriceZone(businessAccountId: number, nombre: string, branchIds: string[]): Observable<PriceZonesResponse> {
+    return this.http.post<PriceZonesResponse>(`${this.baseUrl}/price-zones`, { businessAccountId, nombre, branchIds });
+  }
+
+  /** nombre o branchIds en null = no tocar ese campo. */
+  updatePriceZone(
+    businessAccountId: number,
+    zoneId: number,
+    nombre: string | null,
+    branchIds: string[] | null,
+  ): Observable<PriceZonesResponse> {
+    return this.http.put<PriceZonesResponse>(`${this.baseUrl}/price-zones/${zoneId}`, { businessAccountId, nombre, branchIds });
+  }
+
+  deletePriceZone(businessAccountId: number, zoneId: number): Observable<PriceZoneDeleteResponse> {
+    return this.http.delete<PriceZoneDeleteResponse>(`${this.baseUrl}/price-zones/${zoneId}`, { params: { businessAccountId } });
   }
 
   submitFeedback(reportId: number, thumbsUp: boolean): Observable<{ ok: boolean }> {

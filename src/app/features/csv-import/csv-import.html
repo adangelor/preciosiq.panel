@@ -286,11 +286,23 @@
               </select>
             </label>
           </div>
+          <!-- BP-77 (14-oct-2026) -- costo por zona de precio. -->
+          <div class="signup__row">
+            <label>
+              Columna de Zona del costo
+              <select formControlName="costZoneColumn">
+                <option value="">(ninguna — el costo es de toda la cuenta)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
+          </div>
           <p class="hint">
             Con el costo cargado, el Asesor de Precios puede analizar margen, ventas bajo costo y
             renegociación de compras. Tus costos son confidenciales: solo se usan para el análisis
             de tu propia cuenta, nunca entran en promedios de la zona. Solo se guarda un costo
             nuevo cuando cambió respecto del último conocido de ese producto.
+            Si tus sucursales tienen costos distintos (por ejemplo, por el flete), la columna de zona lleva
+            el nombre de la <a routerLink="/zonas">zona de precio</a> de cada fila; vacía, el costo es de toda la cuenta.
           </p>
 
           <!-- 10-oct-2026 -- catalogo completo (ver catalogo() en el .ts). -->
@@ -535,6 +547,23 @@
             queda en el historial y se vuelve a publicar en la red.
           </p>
         </div>
+      }
+
+      <!-- BP-77 -- costos de una zona que la cuenta no tiene (por nombre). -->
+      @if (r.costosZonaDesconocida?.length) {
+        <h3>Costos sin cargar ({{ r.costosZonaDesconocida!.length }})</h3>
+        <p class="hint">
+          El precio de estas filas se cargó igual; el costo no, porque la zona que nombran no existe en tu cuenta.
+          Revisá el nombre en <a routerLink="/zonas">Zonas de precio</a>.
+        </p>
+        <table class="preview-table">
+          <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
+          <tbody>
+            @for (e of r.costosZonaDesconocida; track e.rowNumber) {
+              <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+            }
+          </tbody>
+        </table>
       }
 
       @if (r.promosConAvisoDetalle?.length) {

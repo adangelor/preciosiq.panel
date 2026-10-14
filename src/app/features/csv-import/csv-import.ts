@@ -139,6 +139,7 @@ export class CsvImportComponent implements OnInit {
     costPriceWithTaxColumn: [''],
     supplierColumn: [''],
     costValidFromColumn: [''],
+    costZoneColumn: [''],   // BP-77
   });
 
   protected onFileSelected(event: Event): void {
@@ -204,6 +205,7 @@ export class CsvImportComponent implements OnInit {
       costPriceWithTaxColumn: mapping.costPriceWithTaxColumn ?? '',
       supplierColumn: mapping.supplierColumn ?? '',
       costValidFromColumn: mapping.costValidFromColumn ?? '',
+      costZoneColumn: mapping.costZoneColumn ?? '',
       catalogoCompleto: mapping.catalogoCompleto ?? false,
     });
   }
@@ -321,6 +323,7 @@ export class CsvImportComponent implements OnInit {
         costPriceWithTaxColumn: nullIfEmpty(value.costPriceWithTaxColumn),
         supplierColumn: nullIfEmpty(value.supplierColumn),
         costValidFromColumn: nullIfEmpty(value.costValidFromColumn),
+        costZoneColumn: nullIfEmpty(value.costZoneColumn),
         catalogoCompleto: value.catalogoCompleto,
       })
       .subscribe({
@@ -362,6 +365,7 @@ export class CsvImportComponent implements OnInit {
     // BP-38 -- promos: los contadores vienen por llamada, se suman aca.
     const promosIgnoradasDetalle: CsvImportRowError[] = [];
     const promosConAvisoDetalle: CsvImportRowError[] = [];
+    const costosZonaDesconocida: CsvImportRowError[] = [];   // BP-77
     let promoRulesSaved = 0;
     let promoRulesDeactivated = 0;
 
@@ -393,6 +397,7 @@ export class CsvImportComponent implements OnInit {
             costsLoaded += r.costsLoaded ?? 0;
             promosIgnoradasDetalle.push(...(r.promosIgnoradasDetalle ?? []));
             promosConAvisoDetalle.push(...(r.promosConAvisoDetalle ?? []));
+            costosZonaDesconocida.push(...(r.costosZonaDesconocida ?? []));
             promoRulesSaved += r.promoRulesSaved ?? 0;
             promoRulesDeactivated += r.promoRulesDeactivated ?? 0;
 
@@ -419,6 +424,7 @@ export class CsvImportComponent implements OnInit {
               promosIgnoradasDetalle,
               promosConAviso: promosConAvisoDetalle.length,
               promosConAvisoDetalle,
+              costosZonaDesconocida,
               promoRulesSaved,
               promoRulesDeactivated,
               errors,

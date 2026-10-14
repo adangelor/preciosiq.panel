@@ -1,0 +1,127 @@
+// BP-77 (14-oct-2026) -- pantalla "Zonas de precio". Botones, pills, alertas y tarjetas salen del tema
+// compartido (shared-theme/_theme.scss); aca solo la disposicion.
+.zonas {
+  max-width: 1080px;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.25rem;
+  max-width: 52rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.zonas__barra {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.zonas__radio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.zonas__form {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin-bottom: 1rem;
+  }
+}
+
+.zonas__nombre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  max-width: 24rem;
+
+  input {
+    width: 100%;
+  }
+}
+
+.zonas__ayuda {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+.zonas__checks {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.35rem 1rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    cursor: pointer;
+  }
+}
+
+.zonas__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.zonas__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.zonas__card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+}
+
+.zonas__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.zonas__nota {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.zonas__sueltas-titulo {
+  margin-top: 0.5rem;
+}

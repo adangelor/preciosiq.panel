@@ -13,6 +13,7 @@ type CampoColumna = Extract<
   | 'presentationUnitColumn' | 'promo1UnitPriceColumn' | 'promo1TextColumn' | 'promoPercentColumn'
   | 'promoMinQtyColumn' | 'promoMaxQtyColumn' | 'promo2UnitPriceColumn' | 'promo2TextColumn'
   | 'costPriceColumn' | 'costPriceWithTaxColumn' | 'supplierColumn' | 'costValidFromColumn'
+  | 'costZoneColumn'   // BP-77
 >;
 
 // 17-sep-2026 -- pedido de Andres: "que el mapeo de columnas se pueda guardar y administrar;
@@ -120,6 +121,7 @@ export class CsvMappingsComponent implements OnInit {
       ['Costo con IVA', m.costPriceWithTaxColumn],
       ['Proveedor', m.supplierColumn],
       ['Vigencia del costo', m.costValidFromColumn],
+      ['Zona del costo', m.costZoneColumn ?? null],
     ];
     return todos.filter(([, c]) => !!c?.trim()).map(([campo, columna]) => ({ campo, columna: columna! }));
   }
@@ -205,6 +207,7 @@ export class CsvMappingsComponent implements OnInit {
         costPriceWithTaxColumn: m.costPriceWithTaxColumn,
         supplierColumn: m.supplierColumn,
         costValidFromColumn: m.costValidFromColumn,
+        costZoneColumn: m.costZoneColumn ?? null,
         promoMinQtyColumn: m.promoMinQtyColumn ?? null,
         promoMaxQtyColumn: m.promoMaxQtyColumn ?? null,
         promoPercentColumn: m.promoPercentColumn ?? null,
@@ -257,6 +260,7 @@ export class CsvMappingsComponent implements OnInit {
     { key: 'costPriceWithTaxColumn', campo: 'Costo con IVA' },
     { key: 'supplierColumn', campo: 'Proveedor' },
     { key: 'costValidFromColumn', campo: 'Vigencia del costo' },
+    { key: 'costZoneColumn', campo: 'Zona del costo' },
   ];
 
   protected readonly editandoId = signal<number | null>(null);

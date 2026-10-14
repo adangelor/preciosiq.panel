@@ -132,6 +132,13 @@
           <button type="button" class="advisor-button" (click)="openAdvisor()">
             <i class="fa-solid fa-robot" aria-hidden="true"></i> Analizar mi posición
           </button>
+          <!-- BP-77: la sucursal esta en una zona de precio: el informe de toda la zona. -->
+          @if (zonaDeLaSucursal(); as z) {
+            <button type="button" class="advisor-button" (click)="openAdvisorZona()"
+                    [attr.title]="'Informe de las ' + z.sucursales.length + ' sucursales de la zona ' + z.nombre">
+              <i class="fa-solid fa-robot" aria-hidden="true"></i> Analizar la zona {{ z.nombre }}
+            </button>
+          }
           <button type="button" class="export-button" [disabled]="exportingReport()" (click)="exportReport()">
             @if (exportingReport()) {
               Generando…

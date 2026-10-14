@@ -137,6 +137,12 @@ export const routes: Routes = [
         title: 'PreciosIQ — Productos testigo',
       },
       {
+        // BP-77 (14-oct-2026) -- grupos de sucursales que comparten lista: el Asesor da un informe por zona.
+        path: 'zonas',
+        loadComponent: () => import('./features/price-zones/price-zones').then((m) => m.PriceZonesComponent),
+        title: 'PreciosIQ — Zonas de precio',
+      },
+      {
         path: 'plan',
         loadComponent: () => import('./features/upgrade-plan/upgrade-plan').then((m) => m.UpgradePlanComponent),
         title: 'PreciosIQ — Tu plan',

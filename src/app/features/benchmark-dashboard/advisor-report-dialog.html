@@ -23,11 +23,11 @@
          lo unico que identifica de quien es el informe. -->
     <div class="print-only print-header">
       <h1>Asesor de Precios — PreciosIQ</h1>
-      <p>{{ r.digest.metadatos.branchName }} · radio {{ r.digest.metadatos.maxDistanceMeters }} m · generado {{ generatedAtLocal() }}</p>
+      <p>{{ alcance() }} · generado {{ generatedAtLocal() }}</p>
     </div>
 
     <div class="advisor-meta no-print">
-      <span>{{ r.digest.metadatos.branchName }} · radio {{ r.digest.metadatos.maxDistanceMeters }} m</span>
+      <span>{{ alcance() }}</span>
       @if (r.fromCache) {
         <span class="advisor-badge">Informe de hoy</span>
         <button type="button" class="link-button" (click)="load(true)">Regenerar</button>
@@ -93,6 +93,39 @@
         </tbody>
       </table>
       <p class="hint suspect-note">Estos productos quedan fuera del resto del informe: no ensucian tu posición ni los números en pesos.</p>
+    }
+
+    <!-- BP-77 (14-oct-2026) -- informe de una zona: los productos con precios distintos entre sus
+         sucursales. Va arriba: una cadena que cree tener una lista y no la tiene tiene que verlo primero. -->
+    @if (r.digest.preciosDispares?.length) {
+      <h3 class="table-title table-title--warn">
+        <i class="fa-solid fa-code-compare" aria-hidden="true"></i>
+        Tu lista no es una sola
+        <span class="hint">— {{ r.digest.metadatos.preciosDisparesTotal }} productos con precios distintos entre tus sucursales de {{ r.digest.metadatos.zona?.nombre }}</span>
+      </h3>
+      <table class="cat-table cat-table--warn">
+        <thead><tr><th>Producto</th><th class="num">Precio usado</th><th class="num">Diferencia</th><th>Precio en cada sucursal</th></tr></thead>
+        <tbody>
+          @for (x of r.digest.preciosDispares; track x.ean) {
+            <tr>
+              <td>{{ x.descripcion ?? x.ean }}</td>
+              <td class="num">{{ money(x.precioUsado) }}</td>
+              <td class="num">{{ pct(x.diferenciaPct) }}</td>
+              <td class="hint">
+                @for (p of x.precios; track p.branchId; let last = $last) {
+                  {{ p.sucursal }}: {{ money(p.precio) }}{{ last ? '' : ' · ' }}
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="hint suspect-note">
+        Para comparar con la competencia usamos el precio más repetido en la zona (con empate, el menor).
+        @if (r.digest.metadatos.preciosDisparesTotal! > r.digest.preciosDispares!.length) {
+          Son los {{ r.digest.preciosDispares!.length }} de más diferencia.
+        }
+      </p>
     }
 
     <!-- BP-78 (13-oct-2026) -- productos testigo: van antes que el resto del surtido, porque es
@@ -327,7 +360,7 @@
          que este template renderiza por su cuenta son las tablas. -->
 
     <div class="print-only print-footer">
-      <p>PreciosIQ · {{ r.digest.metadatos.branchName }} · informe #{{ r.reportId }} · {{ generatedAtLocal() }}</p>
+      <p>PreciosIQ · {{ alcance() }} · informe #{{ r.reportId }} · {{ generatedAtLocal() }}</p>
     </div>
 
     <div class="advisor-feedback no-print">

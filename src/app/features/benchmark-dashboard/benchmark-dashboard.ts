@@ -14,6 +14,8 @@ import {
   ProductSortColumn,
 } from './benchmark-detail-dialog';
 import { AdvisorReportDialogComponent, AdvisorReportDialogData } from './advisor-report-dialog';
+import { AdvisorService } from '../../core/advisor';
+import { PriceZoneItem } from '../../core/advisor.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessAccountService } from '../../core/business-account';
 import { BranchListItem } from '../../core/business-account.models';
@@ -457,6 +459,34 @@ export class BenchmarkDashboardComponent implements OnInit {
     () => this.branches()?.find((b) => b.branchId === this.branchIdValue()) ?? null,
   );
 
+  // BP-77 (14-oct-2026) -- si la sucursal elegida esta en una zona de precio, el Asesor ofrece tambien el
+  // informe de la zona. El tablero sigue siendo por sucursal. Sin plan con Asesor o sin zonas: lista vacia.
+  private readonly advisorService = inject(AdvisorService);
+  private readonly zonas = signal<PriceZoneItem[]>([]);
+  protected readonly zonaDeLaSucursal = computed(
+    () => this.zonas().find((z) => z.sucursales.some((s) => s.branchId === this.branchIdValue())) ?? null,
+  );
+
+  private cargarZonas(businessAccountId: number): void {
+    this.advisorService.getPriceZones(businessAccountId).subscribe({
+      next: (r) => this.zonas.set(r.tablaLista ? r.zonas : []),
+      error: () => this.zonas.set([]),
+    });
+  }
+
+  protected openAdvisorZona(): void {
+    const { businessAccountId, maxDistanceMeters } = this.form.getRawValue();
+    const zona = this.zonaDeLaSucursal();
+    if (businessAccountId == null || !zona) return;
+    this.dialog.open<AdvisorReportDialogComponent, AdvisorReportDialogData>(AdvisorReportDialogComponent, {
+      data: { businessAccountId, priceZoneId: zona.id, maxDistanceMeters },
+      width: '90vw',
+      maxWidth: '820px',
+      maxHeight: '90vh',
+      autoFocus: false,
+    });
+  }
+
   // 25-ago-2026 -- radio guardado por sucursal (BenchmarkPreferencesService). El
   // dashboard SOLO se calcula solo al entrar si la sucursal ya tiene un radio que corrio
   // bien alguna vez; si no, espera a que la persona (con la sugerencia del asesor a la
@@ -506,6 +536,7 @@ export class BenchmarkDashboardComponent implements OnInit {
           next: (branches) => {
             this.loadingContext.set(false);
             this.branches.set(branches);
+            if (branches.length > 1) this.cargarZonas(account.businessAccountId);   // BP-77
 
             if (branches.length === 0) {
               this.contextErrorMessage.set('Todavía no tenés sucursales cargadas.');
