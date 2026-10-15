@@ -53,6 +53,43 @@ export interface GuardarTiendaRequest {
   mostrarDomicilio: boolean;
 }
 
+// BP-122 (15-oct-2026) -- visitas y pedidos de la tienda. Espejo de TiendaEstadisticas en TiendaDtos.cs.
+// Fechas 'YYYY-MM-DD' en hora argentina. Monto = el total que estimo el sitio, no lo que se cobro.
+
+export interface TiendaPeriodo {
+  visitas: number;
+  pedidos: number;
+  monto: number;
+}
+
+export interface TiendaDiaStats extends TiendaPeriodo {
+  fecha: string;
+}
+
+export interface TiendaProductoStats {
+  ean: string;
+  /** null = ya no esta en el catalogo de la sucursal. */
+  descripcion: string | null;
+  vistas: number;
+  pedidos: number;
+  unidades: number;
+}
+
+export interface TiendaEstadisticas {
+  /** Los ultimos 7 dias (hoy incluido) contra los 7 anteriores. Todo plan. */
+  resumen: { desde: string; hasta: string; actual: TiendaPeriodo; anterior: TiendaPeriodo };
+  /** false = el plan no trae el detalle (desde Pyme): se muestra el "subi de plan". */
+  detalleIncluido: boolean;
+  detalle: {
+    desde: string;
+    hasta: string;
+    total: TiendaPeriodo;
+    dias: TiendaDiaStats[];
+    masPedidos: TiendaProductoStats[];
+    masVistos: TiendaProductoStats[];
+  } | null;
+}
+
 /** El 400 de guardar: el mensaje y el campo al que va pegado. */
 export interface ErrorDeCampo {
   error: string;
@@ -84,6 +121,10 @@ export class TiendaService {
 
   quitarQr(tiendaId: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${tiendaId}/qr`);
+  }
+
+  estadisticas(tiendaId: number): Observable<TiendaEstadisticas> {
+    return this.http.get<TiendaEstadisticas>(`${this.url}/${tiendaId}/estadisticas`);
   }
 
   /** La direccion publica: misuper.app/<slug>. */

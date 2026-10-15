@@ -1,0 +1,155 @@
+// BP-122 -- "Cómo le va a tu tienda" (TiendaEstadisticasComponent y sus columnas).
+// Una sola serie por grafico, en var(--primary): validado contra --bg-card en claro (#2e5aac sobre #fff)
+// y oscuro (#598bff sobre #222b45) con el validador de paletas, 15-oct-2026.
+:host { display: block; }
+
+.hint { font-size: 0.9rem; color: var(--text-3); margin: 0.25rem 0; }
+.aviso {
+  background: var(--warning-soft);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+.aviso--plan { background: var(--bg-elevated); border: 1px solid var(--border); }
+
+.est { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
+.est__titulo { margin: 0 0 0.25rem; font-size: 1rem; }
+
+.est__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+.est__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-card);
+}
+.est__label { font-size: 0.85rem; color: var(--text-2); }
+.est__valor { font-size: 1.6rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+.est__delta { font-size: 0.8rem; color: var(--text-3); }
+.est__delta--sube { color: var(--success); }
+.est__delta--baja { color: var(--danger); }
+
+.est__graficos { display: grid; gap: 1.25rem; margin: 1rem 0 0.5rem; }
+
+.est__listas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  h4 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+}
+@media (max-width: 640px) { .est__listas { grid-template-columns: 1fr; } }
+
+.est__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  th, td { padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--border-soft); text-align: left; }
+  th { font-weight: 600; color: var(--text-2); font-size: 0.8rem; }
+  td { overflow-wrap: anywhere; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+}
+
+.est__dias {
+  margin-top: 1rem;
+  summary { cursor: pointer; color: var(--primary); font-size: 0.9rem; }
+  .est__tabla { margin-top: 0.5rem; }
+}
+
+// ---------------------------------------------------------------- columnas diarias
+.columnas { margin: 0; }
+.columnas__titulo { font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.4rem; }
+
+.columnas__plot {
+  position: relative;
+  height: 110px;
+  margin-left: 2rem;
+}
+.columnas__tick {
+  position: absolute;
+  left: -2rem;
+  width: 1.6rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.columnas__tick--max { top: 0; transform: translateY(-50%); }
+.columnas__tick--cero { bottom: 0; transform: translateY(50%); }
+
+// Hairlines recesivas: el tope, la mitad y la base.
+.columnas__grilla {
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(var(--border-soft), var(--border-soft)) 0 50% / 100% 1px no-repeat;
+  pointer-events: none;
+}
+
+.columnas__barras {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+// La columna entera (todo el alto) es el objetivo de hover y foco, no solo la barra pintada.
+.columnas__col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+  border-radius: 4px 4px 0 0;
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+  &:hover { background: var(--bg-elevated); }
+}
+.columnas__barra {
+  display: block;
+  width: 100%;
+  max-width: 24px;
+  min-height: 2px;
+  background: var(--primary);
+  border-radius: 4px 4px 0 0;
+}
+.columnas__barra--activa { opacity: 0.8; }
+
+.columnas__tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 7.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  font-size: 0.8rem;
+  color: var(--text-2);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  strong { color: var(--text); font-size: 0.95rem; }
+}
+
+.columnas__ejex {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.3rem 0 0 2rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}

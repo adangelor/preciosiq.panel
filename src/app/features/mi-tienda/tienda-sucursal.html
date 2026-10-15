@@ -75,6 +75,9 @@
         <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', sucursal().branchId]">Cartel para la vidriera</a>
       </div>
 
+      <!-- BP-122: visitas y pedidos. Tambien con la tienda despublicada: lo que paso antes sigue valiendo. -->
+      <app-tienda-estadisticas [tiendaId]="t.id" />
+
       <section class="qr">
         <h3>QR para que te paguen</h3>
         <p class="hint">

@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
 import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeSucursal, TiendaService, achicarImagen } from '../../core/tienda';
 import { BusinessAccountService } from '../../core/business-account';
+import { TiendaEstadisticasComponent } from './tienda-estadisticas';
 
 type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 'cvu' | 'qr';
 
@@ -14,7 +15,7 @@ type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 
 @Component({
   selector: 'app-tienda-sucursal',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TiendaEstadisticasComponent],
   templateUrl: './tienda-sucursal.html',
   styleUrl: './mi-tienda.scss',
 })
