@@ -90,3 +90,50 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+// BP-132 (16-oct-2026) -- cargas a una zona o a todas las sucursales: una fila desplegable.
+.status-badge--partial {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.grupo td {
+  font-weight: 600;
+}
+
+.grupo__toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.grupo__toggle .fa-solid {
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.grupo__lote td {
+  font-size: 0.8rem;
+  background: var(--bg-soft, transparent);
+}
+
+.grupo__lote td:nth-child(2) {
+  padding-left: 1.9rem;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.grupo__toggle {
+  min-width: 11rem;
+}

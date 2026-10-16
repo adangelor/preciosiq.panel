@@ -24,12 +24,13 @@
 
     @if (loading()) {
       <p class="hint">Cargando historial…</p>
-    } @else if (batches().length === 0) {
+    } @else if (filas().length === 0) {
       <p class="hint">
         Todavía no hiciste ninguna carga masiva.
         <a routerLink="/precios/carga-masiva">Cargar un CSV →</a>
       </p>
     } @else {
+      <div class="tabla-scroll">
       <table class="preview-table">
         <thead>
           <tr>
@@ -45,38 +46,101 @@
           </tr>
         </thead>
         <tbody>
-          @for (b of batches(); track b.id) {
-            <tr [class.batch--reverted]="b.revertedAt">
-              <td>{{ b.importedAt | date: 'dd/MM/yy HH:mm' }}</td>
-              <td>{{ b.branchName }}</td>
-              <td>{{ b.fileName ?? '—' }}</td>
-              <td>{{ b.totalRows }}</td>
-              <td>{{ b.created }}</td>
-              <td>{{ b.updated }}</td>
-              <td>{{ b.failed }}</td>
-              <td>
-                @if (b.revertedAt) {
-                  <span class="status-badge status-badge--reverted">Deshecha</span>
-                } @else {
-                  <span class="status-badge status-badge--active">Vigente</span>
-                }
-              </td>
-              <td>
-                @if (!b.revertedAt) {
-                  <button
-                    type="button"
-                    class="link-btn link-btn--danger"
-                    [disabled]="undoingId() === b.id"
-                    (click)="undo(b)"
-                  >
-                    {{ undoingId() === b.id ? 'Deshaciendo…' : 'Deshacer' }}
+          @for (f of filas(); track f.tipo + (f.tipo === 'grupo' ? f.grupo.id : f.lote.id)) {
+            @if (f.tipo === 'lote') {
+              @let b = f.lote;
+              <tr [class.batch--reverted]="b.revertedAt">
+                <td>{{ b.importedAt | date: 'dd/MM/yy HH:mm' }}</td>
+                <td>{{ b.branchName }}</td>
+                <td>{{ b.fileName ?? '—' }}</td>
+                <td>{{ b.totalRows }}</td>
+                <td>{{ b.created }}</td>
+                <td>{{ b.updated }}</td>
+                <td>{{ b.failed }}</td>
+                <td>
+                  @if (b.revertedAt) {
+                    <span class="status-badge status-badge--reverted">Deshecha</span>
+                  } @else {
+                    <span class="status-badge status-badge--active">Vigente</span>
+                  }
+                </td>
+                <td>
+                  @if (!b.revertedAt) {
+                    <button type="button" class="link-btn link-btn--danger" [disabled]="undoingId() === '' + b.id" (click)="undo(b)">
+                      {{ undoingId() === '' + b.id ? 'Deshaciendo…' : 'Deshacer' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @else {
+              <!-- BP-132 -- una carga a una zona o a todas las sucursales: una fila, desplegable. -->
+              @let g = f.grupo;
+              <tr class="grupo" [class.batch--reverted]="g.revertedAt">
+                <td>{{ g.importedAt | date: 'dd/MM/yy HH:mm' }}</td>
+                <td>
+                  <button type="button" class="grupo__toggle" [attr.aria-expanded]="!!abiertos()[g.id]" (click)="alternar(g)">
+                    <i class="fa-solid" [class.fa-chevron-down]="abiertos()[g.id]" [class.fa-chevron-right]="!abiertos()[g.id]" aria-hidden="true"></i>
+                    {{ destinoDeLaCarga(g) }}
                   </button>
+                </td>
+                <td>{{ g.fileName ?? '—' }}</td>
+                <td>{{ g.totalRows }}</td>
+                <td>{{ g.created }}</td>
+                <td>{{ g.updated }}</td>
+                <td>{{ g.failed }}</td>
+                <td>
+                  @if (g.revertedAt) {
+                    <span class="status-badge status-badge--reverted">Deshecha</span>
+                  } @else if (g.deshechaEnParte) {
+                    <span class="status-badge status-badge--partial">Deshecha en parte</span>
+                  } @else {
+                    <span class="status-badge status-badge--active">Vigente</span>
+                  }
+                </td>
+                <td>
+                  @if (!g.revertedAt) {
+                    <button type="button" class="link-btn link-btn--danger" [disabled]="undoingId() === 'g' + g.id" (click)="undoGrupo(g)">
+                      {{ undoingId() === 'g' + g.id ? 'Deshaciendo…' : 'Deshacer todo' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+              @if (abiertos()[g.id]) {
+                @for (b of g.lotes; track b.id) {
+                  <tr class="grupo__lote" [class.batch--reverted]="b.revertedAt">
+                    <td></td>
+                    <td>{{ b.branchName }}</td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ b.created }}</td>
+                    <td>{{ b.updated }}</td>
+                    <td>{{ b.failed }}</td>
+                    <td>
+                      @if (b.revertedAt) {
+                        <span class="status-badge status-badge--reverted">Deshecha</span>
+                      } @else {
+                        <span class="status-badge status-badge--active">Vigente</span>
+                      }
+                    </td>
+                    <td>
+                      @if (!b.revertedAt && !g.revertedAt) {
+                        <button type="button" class="link-btn link-btn--danger" [disabled]="undoingId() === '' + b.id" (click)="undo(b)">
+                          {{ undoingId() === '' + b.id ? 'Deshaciendo…' : 'Deshacer esta' }}
+                        </button>
+                      }
+                    </td>
+                  </tr>
                 }
-              </td>
-            </tr>
+              }
+            }
           }
         </tbody>
       </table>
+      </div>
+      <p class="hint">
+        En una carga a varias sucursales, "Con error" son las filas del archivo que no se cargaron en ninguna;
+        desplegala para ver lo de cada sucursal.
+      </p>
     }
   }
 </div>
