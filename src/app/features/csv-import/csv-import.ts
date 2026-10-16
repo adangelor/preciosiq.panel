@@ -1,11 +1,14 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
-import { retry, timer } from 'rxjs';
+import { concat, retry, timer, toArray } from 'rxjs';
 import { CsvImportService } from '../../core/csv-import';
 import {
+  CatalogoCompletoGrupoResult,
   CatalogoCompletoResult,
+  CsvImportDestino,
   CsvImportPriceAnomaly,
   CsvImportResult,
   CsvImportRowError,
@@ -17,6 +20,8 @@ import { BusinessAccountProductItem, UpsertBusinessPriceRequest } from '../../co
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
 import { BranchListItem } from '../../core/business-account.models';
+import { AdvisorService } from '../../core/advisor';
+import { PriceZoneItem } from '../../core/advisor.models';
 import { environment } from '../../../environments/environment';
 
 type Step = 'upload' | 'map' | 'result';
@@ -90,6 +95,155 @@ export class CsvImportComponent implements OnInit {
     branchId: ['', [Validators.required]],
   });
 
+  // ─────────────────────────────────────────────────────────────
+  // BP-132 (16-oct-2026) -- "¿A qué sucursales?". Rufino tiene 4 sucursales y una sola lista: la carga va a una
+  // sucursal (como siempre), a una zona de precio (BP-77) o a todas. El backend aplica cada tanda en todas las
+  // sucursales del destino y las junta en una carga (groupId). Las zonas salen de AdvisorService.getPriceZones,
+  // que tiene compuerta de plan: si falla o la tabla no esta, la opcion "zona" no aparece; "todas" va en todos
+  // los planes. El destino se recuerda por cuenta en localStorage (si no se puede, arranca en "una sucursal").
+  // ─────────────────────────────────────────────────────────────
+  private readonly advisorService = inject(AdvisorService);
+  protected readonly zonas = signal<PriceZoneItem[]>([]);
+  protected readonly destinoTipo = signal<'sucursal' | 'zona' | 'todas'>('sucursal');
+  protected readonly zonaId = signal<number | null>(null);
+  private readonly branchIdValue = toSignal(this.uploadForm.controls.branchId.valueChanges, {
+    initialValue: this.uploadForm.controls.branchId.value,
+  });
+  private destinoGuardado: { tipo: string; branchId?: string; zonaId?: number } | null = null;
+
+  protected readonly zonaElegida = computed(() => this.zonas().find((z) => z.id === this.zonaId()) ?? null);
+  /** La zona de la sucursal elegida (para ofrecer "cargar en toda la zona"). */
+  protected readonly zonaDeLaSucursal = computed(
+    () => this.zonas().find((z) => z.sucursales.some((s) => s.branchId === this.branchIdValue())) ?? null,
+  );
+  /** Las sucursales en las que se va a cargar (id + nombre). */
+  protected readonly sucursalesDelDestino = computed<{ branchId: string; nombre: string }[]>(() => {
+    switch (this.destinoTipo()) {
+      case 'zona':
+        return (this.zonaElegida()?.sucursales ?? []).map((s) => ({ branchId: s.branchId, nombre: s.nombre }));
+      case 'todas':
+        return this.branches().map((b) => ({ branchId: b.branchId, nombre: b.branchName }));
+      default:
+        return this.branches()
+          .filter((b) => b.branchId === this.branchIdValue())
+          .map((b) => ({ branchId: b.branchId, nombre: b.branchName }));
+    }
+  });
+  /** Con destino zona: las sucursales de la cuenta que quedan afuera. */
+  protected readonly fueraDeLaZona = computed(() => {
+    const z = this.zonaElegida();
+    if (this.destinoTipo() !== 'zona' || !z) return [];
+    const ids = new Set(z.sucursales.map((s) => s.branchId));
+    return this.branches().filter((b) => !ids.has(b.branchId)).map((b) => b.branchName);
+  });
+
+  protected nombresDe(lista: string[]): string {
+    return lista.length <= 1 ? (lista[0] ?? '') : `${lista.slice(0, -1).join(', ')} y ${lista[lista.length - 1]}`;
+  }
+
+  protected otrasDeLaZona(z: PriceZoneItem): string[] {
+    return z.sucursales.filter((s) => s.branchId !== this.branchIdValue()).map((s) => s.nombre);
+  }
+
+  protected nombresDelDestino(): string {
+    return this.nombresDe(this.sucursalesDelDestino().map((s) => s.nombre));
+  }
+
+  /** En la tabla de anomalias: "Las 3" si aparecio en todas las sucursales de la carga; si no, cuales. */
+  protected sucursalesDeLaAnomaliaTexto(a: CsvImportPriceAnomaly, r: CsvImportResult): string {
+    const total = r.porSucursal?.length ?? 0;
+    return total > 1 && this.sucursalesDeLaAnomalia(a).length === total ? `Las ${total}` : this.nombresDeLaAnomalia(a);
+  }
+
+  protected nombresDeLaAnomalia(a: CsvImportPriceAnomaly): string {
+    return this.nombresDe(this.sucursalesDeLaAnomalia(a).map((id) => this.nombreDeSucursal(id)));
+  }
+
+  protected nombreDeSucursal(branchId: string): string {
+    return this.branches().find((b) => b.branchId === branchId)?.branchName ?? branchId;
+  }
+
+  private destinoActual(): CsvImportDestino | null {
+    switch (this.destinoTipo()) {
+      case 'zona': {
+        const id = this.zonaId();
+        return id === null ? null : { tipo: 'zona', priceZoneId: id };
+      }
+      case 'todas':
+        return { tipo: 'todas' };
+      default:
+        return { tipo: 'sucursal', branchId: this.uploadForm.getRawValue().branchId };
+    }
+  }
+
+  protected elegirDestino(tipo: 'sucursal' | 'zona' | 'todas'): void {
+    this.destinoTipo.set(tipo);
+    if (tipo === 'zona' && this.zonaId() === null) this.zonaId.set(this.zonaDeLaSucursal()?.id ?? this.zonas()[0]?.id ?? null);
+    this.guardarDestino();
+  }
+
+  protected elegirZona(id: string | number): void {
+    this.zonaId.set(Number(id));
+    this.guardarDestino();
+  }
+
+  /** "¿Cargar la lista en toda la zona?" desde el aviso de la sucursal. */
+  protected cargarEnTodaLaZona(z: PriceZoneItem): void {
+    this.zonaId.set(z.id);
+    this.destinoTipo.set('zona');
+    this.guardarDestino();
+  }
+
+  private claveDestino(): string | null {
+    const id = this.uploadForm.getRawValue().businessAccountId;
+    return id ? `preciosiq.csvImport.destino.${id}` : null;
+  }
+
+  protected guardarDestino(): void {
+    const clave = this.claveDestino();
+    if (!clave) return;
+    try {
+      localStorage.setItem(clave, JSON.stringify({
+        tipo: this.destinoTipo(),
+        branchId: this.uploadForm.getRawValue().branchId,
+        zonaId: this.zonaId() ?? undefined,
+      }));
+    } catch {
+      // Sin almacenamiento (ventana privada, bloqueado): no se recuerda, nada mas.
+    }
+  }
+
+  private leerDestinoGuardado(): void {
+    const clave = this.claveDestino();
+    if (!clave) return;
+    try {
+      const v = localStorage.getItem(clave);
+      this.destinoGuardado = v ? JSON.parse(v) : null;
+    } catch {
+      this.destinoGuardado = null;
+    }
+    const g = this.destinoGuardado;
+    if (!g) return;
+    if (g.branchId && this.branches().some((b) => b.branchId === g.branchId)) this.uploadForm.patchValue({ branchId: g.branchId });
+    if (g.tipo === 'todas' && this.branches().length > 1) this.destinoTipo.set('todas');
+    // 'zona' se aplica cuando llegan las zonas (cargarZonas), si la zona sigue existiendo.
+  }
+
+  private cargarZonas(businessAccountId: number): void {
+    this.advisorService.getPriceZones(businessAccountId).subscribe({
+      next: (r) => {
+        const conSucursales = r.tablaLista ? r.zonas.filter((z) => z.sucursales.length > 0) : [];
+        this.zonas.set(conSucursales);
+        const g = this.destinoGuardado;
+        if (g?.tipo === 'zona' && g.zonaId && conSucursales.some((z) => z.id === g.zonaId)) {
+          this.zonaId.set(g.zonaId);
+          this.destinoTipo.set('zona');
+        }
+      },
+      error: () => this.zonas.set([]),
+    });
+  }
+
   ngOnInit(): void {
     this.context.load().subscribe({
       next: (ctx) => {
@@ -102,6 +256,11 @@ export class CsvImportComponent implements OnInit {
         this.uploadForm.patchValue({ businessAccountId: ctx.account.businessAccountId });
         if (ctx.branches.length > 0) {
           this.uploadForm.patchValue({ branchId: ctx.branches[0].branchId });
+        }
+        // BP-132 -- con una sola sucursal no hay destino que elegir (ni zonas que pedir).
+        if (ctx.branches.length > 1) {
+          this.leerDestinoGuardado();
+          this.cargarZonas(ctx.account.businessAccountId);
         }
       },
       error: () => {
@@ -269,6 +428,45 @@ export class CsvImportComponent implements OnInit {
     });
   }
 
+  // BP-132 -- catalogo completo de una carga agrupada: UNA confirmacion con las bajas de cada sucursal; el
+  // backend lo aplica en todas o en ninguna.
+  protected readonly catalogoGrupo = signal<CatalogoCompletoGrupoResult | null>(null);
+
+  private consultarCatalogoGrupo(businessAccountId: number, groupId: number): void {
+    this.catalogoGrupo.set(null);
+    this.catalogoError.set(null);
+    this.catalogoDescartado.set(false);
+    this.catalogoLoading.set(true);
+    this.csvImportService.catalogoCompletoGrupo(groupId, businessAccountId, false).subscribe({
+      next: (r) => {
+        this.catalogoLoading.set(false);
+        this.catalogoGrupo.set(r);
+      },
+      error: (err) => {
+        this.catalogoLoading.set(false);
+        this.catalogoError.set(err?.error?.error ?? 'No pudimos contar los productos que no vinieron en el archivo.');
+      },
+    });
+  }
+
+  protected aplicarCatalogoGrupo(): void {
+    const c = this.catalogoGrupo();
+    const { businessAccountId } = this.uploadForm.getRawValue();
+    if (!c || !businessAccountId) return;
+    this.catalogoLoading.set(true);
+    this.catalogoError.set(null);
+    this.csvImportService.catalogoCompletoGrupo(c.groupId, businessAccountId, true).subscribe({
+      next: (r) => {
+        this.catalogoLoading.set(false);
+        this.catalogoGrupo.set(r);
+      },
+      error: (err) => {
+        this.catalogoLoading.set(false);
+        this.catalogoError.set(err?.error?.error ?? 'No se pudieron dar de baja. Probá de nuevo.');
+      },
+    });
+  }
+
   /** Mas de la mitad de lo publicado se iria a sin stock: casi seguro no es el catalogo entero. */
   protected catalogoSospechoso(c: CatalogoCompletoResult): boolean {
     return c.publicadosAntes > 0 && c.bajas > c.publicadosAntes / 2;
@@ -280,10 +478,17 @@ export class CsvImportComponent implements OnInit {
       return;
     }
 
-    const { businessAccountId, branchId } = this.uploadForm.getRawValue();
+    const { businessAccountId } = this.uploadForm.getRawValue();
     const value = this.mappingForm.getRawValue();
     const file = this.selectedFile();
     if (!file) return;
+    // BP-132 -- el destino (una sucursal, una zona o todas) y en cuantas sucursales se aplica cada tanda.
+    const destino = this.destinoActual();
+    const sucursales = this.sucursalesDelDestino();
+    if (!destino || sucursales.length === 0) {
+      this.errorMessage.set('Elegí a qué sucursales va la lista.');
+      return;
+    }
 
     this.loading.set(true);
     this.errorMessage.set(null);
@@ -291,7 +496,7 @@ export class CsvImportComponent implements OnInit {
     const nullIfEmpty = (s: string) => (s?.trim() ? s.trim() : null);
 
     const proceedWithMapping = (mappingId: number, catalogoCompleto: boolean) =>
-      this.runInChunks(businessAccountId!, branchId, mappingId, file, catalogoCompleto);
+      this.runInChunks(businessAccountId!, destino, sucursales.length, mappingId, file, catalogoCompleto);
 
     if (value.savedMappingId) {
       proceedWithMapping(value.savedMappingId, this.mapeoEsCatalogoCompleto());
@@ -342,6 +547,7 @@ export class CsvImportComponent implements OnInit {
     this.selectedFile.set(null);
     this.errorMessage.set(null);
     this.catalogo.set(null);
+    this.catalogoGrupo.set(null);
     this.catalogoError.set(null);
   }
 
@@ -349,18 +555,25 @@ export class CsvImportComponent implements OnInit {
   // (promedio de competidores), no solo "previous" -- cambia el texto de aviso.
   // E5.7 -- una tanda por llamada, en serie. Errores y anomalias se juntan aca; los
   // contadores ya vienen acumulados del backend (son los del lote en dbo.CsvImportBatch).
+  // BP-132 -- con N sucursales cada tanda se aplica N veces: se piden ceil(chunkRows / N) filas por tanda (el
+  // servidor ademas capea filas x sucursales). La barra cuenta filas DEL ARCHIVO, no filas x sucursales.
   private runInChunks(
     businessAccountId: number,
-    branchId: string,
+    destino: CsvImportDestino,
+    cantidadDeSucursales: number,
     mappingId: number,
     file: File,
     catalogoCompleto = false,
   ): void {
     this.catalogo.set(null);
+    this.catalogoGrupo.set(null);
     this.catalogoError.set(null);
+    this.cargaBranchId = destino.tipo === 'sucursal' ? destino.branchId : null;
+    const limit = Math.max(1, Math.ceil(this.chunkRows / Math.max(1, cantidadDeSucursales)));
     const errors: CsvImportRowError[] = [];
     const anomalies: CsvImportPriceAnomaly[] = [];
     let batchId: number | null = null;
+    let groupId: number | null = null;
     let costsLoaded = 0;
     // BP-38 -- promos: los contadores vienen por llamada, se suman aca.
     const promosIgnoradasDetalle: CsvImportRowError[] = [];
@@ -373,7 +586,7 @@ export class CsvImportComponent implements OnInit {
 
     const runChunk = (offset: number): void => {
       this.csvImportService
-        .run(businessAccountId, branchId, mappingId, file, { offset, limit: this.chunkRows, batchId })
+        .run(businessAccountId, destino, mappingId, file, { offset, limit, batchId, groupId })
         .pipe(
           // Reintentos solo ante cortes de red/proxy (status 0, 502/503/504) -- no ante
           // un 4xx, que es un error real. Reprocesar una tanda es seguro: el upsert es
@@ -392,6 +605,7 @@ export class CsvImportComponent implements OnInit {
         .subscribe({
           next: (r) => {
             batchId = r.batchId;
+            groupId = r.groupId ?? null;
             errors.push(...r.errors);
             anomalies.push(...r.priceAnomalies);
             costsLoaded += r.costsLoaded ?? 0;
@@ -434,7 +648,10 @@ export class CsvImportComponent implements OnInit {
             });
             this.step.set('result');
             // Cortada por el cupo del plan no se ofrece: el backend tampoco la deja (archivo incompleto).
-            if (catalogoCompleto && !r.stoppedByPlanLimit) this.consultarCatalogo(businessAccountId, r.batchId);
+            if (catalogoCompleto && !r.stoppedByPlanLimit) {
+              if (r.groupId) this.consultarCatalogoGrupo(businessAccountId, r.groupId);
+              else this.consultarCatalogo(businessAccountId, r.batchId);
+            }
           },
           error: (err) => {
             this.loading.set(false);
@@ -445,7 +662,9 @@ export class CsvImportComponent implements OnInit {
             // puede deshacer entero desde el historial (el lote existe).
             this.errorMessage.set(
               batchId !== null && p
-                ? `${base} Se alcanzaron a procesar ${p.done} de ${p.total} filas antes del error; lo que se cargo queda como el lote #${batchId} en "Importaciones", desde donde podés deshacerlo entero o repetir la carga.`
+                ? groupId !== null
+                  ? `${base} Se alcanzaron a procesar ${p.done} de ${p.total} filas antes del error; lo que se cargo queda como una carga en ${cantidadDeSucursales} sucursales en "Importaciones", desde donde podés deshacerla entera o repetir la carga.`
+                  : `${base} Se alcanzaron a procesar ${p.done} de ${p.total} filas antes del error; lo que se cargo queda como el lote #${batchId} en "Importaciones", desde donde podés deshacerlo entero o repetir la carga.`
                 : base,
             );
           },
@@ -480,6 +699,15 @@ export class CsvImportComponent implements OnInit {
   /** Filas ya corregidas: clave -> texto para mostrar en verde. */
   protected readonly corregidas = signal<Record<string, string>>({});
 
+  /** BP-132 -- sucursal de la ultima carga cuando fue a UNA sola (con zona / todas, cada anomalia trae las suyas). */
+  private cargaBranchId: string | null = null;
+
+  /** Sucursales donde se corrige esta anomalia: donde aparecio (carga agrupada) o la de la carga. */
+  protected sucursalesDeLaAnomalia(a: CsvImportPriceAnomaly): string[] {
+    if (a.sucursales?.length) return a.sucursales;
+    return [this.cargaBranchId ?? this.uploadForm.getRawValue().branchId];
+  }
+
   protected anomalyKey(a: CsvImportPriceAnomaly): string {
     return `${a.ean}::${a.priceField}`;
   }
@@ -496,7 +724,8 @@ export class CsvImportComponent implements OnInit {
   }
 
   protected startEdit(a: CsvImportPriceAnomaly): void {
-    const { businessAccountId, branchId } = this.uploadForm.getRawValue();
+    const { businessAccountId } = this.uploadForm.getRawValue();
+    const branchId = this.sucursalesDeLaAnomalia(a)[0];
     if (!businessAccountId) return;
     this.editingKey.set(this.anomalyKey(a));
     this.editError.set(null);
@@ -533,7 +762,10 @@ export class CsvImportComponent implements OnInit {
   }
 
   protected saveEdit(a: CsvImportPriceAnomaly): void {
-    const { businessAccountId, branchId } = this.uploadForm.getRawValue();
+    const { businessAccountId } = this.uploadForm.getRawValue();
+    // BP-132 -- en una carga agrupada se corrige en todas las sucursales donde aparecio la anomalia.
+    const sucursales = this.sucursalesDeLaAnomalia(a);
+    const branchId = sucursales[0];
     const item = this.editItem();
     const listPrice = Number(this.editListPrice());
     if (!businessAccountId || !item) return;
@@ -585,14 +817,24 @@ export class CsvImportComponent implements OnInit {
 
     this.editSaving.set(true);
     this.editError.set(null);
-    this.priceService.upsert(request).subscribe({
-      next: (resp) => {
+    // Una por sucursal, en serie. Una regla de sucursal se guarda como de ESA sucursal; una de cuenta, de cuenta.
+    const pedidos = sucursales.map((b) =>
+      this.priceService.upsert({
+        ...request,
+        branchId: b,
+        promoRule: request.promoRule ? { ...request.promoRule, branchId: request.promoRule.branchId === null ? null : b } : request.promoRule,
+      }),
+    );
+    concat(...pedidos).pipe(toArray()).subscribe({
+      next: (respuestas) => {
+        const resp = respuestas[respuestas.length - 1];
         this.editSaving.set(false);
         this.editingKey.set(null);
+        const donde = sucursales.length > 1 ? ` en ${sucursales.length} sucursales` : '';
         const texto =
           this.esPromo(a) && this.promoEditable()
-            ? `corregido: lista $${resp.listPrice}${resp.promo1UnitPrice ? ` · promo $${resp.promo1UnitPrice}` : ' · sin promo'}`
-            : `corregido: $${resp.listPrice}`;
+            ? `corregido${donde}: lista $${resp.listPrice}${resp.promo1UnitPrice ? ` · promo $${resp.promo1UnitPrice}` : ' · sin promo'}`
+            : `corregido${donde}: $${resp.listPrice}`;
         this.corregidas.set({ ...this.corregidas(), [this.anomalyKey(a)]: texto });
       },
       error: (err) => {

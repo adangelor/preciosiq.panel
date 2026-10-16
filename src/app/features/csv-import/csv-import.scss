@@ -302,3 +302,73 @@ button:disabled {
   background: var(--border);
   color: var(--text-2);
 }
+
+// BP-132 (16-oct-2026) -- "¿A qué sucursales?": una sucursal, una zona de precio o todas.
+.destino {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 0.9rem;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.destino legend {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0 0.3rem;
+}
+
+.destino__opcion {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  text-align: left;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.destino__opcion input {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.destino__select {
+  margin-left: 1.6rem;
+  max-width: calc(100% - 1.6rem);
+}
+
+.destino__aviso,
+.destino__sucursales {
+  text-align: left;
+  margin: 0 0 0.2rem 1.6rem;
+  font-size: 0.85rem;
+}
+
+.destino__aviso .fa-circle-info {
+  color: var(--primary);
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.por-sucursal {
+  margin-bottom: 0.4rem;
+}
+
+.catalogo-box__sucursales {
+  margin: 0 0 0.8rem 1.1rem;
+  font-size: 0.9rem;
+}

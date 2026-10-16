@@ -3,15 +3,19 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  CatalogoCompletoGrupoResult,
   CatalogoCompletoResult,
   CsvImportBatch,
   CsvImportChunkOptions,
+  CsvImportDestino,
+  CsvImportGroup,
   CsvImportResult,
   CsvMapping,
   CsvMappingTestResult,
   CsvPreviewResponse,
   SaveCsvMappingRequest,
   UndoCsvImportBatchResult,
+  UndoCsvImportGroupResult,
 } from './csv-import.models';
 
 // Cliente de BusinessCsvImportEndpoints.cs (E5).
@@ -63,22 +67,28 @@ export class CsvImportService {
   // archivo viaja entero cada vez (el backend es sin estado a proposito, lo re-parsea).
   // Sin `chunk` procesa todo en una llamada, como antes -- y se cuelga con archivos
   // grandes, que es justo lo que esto arregla.
+  // BP-132 (16-oct-2026) -- el destino puede ser una sucursal (un string, como siempre), una zona de precio o todas
+  // las sucursales; en una carga agrupada, desde la segunda tanda va groupId en vez de batchId.
   run(
     businessAccountId: number,
-    branchId: string,
+    destino: string | CsvImportDestino,
     mappingId: number,
     file: File,
     chunk?: CsvImportChunkOptions,
   ): Observable<CsvImportResult> {
     const form = new FormData();
     form.append('businessAccountId', String(businessAccountId));
-    form.append('branchId', branchId);
+    const d: CsvImportDestino = typeof destino === 'string' ? { tipo: 'sucursal', branchId: destino } : destino;
+    if (d.tipo === 'sucursal') form.append('branchId', d.branchId);
+    else if (d.tipo === 'zona') form.append('priceZoneId', String(d.priceZoneId));
+    else form.append('todasLasSucursales', 'true');
     form.append('mappingId', String(mappingId));
     form.append('file', file);
     if (chunk) {
       form.append('offset', String(chunk.offset));
       form.append('limit', String(chunk.limit));
-      if (chunk.batchId !== null) form.append('batchId', String(chunk.batchId));
+      if (chunk.groupId != null) form.append('groupId', String(chunk.groupId));
+      else if (chunk.batchId !== null) form.append('batchId', String(chunk.batchId));
     }
     return this.http.post<CsvImportResult>(`${this.baseUrl}/run`, form);
   }
@@ -87,6 +97,24 @@ export class CsvImportService {
   listBatches(businessAccountId: number): Observable<CsvImportBatch[]> {
     return this.http.get<CsvImportBatch[]>(`${this.baseUrl}/batches`, {
       params: { businessAccountId: String(businessAccountId) },
+    });
+  }
+
+  // BP-132 -- cargas agrupadas (zona / todas): historial, deshacer entera y catalogo completo de una vez.
+  listGroups(businessAccountId: number): Observable<CsvImportGroup[]> {
+    return this.http.get<CsvImportGroup[]>(`${this.baseUrl}/groups`, {
+      params: { businessAccountId: String(businessAccountId) },
+    });
+  }
+
+  undoGroup(groupId: number, businessAccountId: number): Observable<UndoCsvImportGroupResult> {
+    return this.http.post<UndoCsvImportGroupResult>(`${this.baseUrl}/groups/${groupId}/undo`, { businessAccountId });
+  }
+
+  catalogoCompletoGrupo(groupId: number, businessAccountId: number, aplicar: boolean): Observable<CatalogoCompletoGrupoResult> {
+    return this.http.post<CatalogoCompletoGrupoResult>(`${this.baseUrl}/groups/${groupId}/catalogo-completo`, {
+      businessAccountId,
+      aplicar,
     });
   }
 

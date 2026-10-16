@@ -21,15 +21,55 @@
 
     @if (step() === 'upload') {
       <form [formGroup]="uploadForm" (ngSubmit)="loadPreview()" class="signup__form">
+        <!-- BP-132 (16-oct-2026) -- a que sucursales va la lista. Con una sola sucursal no se muestra nada. -->
         @if (branches().length > 1) {
-          <label>
-            Sucursal
-            <select formControlName="branchId">
-              @for (b of branches(); track b.branchId) {
-                <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+          <fieldset class="destino">
+            <legend>¿A qué sucursales?</legend>
+            <label class="destino__opcion">
+              <input type="radio" name="destino" [checked]="destinoTipo() === 'sucursal'" (change)="elegirDestino('sucursal')" />
+              Una sucursal
+            </label>
+            @if (destinoTipo() === 'sucursal') {
+              <select formControlName="branchId" class="destino__select" (change)="guardarDestino()" aria-label="Sucursal">
+                @for (b of branches(); track b.branchId) {
+                  <option [value]="b.branchId">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
+                }
+              </select>
+              @if (zonaDeLaSucursal(); as z) {
+                <p class="destino__aviso">
+                  <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                  Está en la zona <strong>{{ z.nombre }}</strong> con {{ nombresDe(otrasDeLaZona(z)) }}.
+                  <button type="button" class="link-btn" (click)="cargarEnTodaLaZona(z)">¿Cargar la lista en toda la zona?</button>
+                </p>
               }
-            </select>
-          </label>
+            }
+            @if (zonas().length > 0) {
+              <label class="destino__opcion">
+                <input type="radio" name="destino" [checked]="destinoTipo() === 'zona'" (change)="elegirDestino('zona')" />
+                Una zona de precio
+              </label>
+              @if (destinoTipo() === 'zona') {
+                <select class="destino__select" [value]="zonaId()" (change)="elegirZona($any($event.target).value)" aria-label="Zona de precio">
+                  @for (z of zonas(); track z.id) {
+                    <option [value]="z.id" [selected]="z.id === zonaId()">{{ z.nombre }} ({{ z.sucursales.length }} {{ z.sucursales.length === 1 ? 'sucursal' : 'sucursales' }})</option>
+                  }
+                </select>
+                @if (zonaElegida(); as z) {
+                  <p class="hint destino__sucursales">Se carga en: {{ nombresDelDestino() }}.</p>
+                }
+                @if (fueraDeLaZona().length > 0) {
+                  <p class="destino__aviso">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    Esta lista no se carga en {{ nombresDe(fueraDeLaZona()) }}.
+                  </p>
+                }
+              }
+            }
+            <label class="destino__opcion">
+              <input type="radio" name="destino" [checked]="destinoTipo() === 'todas'" (change)="elegirDestino('todas')" />
+              Todas las sucursales ({{ branches().length }})
+            </label>
+          </fieldset>
         }
         <label>
           Archivo CSV
@@ -351,10 +391,13 @@
                 <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Leyendo el archivo…
               } @else {
                 <strong>{{ p.done }} / {{ p.total }}</strong> filas ({{ progressPct() }}%)
+                @if (sucursalesDelDestino().length > 1) {
+                  en {{ sucursalesDelDestino().length }} sucursales
+                }
                 — {{ p.created }} nuevos, {{ p.updated }} actualizados, {{ p.failed }} con error
               }
             </p>
-            <p class="hint">No cierres esta pestaña hasta que termine: la carga va en tandas de a {{ chunkRows }} filas.</p>
+            <p class="hint">No cierres esta pestaña hasta que termine: la carga va en tandas.</p>
           </div>
         }
       </ng-template>
@@ -374,6 +417,18 @@
           {{ r.costsLoaded === 1 ? 'nuevo o actualizado' : 'nuevos o actualizados' }} — ya los ve el Asesor de Precios.
         }
       </p>
+      <!-- BP-132 -- carga a varias sucursales: lo de cada una. -->
+      @if (r.porSucursal?.length) {
+        <table class="preview-table por-sucursal">
+          <thead><tr><th>Sucursal</th><th>Nuevos</th><th>Actualizados</th><th>Con error</th></tr></thead>
+          <tbody>
+            @for (s of r.porSucursal!; track s.branchId) {
+              <tr><td>{{ s.branchName }}</td><td>{{ s.created }}</td><td>{{ s.updated }}</td><td>{{ s.failed }}</td></tr>
+            }
+          </tbody>
+        </table>
+        <p class="hint">"Con error" de arriba son las filas del archivo que no se cargaron en ninguna sucursal; acá, las de cada una.</p>
+      }
       @if ((r.promoRulesSaved ?? 0) > 0 || (r.promoRulesDeactivated ?? 0) > 0 || (r.promosIgnoradas ?? 0) > 0) {
         <p>
           <i class="fa-solid fa-tags" aria-hidden="true"></i>
@@ -428,6 +483,60 @@
         </div>
       }
 
+      <!-- BP-132 -- catalogo completo de una carga a varias sucursales: una confirmacion, una linea por sucursal. -->
+      @if (catalogoGrupo(); as c) {
+        <div class="catalogo-box" [class.anomaly-warning]="!c.aplicado && c.sospechoso">
+          @if (c.aplicado) {
+            <h3><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{ c.bajas }} producto{{ c.bajas === 1 ? '' : 's' }} sin stock en {{ c.porSucursal.length }} sucursales</h3>
+            <ul class="catalogo-box__sucursales">
+              @for (s of c.porSucursal; track s.branchId) {
+                <li>{{ s.branchName }}: {{ s.bajas }}</li>
+              }
+            </ul>
+            <p>Ya no aparecen en BuscaPrecios; en tu tienda de misuper.app se ven como "Sin stock". Cuando vuelvan en una planilla, se publican solos.</p>
+          } @else if (c.bajas === 0) {
+            <p>
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              Catálogo completo: en las {{ c.porSucursal.length }} sucursales vino todo lo que tenías publicado.
+            </p>
+          } @else if (!catalogoDescartado()) {
+            <h3><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Productos que no vinieron en el archivo</h3>
+            <table class="preview-table">
+              <thead><tr><th>Sucursal</th><th>Se dan de baja</th><th>Publicados antes</th></tr></thead>
+              <tbody>
+                @for (s of c.porSucursal; track s.branchId) {
+                  <tr [class.delta--above]="s.sospechoso">
+                    <td>{{ s.branchName }}</td>
+                    <td>{{ s.bajas }}</td>
+                    <td>{{ s.publicadosAntes }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <p>
+              Si los damos de baja, dejan de aparecer en BuscaPrecios y en misuper.app quedan como "Sin stock", sin
+              precio. Se aplica en todas estas sucursales o en ninguna.
+            </p>
+            @if (c.sospechoso) {
+              <p><strong>Ojo: alguna sucursal pierde más de la mitad de lo que tenía publicado.</strong> ¿Seguro que el archivo es el catálogo entero?</p>
+            }
+            @if (c.porSucursal[0]?.ejemplos?.length) {
+              <p class="hint">Por ejemplo: {{ c.porSucursal[0].ejemplos.join(' · ') }}…</p>
+            }
+            <div class="catalogo-box__acciones">
+              <button type="button" (click)="aplicarCatalogoGrupo()" [disabled]="catalogoLoading()">
+                {{ catalogoLoading() ? 'Dando de baja…' : 'Sí, pasarlos a sin stock en todas' }}
+              </button>
+              <button type="button" class="catalogo-box__no" (click)="catalogoDescartado.set(true)" [disabled]="catalogoLoading()">
+                No, dejarlos publicados
+              </button>
+            </div>
+          } @else {
+            <p class="hint">Quedaron publicados los {{ c.bajas }} que no vinieron en el archivo.</p>
+          }
+        </div>
+      }
+
       <p class="hint">
         ¿Se coló algún error? <a routerLink="/precios/importaciones">Ver historial de importaciones y deshacer esta carga →</a>
       </p>
@@ -443,10 +552,14 @@
           </p>
           <!-- 17-sep-2026 -- corrector en linea: "Editar" habilita el precio de esta fila y se
                guarda con el mismo endpoint que Cargar precio. Ver csv-import.ts. -->
+          <div class="preview-scroll">
           <table class="preview-table">
             <thead>
               <tr>
                 <th>Producto</th>
+                @if (r.porSucursal?.length) {
+                  <th>Sucursales</th>
+                }
                 <th>Campo</th>
                 <th>Precio cargado</th>
                 <th>Referencia</th>
@@ -457,7 +570,10 @@
             <tbody>
               @for (a of r.priceAnomalies; track a.ean + a.priceField) {
                 <tr>
-                  <td>{{ a.description ?? a.ean }}</td>
+                  <td>{{ a.description || a.ean }}</td>
+                  @if (r.porSucursal?.length) {
+                    <td>{{ sucursalesDeLaAnomaliaTexto(a, r) }}</td>
+                  }
                   <td>{{ anomalyFieldLabel(a) }}</td>
                   <td>${{ a.newPrice.toFixed(2) }}</td>
                   <td>
@@ -478,7 +594,7 @@
 
                 @if (editingKey() === anomalyKey(a)) {
                   <tr class="anomaly-fix__row">
-                    <td colspan="6">
+                    <td [attr.colspan]="r.porSucursal?.length ? 7 : 6">
                       @if (editLoading()) {
                         <p class="hint">Buscando el producto…</p>
                       } @else {
@@ -542,9 +658,13 @@
               }
             </tbody>
           </table>
+          </div>
           <p class="hint">
             Lo que corrijas acá se guarda igual que desde <a routerLink="/precios/cargar">Cargar precio</a>:
             queda en el historial y se vuelve a publicar en la red.
+            @if (r.porSucursal?.length) {
+              Se corrige en las sucursales donde apareció.
+            }
           </p>
         </div>
       }

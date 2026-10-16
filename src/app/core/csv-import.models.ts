@@ -131,6 +131,9 @@ export interface CsvImportPriceAnomaly {
   referencePrice: number;
   referenceType: 'previous' | 'zone';
   priceField: 'ListPrice' | 'Promo1' | 'Promo2';
+  // BP-132 (16-oct-2026) -- en una carga a varias sucursales, en cuales aparecio (BranchId). "Corregir" aplica a
+  // esas. null en la carga a una sola sucursal.
+  sucursales?: string[] | null;
 }
 
 export interface CsvImportResult {
@@ -164,12 +167,34 @@ export interface CsvImportResult {
   promosConAvisoDetalle?: CsvImportRowError[] | null;
   // BP-77 (14-oct-2026) -- filas con costo de una zona que la cuenta no tiene: el precio se cargo, el costo no.
   costosZonaDesconocida?: CsvImportRowError[] | null;
+  // BP-132 (16-oct-2026) -- carga a una zona o a todas las sucursales: groupId (va en las tandas siguientes en
+  // vez de batchId) y lo de cada sucursal, acumulado. Ahi created/updated suman las sucursales y failed son
+  // las filas del archivo con error, contadas una vez. null en la carga a una sola sucursal.
+  groupId?: number | null;
+  porSucursal?: CsvImportSucursalResult[] | null;
 }
+
+export interface CsvImportSucursalResult {
+  branchId: string;
+  branchName: string;
+  batchId: number;
+  created: number;
+  updated: number;
+  failed: number;
+  stoppedByPlanLimit: boolean;
+}
+
+// BP-132 -- a que sucursales va la carga.
+export type CsvImportDestino =
+  | { tipo: 'sucursal'; branchId: string }
+  | { tipo: 'zona'; priceZoneId: number }
+  | { tipo: 'todas' };
 
 export interface CsvImportChunkOptions {
   offset: number;
   limit: number;
   batchId: number | null;
+  groupId?: number | null;   // BP-132: desde la segunda tanda de una carga agrupada
 }
 
 // E5.5 (16-ago-2026) -- pedido de Andres tras el incidente real de import con separador
@@ -186,6 +211,60 @@ export interface CsvImportBatch {
   failed: number;
   importedAt: string;
   revertedAt: string | null;
+  groupId?: number | null;   // BP-132: la carga agrupada de la que es parte (null = una sola sucursal)
+}
+
+// BP-132 (16-oct-2026) -- GET /groups: una carga a una zona o a todas las sucursales, con el lote de cada una.
+export interface CsvImportGroup {
+  id: number;
+  destino: 'zona' | 'todas';
+  priceZoneId: number | null;
+  zonaNombre: string | null;
+  sucursales: number;
+  fileName: string | null;
+  totalRows: number;
+  created: number;
+  updated: number;
+  failed: number;
+  importedAt: string;
+  revertedAt: string | null;
+  deshechaEnParte: boolean;
+  lotes: CsvImportBatch[];
+}
+
+export interface UndoCsvImportGroupResult {
+  groupId: number;
+  restoredCount: number;
+  deletedCount: number;
+  reactivadosCount: number;
+  promosDesactivadas: number;
+  promosReactivadas: number;
+  revertedAt: string;
+  lotesDeshechos: number;
+  lotesYaDeshechos: number;
+  mensaje: string;
+}
+
+// BP-132 -- catalogo completo de una carga agrupada: las bajas de cada sucursal en una sola confirmacion.
+export interface CatalogoCompletoSucursal {
+  branchId: string;
+  branchName: string;
+  batchId: number;
+  aplicado: boolean;
+  sospechoso: boolean;
+  bajas: number;
+  publicadosAntes: number;
+  vinieronEnElArchivo: number;
+  ejemplos: string[];
+  aplicadoAt: string | null;
+}
+
+export interface CatalogoCompletoGrupoResult {
+  groupId: number;
+  aplicado: boolean;
+  sospechoso: boolean;
+  bajas: number;
+  porSucursal: CatalogoCompletoSucursal[];
 }
 
 export interface UndoCsvImportBatchResult {
