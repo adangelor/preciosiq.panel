@@ -71,6 +71,10 @@
                      Calculada en el frontend solo para ordenar/mostrar, no es un campo
                      nuevo del backend. -->
                 {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
+                <!-- BP-143 -- 3x o mas arriba/abajo de la zona: no entra en la diferencia de la categoria. -->
+                @if (p.deltaPct !== null && (p.deltaPct >= 2 || p.deltaPct <= -2 / 3)) {
+                  <span class="atipico" title="Tu precio está 3 veces o más arriba o abajo del de la zona: revisalo. No entra en la diferencia de la categoría.">para revisar</span>
+                }
               </td>
               <td>
                 <!-- E8.6 -- cadenas obligadas por SEPA: dato publico por ley, se

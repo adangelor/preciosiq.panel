@@ -418,7 +418,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   private ensureAllProducts(): void {
     if (this.allProducts() !== null || this.loadingAllProducts()) return;
 
-    const { businessAccountId, branchId, maxDistanceMeters } = this.form.getRawValue();
+    const { businessAccountId, branchId, maxDistanceMeters } = this.parametrosDelCalculo();
     if (businessAccountId == null || !branchId) return;
 
     this.loadingAllProducts.set(true);
@@ -475,7 +475,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   }
 
   protected openAdvisorZona(): void {
-    const { businessAccountId, maxDistanceMeters } = this.form.getRawValue();
+    const { businessAccountId, maxDistanceMeters } = this.parametrosDelCalculo();
     const zona = this.zonaDeLaSucursal();
     if (businessAccountId == null || !zona) return;
     this.dialog.open<AdvisorReportDialogComponent, AdvisorReportDialogData>(AdvisorReportDialogComponent, {
@@ -605,12 +605,14 @@ export class BenchmarkDashboardComponent implements OnInit {
         'Precio mínimo zona': c.competitorMinPrice ?? '',
         'Precio máximo zona': c.competitorMaxPrice ?? '',
         // 19-ago-2026 -- matcheado por EAN, no canasta contra canasta.
-        'Diferencia vs. zona (%, por producto matcheado)': c.deltaVsCompetitorsPct !== null ? +(c.deltaVsCompetitorsPct * 100).toFixed(1) : '',
+        // BP-143 -- mediana por producto, sin los precios atipicos (que se cuentan aparte).
+        'Diferencia vs. zona (%, mediana sin atípicos)': c.deltaVsCompetitorsPct !== null ? +(c.deltaVsCompetitorsPct * 100).toFixed(1) : '',
         'Productos matcheados (mismo EAN)': c.matchedProductCount,
+        'Precios para revisar (3x o más de diferencia, fuera de la mediana)': c.atypicalCount ?? 0,
       });
       const catWidths = [
         { wch: 28 }, { wch: 26 }, { wch: 16 }, { wch: 13 }, { wch: 16 }, { wch: 16 },
-        { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 26 }, { wch: 20 },
+        { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 26 }, { wch: 20 }, { wch: 22 },
       ];
 
       const totalsSheet = XLSX.utils.json_to_sheet(totals.map(categoryRow));
@@ -627,7 +629,7 @@ export class BenchmarkDashboardComponent implements OnInit {
       let productos = this.allProducts();
       if (productos === null) {
         try {
-          const { businessAccountId, branchId, maxDistanceMeters } = this.form.getRawValue();
+          const { businessAccountId, branchId, maxDistanceMeters } = this.parametrosDelCalculo();
           const response = await firstValueFrom(
             this.trendService.getAllProductsDetail(businessAccountId!, branchId, maxDistanceMeters),
           );
@@ -669,7 +671,7 @@ export class BenchmarkDashboardComponent implements OnInit {
         XLSX.utils.book_append_sheet(workbook, productsSheet, 'Productos');
       }
 
-      const branchId = this.form.controls.branchId.value;
+      const branchId = this.parametrosDelCalculo().branchId;   // BP-142
       const branchName = this.branches()?.find((b) => b.branchId === branchId)?.branchName ?? branchId;
       const today = new Date();
       const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -685,7 +687,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   // request (POST /api/business/advisor/report) -- el gate por plan y la cache
   // diaria viven en el backend; aca solo se pasa el contexto de sucursal/radio.
   protected openAdvisor(): void {
-    const { businessAccountId, branchId, maxDistanceMeters } = this.form.getRawValue();
+    const { businessAccountId, branchId, maxDistanceMeters } = this.parametrosDelCalculo();
     if (businessAccountId == null || !branchId) return;
 
     this.dialog.open<AdvisorReportDialogComponent, AdvisorReportDialogData>(AdvisorReportDialogComponent, {
@@ -695,6 +697,31 @@ export class BenchmarkDashboardComponent implements OnInit {
       maxHeight: '90vh',
       autoFocus: false,
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BP-142 (16-oct-2026) -- la tabla queda con la sucursal y el radio del ultimo calculo, pero el detalle, la tendencia,
+  // la vista por productos, el Excel y el Asesor leian el FORMULARIO en ese momento. Cambiar el radio o la sucursal
+  // (que ademas carga el radio guardado de esa sucursal) sin recalcular hacia que la fila y el detalle hablaran de
+  // radios distintos (Rufino, Libreria: la fila decia +62,3 % con 19 productos; el detalle, 1 producto a -32,2 %).
+  // Ahora todo usa los parametros del ultimo calculo, y si el formulario cambio se avisa con "Recalcular".
+  // ─────────────────────────────────────────────────────────────
+  protected readonly calculo = signal<{ businessAccountId: number; branchId: string; maxDistanceMeters: number } | null>(null);
+  protected readonly formularioCambiado = computed(() => {
+    const c = this.calculo();
+    if (!c || this.categories() === null) return false;
+    return this.branchIdValue() !== c.branchId || Number(this.radiusValue()) !== c.maxDistanceMeters;
+  });
+  protected nombreDeSucursalDelCalculo(): string {
+    const id = this.calculo()?.branchId;
+    return this.branches()?.find((b) => b.branchId === id)?.branchName ?? id ?? '';
+  }
+
+  private parametrosDelCalculo(): { businessAccountId: number | null; branchId: string; maxDistanceMeters: number } {
+    const c = this.calculo();
+    if (c) return c;
+    const { businessAccountId, branchId, maxDistanceMeters } = this.form.getRawValue();
+    return { businessAccountId, branchId, maxDistanceMeters };
   }
 
   protected loadDashboard(): void {
@@ -721,6 +748,8 @@ export class BenchmarkDashboardComponent implements OnInit {
       next: (response) => {
         this.loading.set(false);
         this.categories.set(response.categories);
+        // BP-142 -- desde aca, detalle, tendencia, productos, Excel y Asesor usan ESTOS parametros.
+        this.calculo.set({ businessAccountId: businessAccountId!, branchId, maxDistanceMeters: Number(maxDistanceMeters) });
         // Corrio bien con este radio: queda como preferencia de la sucursal, y la
         // proxima entrada al dashboard arranca directo con el.
         this.prefs.saveRadius(branchId, maxDistanceMeters);
@@ -755,7 +784,7 @@ export class BenchmarkDashboardComponent implements OnInit {
     this.sortColumn.set('default');
     this.sortDirection.set('desc');
 
-    const { businessAccountId, branchId, maxDistanceMeters } = this.form.getRawValue();
+    const { businessAccountId, branchId, maxDistanceMeters } = this.parametrosDelCalculo();
     const dateTo = new Date();
     const dateFrom = new Date();
     dateFrom.setDate(dateFrom.getDate() - 90);

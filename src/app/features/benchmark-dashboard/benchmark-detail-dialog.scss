@@ -174,3 +174,15 @@
   font-size: 0.82rem;
   color: var(--text-3);
 }
+
+// BP-143 -- precio propio 3x o mas arriba/abajo de la zona.
+.atipico {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--warning-soft);
+  color: var(--warning);
+}

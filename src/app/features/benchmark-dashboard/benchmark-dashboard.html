@@ -63,6 +63,16 @@
     <p class="form-error">{{ errorMessage() }}</p>
   }
 
+  <!-- BP-142 -- la tabla es del ultimo calculo; si el formulario cambio, se avisa (el detalle y el Excel siguen el calculo). -->
+  @if (formularioCambiado() && !loading()) {
+    <div class="recalcular" role="status">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      Lo que ves es de <strong>{{ nombreDeSucursalDelCalculo() }}</strong> a <strong>{{ calculo()?.maxDistanceMeters }} m</strong>.
+      Cambiaste la sucursal o el radio: el detalle y el Excel siguen siendo de ese cálculo hasta que recalcules.
+      <button type="button" class="recalcular__btn" (click)="loadDashboard()">Recalcular</button>
+    </div>
+  }
+
   @if (categories(); as cats) {
     @if (cats.length === 0) {
       <p class="empty-state">
@@ -219,9 +229,15 @@
                     <!-- 22-ago -- el "(sobre N productos)" que vivia aca se mudo a la
                          columna "A comparar": mismo dato, lugar propio, ordenable. -->
                     @if (c.deltaVsCompetitorsPct === null) {
-                      <span class="delta--empty">Sin productos propios coincidentes</span>
+                      <span class="delta--empty">{{ (c.atypicalCount ?? 0) > 0 ? 'Solo precios para revisar' : 'Sin productos propios coincidentes' }}</span>
                     } @else {
                       {{ (c.deltaVsCompetitorsPct * 100).toFixed(1) }}%
+                    }
+                    <!-- BP-143 -- los atipicos no entran en la mediana; se avisan aca. -->
+                    @if ((c.atypicalCount ?? 0) > 0) {
+                      <span class="atipicos" title="Productos con tu precio 3 veces o más arriba o abajo del de la zona: casi siempre un error de carga. No entran en la diferencia.">
+                        {{ c.atypicalCount }} para revisar
+                      </span>
                     }
                   </td>
                   <td class="cat-table__link">{{ c.isCategoryTotal ? 'Ver subcategorías →' : 'Ver detalle →' }}</td>

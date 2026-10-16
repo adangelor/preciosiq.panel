@@ -384,3 +384,31 @@ button:disabled {
   font-size: 0.82rem;
   color: var(--text-3);
 }
+
+// BP-142 -- aviso de que la tabla es de otro calculo.
+.recalcular {
+  display: block;
+  line-height: 1.6;
+  background: var(--warning-soft);
+  border: 1px solid var(--warning);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.recalcular__btn {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+// BP-143 -- precios atipicos (fuera de la mediana).
+.atipicos {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--warning);
+  white-space: nowrap;
+}

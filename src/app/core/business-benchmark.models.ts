@@ -29,6 +29,9 @@ export interface BenchmarkCategoryResult {
   // deltaVsCompetitorsPct viaja en null (no hay nada matcheado, no un numero inventado).
   matchedProductCount: number;
   deltaVsCompetitorsPct: number | null;
+  // BP-143 (16-oct-2026) -- deltaVsCompetitorsPct es la MEDIANA sin los atipicos (precio propio 3x arriba o abajo del de
+  // la zona); atypicalCount dice cuantos quedaron afuera ("precios para revisar"). 0 con un backend sin BP-143.
+  atypicalCount?: number;
 }
 
 export interface InstantBenchmarkResponse {
