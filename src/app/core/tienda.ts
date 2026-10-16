@@ -96,6 +96,30 @@ export interface ErrorDeCampo {
   campo?: string;
 }
 
+// BP-130 -- espejo de TiendaPedidosEndpoints.Pedido (camelCase).
+export type EstadoPedido = 'nuevo' | 'visto' | 'preparado' | 'entregado' | 'cancelado';
+
+export interface RenglonPedidoTienda {
+  ean: string;
+  descripcion: string;
+  presentacion: string | null;
+  cantidad: number;
+  precioLista: number;
+  total: number;
+  promoTexto: string | null;
+}
+
+export interface PedidoTienda {
+  codigo: string;
+  creadoAtUtc: string;
+  entrega: 'retiro' | 'envio';
+  total: number;
+  renglones: number;
+  estado: EstadoPedido;
+  estadoAtUtc: string;
+  productos: RenglonPedidoTienda[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class TiendaService {
   private readonly http = inject(HttpClient);
@@ -127,9 +151,24 @@ export class TiendaService {
     return this.http.get<TiendaEstadisticas>(`${this.url}/${tiendaId}/estadisticas`);
   }
 
+  /** BP-130 -- los pedidos guardados de la tienda (ultimos `dias` dias), del mas nuevo al mas viejo. */
+  pedidos(tiendaId: number, dias = 30): Observable<PedidoTienda[]> {
+    return this.http.get<PedidoTienda[]>(`${this.url}/${tiendaId}/pedidos`, { params: { dias } });
+  }
+
+  /** BP-130 -- cambia el estado de un pedido. Devuelve el estado que quedo ("visto" no pisa uno posterior). */
+  cambiarEstadoPedido(tiendaId: number, codigo: string, estado: Exclude<EstadoPedido, 'nuevo'>): Observable<{ codigo: string; estado: EstadoPedido }> {
+    return this.http.patch<{ codigo: string; estado: EstadoPedido }>(`${this.url}/${tiendaId}/pedidos/${codigo}`, { estado });
+  }
+
   /** La direccion publica: misuper.app/<slug>. */
   urlPublica(slug: string): string {
     return `${environment.misuperUrl}/${slug}`;
+  }
+
+  /** BP-130 -- el link de un pedido (el mismo que va en el WhatsApp). */
+  urlPedido(slug: string, codigo: string): string {
+    return `${environment.misuperUrl}/${slug}/pedido/${codigo}`;
   }
 }
 

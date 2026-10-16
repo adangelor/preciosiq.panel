@@ -1,0 +1,78 @@
+// BP-130 -- "Pedidos de tu tienda" (TiendaPedidosComponent). Mismos tokens que "Cómo le va a tu tienda".
+:host { display: block; }
+
+.hint { font-size: 0.9rem; color: var(--text-3); margin: 0.25rem 0; }
+
+.ped { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
+.ped__titulo { margin: 0 0 0.25rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.ped__nuevos {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--bg-card);
+}
+
+.ped__lista { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.ped__item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+.ped__item--nuevo { border-color: var(--primary); }
+
+.ped__fila {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--text);
+
+  &:hover { background: var(--bg-elevated); }
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+}
+.ped__codigo { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace; font-weight: 700; letter-spacing: 0.04em; }
+.ped__cuando, .ped__entrega { color: var(--text-2); }
+.ped__total { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ped__estado {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+
+  &[data-estado='nuevo'] { border-color: var(--primary); color: var(--primary); }
+  &[data-estado='preparado'] { border-color: var(--success); color: var(--success); }
+  &[data-estado='cancelado'] { color: var(--text-3); text-decoration: line-through; }
+}
+
+.ped__detalle { padding: 0 0.9rem 0.9rem; border-top: 1px solid var(--border-soft); }
+.ped__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+
+  th { text-align: left; font-weight: 600; color: var(--text-2); padding: 0.35rem 0; border-bottom: 1px solid var(--border-soft); }
+  td { padding: 0.4rem 0; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  tfoot td { font-weight: 700; border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 0.75rem; }
+  small { display: block; color: var(--text-3); font-size: 0.78rem; }
+}
+.ped__promo { color: var(--success) !important; }
+
+.ped__acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+@media (max-width: 560px) {
+  .ped__fila { grid-template-columns: auto 1fr auto; }
+  .ped__cuando, .ped__entrega { display: none; }
+}

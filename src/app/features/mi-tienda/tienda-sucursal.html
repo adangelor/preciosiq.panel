@@ -76,6 +76,9 @@
       </div>
 
       <!-- BP-122: visitas y pedidos. Tambien con la tienda despublicada: lo que paso antes sigue valiendo. -->
+      <!-- BP-130: los pedidos guardados, con su codigo (el mismo del WhatsApp). Arriba de las estadisticas: es lo que hay que atender. -->
+      <app-tienda-pedidos [tiendaId]="t.id" [slug]="t.slug" />
+
       <app-tienda-estadisticas [tiendaId]="t.id" />
 
       <section class="qr">
