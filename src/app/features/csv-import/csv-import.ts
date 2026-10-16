@@ -579,6 +579,7 @@ export class CsvImportComponent implements OnInit {
     const promosIgnoradasDetalle: CsvImportRowError[] = [];
     const promosConAvisoDetalle: CsvImportRowError[] = [];
     const costosZonaDesconocida: CsvImportRowError[] = [];   // BP-77
+    const altasSinMarcaDetalle: CsvImportRowError[] = [];    // BP-135
     let promoRulesSaved = 0;
     let promoRulesDeactivated = 0;
 
@@ -612,6 +613,7 @@ export class CsvImportComponent implements OnInit {
             promosIgnoradasDetalle.push(...(r.promosIgnoradasDetalle ?? []));
             promosConAvisoDetalle.push(...(r.promosConAvisoDetalle ?? []));
             costosZonaDesconocida.push(...(r.costosZonaDesconocida ?? []));
+            altasSinMarcaDetalle.push(...(r.altasSinMarcaDetalle ?? []));
             promoRulesSaved += r.promoRulesSaved ?? 0;
             promoRulesDeactivated += r.promoRulesDeactivated ?? 0;
 
@@ -639,6 +641,8 @@ export class CsvImportComponent implements OnInit {
               promosConAviso: promosConAvisoDetalle.length,
               promosConAvisoDetalle,
               costosZonaDesconocida,
+              altasSinMarca: altasSinMarcaDetalle.length,
+              altasSinMarcaDetalle,
               promoRulesSaved,
               promoRulesDeactivated,
               errors,
@@ -842,6 +846,11 @@ export class CsvImportComponent implements OnInit {
         this.editError.set(err?.error?.error ?? 'No se pudo guardar el precio.');
       },
     });
+  }
+
+  /** BP-135 -- los primeros productos que quedaron sin marca, para el aviso del resultado. */
+  protected ejemplosSinMarca(r: CsvImportResult): string {
+    return (r.altasSinMarcaDetalle ?? []).slice(0, 8).map((e) => e.reason).join(' · ');
   }
 
   protected hasZoneAnomaly(result: CsvImportResult): boolean {

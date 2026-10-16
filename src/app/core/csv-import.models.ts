@@ -167,6 +167,10 @@ export interface CsvImportResult {
   promosConAvisoDetalle?: CsvImportRowError[] | null;
   // BP-77 (14-oct-2026) -- filas con costo de una zona que la cuenta no tiene: el precio se cargo, el costo no.
   costosZonaDesconocida?: CsvImportRowError[] | null;
+  // BP-135 (16-oct-2026) -- filas de esta llamada dadas de alta con marca vacia (la fila no la traia y ni la red ni
+  // el nombre la daban; antes eran error). reason = "EAN · nombre". El panel las suma.
+  altasSinMarca?: number;
+  altasSinMarcaDetalle?: CsvImportRowError[] | null;
   // BP-132 (16-oct-2026) -- carga a una zona o a todas las sucursales: groupId (va en las tandas siguientes en
   // vez de batchId) y lo de cada sucursal, acumulado. Ahi created/updated suman las sucursales y failed son
   // las filas del archivo con error, contadas una vez. null en la carga a una sola sucursal.

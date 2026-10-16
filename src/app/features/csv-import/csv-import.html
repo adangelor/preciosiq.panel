@@ -669,6 +669,21 @@
         </div>
       }
 
+      <!-- BP-135 -- productos nuevos que quedaron sin marca (la planilla no la trae y la red no la conoce). -->
+      @if (r.altasSinMarcaDetalle?.length) {
+        <div class="sin-marca">
+          <h3><i class="fa-solid fa-tag" aria-hidden="true"></i> {{ r.altasSinMarcaDetalle!.length }} producto{{ r.altasSinMarcaDetalle!.length === 1 ? '' : 's' }} nuevo{{ r.altasSinMarcaDetalle!.length === 1 ? '' : 's' }} sin marca</h3>
+          <p>
+            Se cargaron con su precio, pero sin marca: la planilla no la trae y no la encontramos en la red ni en el nombre.
+            Podés completarla desde <a routerLink="/precios/cargar">Cargar precio</a>, o agregá una columna de marca a la
+            planilla y mapeala: la próxima carga la completa.
+          </p>
+          <p class="hint">
+            Por ejemplo: {{ ejemplosSinMarca(r) }}{{ r.altasSinMarcaDetalle!.length > 8 ? '…' : '' }}
+          </p>
+        </div>
+      }
+
       <!-- BP-77 -- costos de una zona que la cuenta no tiene (por nombre). -->
       @if (r.costosZonaDesconocida?.length) {
         <h3>Costos sin cargar ({{ r.costosZonaDesconocida!.length }})</h3>

@@ -372,3 +372,22 @@ button:disabled {
   margin: 0 0 0.8rem 1.1rem;
   font-size: 0.9rem;
 }
+
+// BP-135 (16-oct-2026) -- productos nuevos que quedaron sin marca.
+.sin-marca {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.sin-marca h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.sin-marca p {
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
