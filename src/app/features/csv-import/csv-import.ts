@@ -580,6 +580,8 @@ export class CsvImportComponent implements OnInit {
     const promosConAvisoDetalle: CsvImportRowError[] = [];
     const costosZonaDesconocida: CsvImportRowError[] = [];   // BP-77
     const altasSinMarcaDetalle: CsvImportRowError[] = [];    // BP-135
+    const marcasDescartadas: CsvImportRowError[] = [];       // BP-136
+    const eanDudosos: CsvImportRowError[] = [];              // BP-137
     let promoRulesSaved = 0;
     let promoRulesDeactivated = 0;
 
@@ -614,6 +616,8 @@ export class CsvImportComponent implements OnInit {
             promosConAvisoDetalle.push(...(r.promosConAvisoDetalle ?? []));
             costosZonaDesconocida.push(...(r.costosZonaDesconocida ?? []));
             altasSinMarcaDetalle.push(...(r.altasSinMarcaDetalle ?? []));
+            marcasDescartadas.push(...(r.marcasDeRedDescartadasDetalle ?? []));
+            eanDudosos.push(...(r.eanDudososDetalle ?? []));
             promoRulesSaved += r.promoRulesSaved ?? 0;
             promoRulesDeactivated += r.promoRulesDeactivated ?? 0;
 
@@ -643,6 +647,10 @@ export class CsvImportComponent implements OnInit {
               costosZonaDesconocida,
               altasSinMarca: altasSinMarcaDetalle.length,
               altasSinMarcaDetalle,
+              marcasDeRedDescartadas: marcasDescartadas.length,
+              marcasDeRedDescartadasDetalle: marcasDescartadas,
+              eanDudosos: eanDudosos.length,
+              eanDudososDetalle: eanDudosos,
               promoRulesSaved,
               promoRulesDeactivated,
               errors,
@@ -846,6 +854,11 @@ export class CsvImportComponent implements OnInit {
         this.editError.set(err?.error?.error ?? 'No se pudo guardar el precio.');
       },
     });
+  }
+
+  /** BP-136 -- los primeros de una lista de avisos, para mostrar en una linea. */
+  protected ejemplos(lista: CsvImportRowError[]): string {
+    return lista.slice(0, 6).map((e) => e.reason).join(' · ');
   }
 
   /** BP-135 -- los primeros productos que quedaron sin marca, para el aviso del resultado. */

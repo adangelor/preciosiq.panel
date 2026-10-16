@@ -32,6 +32,14 @@ export interface BenchmarkCategoryResult {
   // BP-143 (16-oct-2026) -- deltaVsCompetitorsPct es la MEDIANA sin los atipicos (precio propio 3x arriba o abajo del de
   // la zona); atypicalCount dice cuantos quedaron afuera ("precios para revisar"). 0 con un backend sin BP-143.
   atypicalCount?: number;
+  // BP-140 (16-oct-2026) -- hasZonePrice = hay algun precio de zona (lo que antes era sufficientCoverage). Ahora
+  // sufficientCoverage = 5+ productos comparables y 2+ competidores. Promedios sobre la MISMA canasta (comparables no
+  // atipicos) y percentiles 5 / 95 de la zona en vez de minimo / maximo crudos.
+  hasZonePrice?: boolean;
+  ownAvgMatchedPrice?: number | null;
+  zoneAvgMatchedPrice?: number | null;
+  competitorP5Price?: number | null;
+  competitorP95Price?: number | null;
 }
 
 export interface InstantBenchmarkResponse {

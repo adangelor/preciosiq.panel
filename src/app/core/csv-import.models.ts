@@ -171,6 +171,12 @@ export interface CsvImportResult {
   // el nombre la daban; antes eran error). reason = "EAN · nombre". El panel las suma.
   altasSinMarca?: number;
   altasSinMarcaDetalle?: CsvImportRowError[] | null;
+  // BP-136 -- altas donde la marca que la red tiene para el EAN no se uso (no aparece en el nombre).
+  marcasDeRedDescartadas?: number;
+  marcasDeRedDescartadasDetalle?: CsvImportRowError[] | null;
+  // BP-137 -- filas cuyo EAN en la red es otro producto: el tablero no las compara.
+  eanDudosos?: number;
+  eanDudososDetalle?: CsvImportRowError[] | null;
   // BP-132 (16-oct-2026) -- carga a una zona o a todas las sucursales: groupId (va en las tandas siguientes en
   // vez de batchId) y lo de cada sucursal, acumulado. Ahi created/updated suman las sucursales y failed son
   // las filas del archivo con error, contadas una vez. null en la carga a una sola sucursal.
@@ -291,4 +297,23 @@ export interface CatalogoCompletoResult {
   vinieronEnElArchivo: number;
   ejemplos: string[];
   aplicadoAt: string | null;
+}
+
+// BP-136 / BP-137 / BP-138 (16-oct-2026) -- "Revisar mis productos" (GET /csv-import/revision).
+export interface RevisionProductos {
+  tablasListas: boolean;
+  productosRevisados: number;
+  marcasARevisar: number;
+  ejemplosMarcas: { ean: string; descripcion: string | null; marcaActual: string; marcaPropuesta: string }[];
+  eanDudosos: number;
+  ejemplosDudosos: { ean: string; descripcion: string; nombreRed: string }[];
+  categoriasAdivinadas: number;
+  // Los dudosos que todavia no estan marcados (los marcados ya no se comparan; "Corregir" marca el resto).
+  eanDudososPendientes?: number;
+}
+
+export interface RevisionAplicada {
+  marcasCorregidas: number;
+  eanDudosos: number;
+  categoriasAdivinadas: number;
 }

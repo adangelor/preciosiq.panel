@@ -150,10 +150,22 @@
 
       <ng-template #rowCells let-row>
         <td>{{ row.competitorCount }}</td>
-        <td>{{ row.ownAvgPrice ? '$' + row.ownAvgPrice.toFixed(2) : '—' }}</td>
+        @let tuProm = tuPromedio(row);
+        <td>{{ tuProm ? '$' + tuProm.toFixed(2) : '—' }}</td>
         @if (row.sufficientCoverage) {
-          <td>${{ row.competitorAvgPrice?.toFixed(2) }}</td>
-          <td [class]="deltaClass(row)">{{ deltaLabel(row) }}</td>
+          <td>{{ promedioZona(row) ? '$' + promedioZona(row)!.toFixed(2) : '—' }}</td>
+          <td [class]="deltaClass(row)">
+            {{ deltaLabel(row) }}
+            @if ((row.atypicalCount ?? 0) > 0) {
+              <span class="atipicos" title="Productos con tu precio 3 veces o más arriba o abajo del de la zona: casi siempre un error de carga. No entran en la diferencia.">{{ row.atypicalCount }} para revisar</span>
+            }
+          </td>
+        } @else if (tienePrecioDeZona(row)) {
+          <!-- BP-140 -- hay precios de zona pero menos de 5 productos comparables o un solo competidor. -->
+          <td class="pocos">{{ promedioZona(row) ? '$' + promedioZona(row)!.toFixed(2) : '—' }}</td>
+          <td class="pocos" title="Menos de 5 productos tuyos comparables o un solo competidor: el número es orientativo.">
+            {{ deltaLabel(row) }} <span class="atipicos">pocos para comparar</span>
+          </td>
         } @else {
           <td colspan="2" class="insufficient">Sin cadenas SEPA cerca y menos de 3 cuentas de la familia</td>
         }

@@ -137,3 +137,25 @@
 .grupo__toggle {
   min-width: 11rem;
 }
+
+// BP-136 / 137 / 138 -- revisar mis productos.
+.revision {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.revision h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.6rem;
+}
+
+.revision p {
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.revision .preview-table {
+  margin-bottom: 0.8rem;
+}

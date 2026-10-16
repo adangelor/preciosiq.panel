@@ -207,7 +207,7 @@
             @for (c of pagedCategories(); track c.categoryId + '|' + (c.subcategoryId ?? '') + '|' + c.isCategoryTotal) {
               <tr
                 [class.row--selected]="selectedCategory() === c"
-                [class.row--clickable]="c.isCategoryTotal || c.sufficientCoverage"
+                [class.row--clickable]="c.isCategoryTotal || tienePrecioDeZona(c)"
                 (click)="c.isCategoryTotal ? drillInto(c) : selectCategory(c)"
               >
                 <td>
@@ -238,6 +238,19 @@
                       <span class="atipicos" title="Productos con tu precio 3 veces o más arriba o abajo del de la zona: casi siempre un error de carga. No entran en la diferencia.">
                         {{ c.atypicalCount }} para revisar
                       </span>
+                    }
+                  </td>
+                  <td class="cat-table__link">{{ c.isCategoryTotal ? 'Ver subcategorías →' : 'Ver detalle →' }}</td>
+                } @else if (tienePrecioDeZona(c)) {
+                  <!-- BP-140 -- hay precios de zona pero pocos productos para comparar (menos de 5 o un solo competidor). -->
+                  <td class="delta--pocos" title="Menos de 5 productos tuyos comparables o un solo competidor: el número es orientativo.">
+                    @if (c.deltaVsCompetitorsPct !== null) {
+                      {{ (c.deltaVsCompetitorsPct * 100).toFixed(1) }}%
+                      <span class="atipicos">pocos para comparar</span>
+                    } @else if (c.ownProductCount === 0) {
+                      No vendés de esta {{ c.isCategoryTotal ? 'categoría' : 'subcategoría' }}
+                    } @else {
+                      Ninguno de tus productos está en la zona
                     }
                   </td>
                   <td class="cat-table__link">{{ c.isCategoryTotal ? 'Ver subcategorías →' : 'Ver detalle →' }}</td>
@@ -313,7 +326,13 @@
                       <span class="brand-tag">({{ brand }})</span>
                     }
                   </td>
-                  <td>{{ p.categoryName }}{{ p.subcategoryName ? ' / ' + p.subcategoryName : '' }}</td>
+                  <td>
+                    {{ p.categoryName }}{{ p.subcategoryName ? ' / ' + p.subcategoryName : '' }}
+                    <!-- BP-138 -- categoria leida del nombre (el producto no tenia una oficial, o su EAN es dudoso). -->
+                    @if (p.categoriaAdivinada) {
+                      <span class="adivinada" title="Tu producto no tenía categoría (o su código es de otro producto): la leímos de su nombre.">(adivinada)</span>
+                    }
+                  </td>
                   <td>
                     {{ p.ownPrice ? '$' + p.ownPrice.toFixed(2) : '—' }}
                     @if (p.ownPriceSource) {
@@ -324,6 +343,14 @@
                   </td>
                   <td [class.delta--above]="(p.deltaPct ?? 0) > 0" [class.delta--below]="(p.deltaPct ?? 0) < 0">
                     {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
+                    <!-- BP-137 -- el EAN es otro producto en la red: no se compara. -->
+                    @if (p.eanDudoso) {
+                      <span class="atipicos" title="En la red este código es «{{ p.nombreRed }}». No lo comparamos hasta que revises el EAN.">EAN dudoso</span>
+                    }
+                    <!-- BP-143 -- 3x o mas arriba/abajo de la zona: no entra en la diferencia de la categoria. -->
+                    @if (p.deltaPct !== null && (p.deltaPct >= 2 || p.deltaPct <= -2 / 3)) {
+                      <span class="atipicos" title="Tu precio está 3 veces o más arriba o abajo del de la zona: revisalo. No entra en la diferencia de la categoría.">para revisar</span>
+                    }
                   </td>
                   <td>
                     @if (p.familySufficientCoverage) {

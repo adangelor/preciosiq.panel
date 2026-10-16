@@ -54,6 +54,11 @@ export interface CategoryProductDetailItem {
   familyMaxPrice: number | null;
   // Cadenas SEPA nombradas, sin piso -- dato publico por ley.
   sepaChains: SepaChainPrice[];
+  // BP-137 (16-oct-2026) -- el EAN del comercio es OTRO producto en la red: no se compara. nombreRed = como lo llama.
+  eanDudoso?: boolean;
+  nombreRed?: string | null;
+  // BP-138 -- la categoria del producto propio se leyo del nombre (no la tenia oficial, o el EAN es dudoso).
+  categoriaAdivinada?: boolean;
 }
 
 export interface CategoryProductDetailResponse {

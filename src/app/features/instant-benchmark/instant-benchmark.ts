@@ -94,9 +94,9 @@ export class InstantBenchmarkComponent implements OnInit {
       case 'competitorCount':
         return row.competitorCount;
       case 'ownAvgPrice':
-        return row.ownAvgPrice;
+        return this.tuPromedio(row);
       case 'competitorAvgPrice':
-        return row.sufficientCoverage ? row.competitorAvgPrice : null;
+        return this.tienePrecioDeZona(row) ? this.promedioZona(row) : null;
       case 'delta':
         return row.deltaVsCompetitorsPct;
     }
@@ -278,9 +278,27 @@ export class InstantBenchmarkComponent implements OnInit {
     });
   }
 
+  // BP-140 (16-oct-2026) -- los dos promedios sobre la MISMA canasta: tus productos que tienen precio en la zona (sin los
+  // atipicos). Antes eran tu promedio de toda la categoria contra el de toda la zona, y la diferencia (que si es sobre
+  // los comparables) contradecia a los dos numeros de al lado. Con un backend viejo quedan los de antes.
+  protected tuPromedio(row: BenchmarkCategoryResult): number | null {
+    return row.ownAvgMatchedPrice !== undefined ? row.ownAvgMatchedPrice : row.ownAvgPrice;
+  }
+
+  protected promedioZona(row: BenchmarkCategoryResult): number | null {
+    return row.zoneAvgMatchedPrice !== undefined ? row.zoneAvgMatchedPrice : row.competitorAvgPrice;
+  }
+
+  /** BP-140 -- hay algun precio de zona; sufficientCoverage ahora pide 5+ comparables y 2+ competidores. */
+  protected tienePrecioDeZona(row: BenchmarkCategoryResult): boolean {
+    return row.hasZonePrice ?? row.sufficientCoverage;
+  }
+
   protected deltaLabel(row: BenchmarkCategoryResult): string {
-    if (row.deltaVsCompetitorsPct === null) return '—';
+    if (row.deltaVsCompetitorsPct === null)
+      return (row.atypicalCount ?? 0) > 0 ? 'Solo precios para revisar' : row.ownProductCount === 0 ? 'No vendés de esta categoría' : 'Sin productos tuyos en la zona';
     const pct = (row.deltaVsCompetitorsPct * 100).toFixed(1);
+    if (pct === '0.0' || pct === '-0.0') return 'Igual que la zona';
     return row.deltaVsCompetitorsPct > 0 ? `+${pct}% más caro` : `${pct}% más barato`;
   }
 

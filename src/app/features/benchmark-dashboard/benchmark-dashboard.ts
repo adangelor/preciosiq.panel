@@ -225,6 +225,8 @@ export class BenchmarkDashboardComponent implements OnInit {
   // de presentacion, no datos nuevos del backend. v3: extraido a un helper porque
   // ahora tambien lo usa la vista plana por productos.
   private toDetailRow(p: CategoryProductDetailItem): ProductDetailRow {
+    // BP-137 -- un EAN dudoso (en la red es otro producto) no se compara.
+    if (p.eanDudoso) return { ...p, competitorRefPrice: null, deltaPct: null };
     const points = p.sepaChains.map((c) => c.avgPrice);
     if (p.familySufficientCoverage && p.familyAvgPrice != null) points.push(p.familyAvgPrice);
     const competitorRefPrice = points.length > 0 ? points.reduce((a, b) => a + b, 0) / points.length : null;
@@ -412,7 +414,7 @@ export class BenchmarkDashboardComponent implements OnInit {
     const leaf = this.leafRows().find(
       (c) => c.categoryId === p.categoryId && c.subcategoryId === p.subcategoryId,
     );
-    if (leaf && leaf.sufficientCoverage) this.selectCategory(leaf);
+    if (leaf && this.tienePrecioDeZona(leaf)) this.selectCategory(leaf);
   }
 
   private ensureAllProducts(): void {
@@ -599,11 +601,12 @@ export class BenchmarkDashboardComponent implements OnInit {
         'Competidores cerca': c.competitorCount,
         'Tus productos': c.ownProductCount,
         'Productos en zona': c.zoneProductCount,
-        'Cobertura suficiente': c.sufficientCoverage ? 'Sí' : 'No',
-        'Tu precio promedio': c.ownAvgPrice ?? '',
-        'Precio promedio zona': c.competitorAvgPrice ?? '',
-        'Precio mínimo zona': c.competitorMinPrice ?? '',
-        'Precio máximo zona': c.competitorMaxPrice ?? '',
+        'Cobertura suficiente (5+ comparables, 2+ competidores)': c.sufficientCoverage ? 'Sí' : 'No',
+        // BP-140 -- promedios sobre la MISMA canasta (tus productos comparables, sin atipicos) y percentiles 5 / 95.
+        'Tu precio promedio (comparables)': (c.ownAvgMatchedPrice !== undefined ? c.ownAvgMatchedPrice : c.ownAvgPrice) ?? '',
+        'Precio promedio zona (comparables)': (c.zoneAvgMatchedPrice !== undefined ? c.zoneAvgMatchedPrice : c.competitorAvgPrice) ?? '',
+        'Precio mínimo zona (percentil 5)': c.competitorP5Price ?? c.competitorMinPrice ?? '',
+        'Precio máximo zona (percentil 95)': c.competitorP95Price ?? c.competitorMaxPrice ?? '',
         // 19-ago-2026 -- matcheado por EAN, no canasta contra canasta.
         // BP-143 -- mediana por producto, sin los precios atipicos (que se cuentan aparte).
         'Diferencia vs. zona (%, mediana sin atípicos)': c.deltaVsCompetitorsPct !== null ? +(c.deltaVsCompetitorsPct * 100).toFixed(1) : '',
@@ -643,7 +646,42 @@ export class BenchmarkDashboardComponent implements OnInit {
       }
 
       if (productos !== null) {
-        const productRows = productos.map((p) => {
+        // BP-139 (16-oct-2026) -- dos hojas: "Tus productos" (los comparables primero, los mas caros contra la zona
+        // arriba) y "Solo en la zona" (lo que vende la competencia y vos no, por cuantas cadenas lo tienen), sin filas sin
+        // nombre ni codigos internos de las cadenas (0000000...). "Otras cuentas de la zona" salio: casi nunca tenia dato.
+        const cadenas = (p: CategoryProductDetailItem) =>
+          p.sepaChains.map((c) => `${c.chainName ?? c.commerceId + '-' + c.bannerId}: $${c.avgPrice.toFixed(2)}`).join('; ');
+        const categoria = (p: CategoryProductDetailItem) => (p.categoriaAdivinada ? `${p.categoryName} (adivinada)` : p.categoryName);
+        const propios = productos.filter((p) => p.ownPrice != null).map((p) => ({ p, row: this.toDetailRow(p) }));
+        propios.sort((a, b) => {
+          const da = a.row.deltaPct, db = b.row.deltaPct;
+          if ((da === null) !== (db === null)) return da === null ? 1 : -1;
+          if (da !== null && db !== null && da !== db) return db - da;
+          return (a.p.description ?? a.p.ean).localeCompare(b.p.description ?? b.p.ean);
+        });
+        const propiosSheet = XLSX.utils.json_to_sheet(propios.map(({ p, row }) => ({
+          EAN: p.ean,
+          Producto: p.description ?? '',
+          Marca: p.brand ?? '',
+          Categoría: categoria(p),
+          Subcategoría: p.subcategoryName ?? '',
+          'Tu precio': p.ownPrice ?? '',
+          'Precio ref. zona': row.competitorRefPrice !== null ? +row.competitorRefPrice.toFixed(2) : '',
+          'Diferencia (%)': row.deltaPct !== null ? +(row.deltaPct * 100).toFixed(1) : '',
+          'Para revisar': p.eanDudoso
+            ? `EAN dudoso: en la red es «${p.nombreRed ?? ''}»`
+            : row.deltaPct !== null && (row.deltaPct >= 2 || row.deltaPct <= -2 / 3) ? 'Precio 3x o más distinto de la zona' : '',
+          'Cadenas SEPA (precio promedio)': cadenas(p),
+        })));
+        propiosSheet['!cols'] = [
+          { wch: 15 }, { wch: 42 }, { wch: 16 }, { wch: 24 }, { wch: 26 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 40 }, { wch: 50 },
+        ];
+        XLSX.utils.book_append_sheet(workbook, propiosSheet, 'Tus productos');
+
+        const soloZona = productos
+          .filter((p) => p.ownPrice == null && !!p.description && !p.ean.startsWith('0000000'))
+          .sort((a, b) => b.sepaChains.length - a.sepaChains.length || (a.description ?? '').localeCompare(b.description ?? ''));
+        const zonaSheet = XLSX.utils.json_to_sheet(soloZona.map((p) => {
           const row = this.toDetailRow(p);
           return {
             EAN: p.ean,
@@ -651,24 +689,13 @@ export class BenchmarkDashboardComponent implements OnInit {
             Marca: p.brand ?? '',
             Categoría: p.categoryName,
             Subcategoría: p.subcategoryName ?? '',
-            'Tu precio': p.ownPrice ?? '',
-            'Origen de tu precio': p.ownPriceSource ? this.sourceLabel(p.ownPriceSource) : '',
-            'Precio ref. zona': row.competitorRefPrice !== null ? +row.competitorRefPrice.toFixed(2) : '',
-            'Diferencia (%)': row.deltaPct !== null ? +(row.deltaPct * 100).toFixed(1) : '',
-            // E8.6 -- cadenas SEPA nombradas (dato publico por ley); family SIEMPRE
-            // como agregado anonimo, igual que en pantalla.
-            'Cadenas SEPA (precio promedio)': p.sepaChains
-              .map((c) => `${c.chainName ?? c.commerceId + '-' + c.bannerId}: $${c.avgPrice.toFixed(2)}`)
-              .join('; '),
-            'Otras cuentas de la zona (promedio)': p.familySufficientCoverage ? p.familyAvgPrice ?? '' : '',
+            'Cadenas que lo tienen': p.sepaChains.length,
+            'Precio promedio zona': row.competitorRefPrice !== null ? +row.competitorRefPrice.toFixed(2) : '',
+            'Cadenas SEPA (precio promedio)': cadenas(p),
           };
-        });
-        const productsSheet = XLSX.utils.json_to_sheet(productRows);
-        productsSheet['!cols'] = [
-          { wch: 15 }, { wch: 42 }, { wch: 16 }, { wch: 20 }, { wch: 26 }, { wch: 11 },
-          { wch: 16 }, { wch: 14 }, { wch: 13 }, { wch: 50 }, { wch: 22 },
-        ];
-        XLSX.utils.book_append_sheet(workbook, productsSheet, 'Productos');
+        }));
+        zonaSheet['!cols'] = [{ wch: 15 }, { wch: 42 }, { wch: 16 }, { wch: 20 }, { wch: 26 }, { wch: 12 }, { wch: 14 }, { wch: 50 }];
+        XLSX.utils.book_append_sheet(workbook, zonaSheet, 'Solo en la zona');
       }
 
       const branchId = this.parametrosDelCalculo().branchId;   // BP-142
@@ -706,6 +733,11 @@ export class BenchmarkDashboardComponent implements OnInit {
   // radios distintos (Rufino, Libreria: la fila decia +62,3 % con 19 productos; el detalle, 1 producto a -32,2 %).
   // Ahora todo usa los parametros del ultimo calculo, y si el formulario cambio se avisa con "Recalcular".
   // ─────────────────────────────────────────────────────────────
+  /** BP-140 -- hay algun precio de zona (con un backend viejo, sufficientCoverage decia eso). */
+  protected tienePrecioDeZona(c: BenchmarkCategoryResult): boolean {
+    return c.hasZonePrice ?? c.sufficientCoverage;
+  }
+
   protected readonly calculo = signal<{ businessAccountId: number; branchId: string; maxDistanceMeters: number } | null>(null);
   protected readonly formularioCambiado = computed(() => {
     const c = this.calculo();
@@ -774,7 +806,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   }
 
   protected selectCategory(category: BenchmarkCategoryResult): void {
-    if (!category.sufficientCoverage) return;
+    if (!this.tienePrecioDeZona(category)) return;
 
     this.selectedCategory.set(category);
     this.loadingDetail.set(true);

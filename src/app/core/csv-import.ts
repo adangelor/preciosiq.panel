@@ -16,6 +16,8 @@ import {
   SaveCsvMappingRequest,
   UndoCsvImportBatchResult,
   UndoCsvImportGroupResult,
+  RevisionAplicada,
+  RevisionProductos,
 } from './csv-import.models';
 
 // Cliente de BusinessCsvImportEndpoints.cs (E5).
@@ -116,6 +118,16 @@ export class CsvImportService {
       businessAccountId,
       aplicar,
     });
+  }
+
+  // BP-136 / 137 / 138 -- revisar mis productos: marcas de la red que no aparecen en el nombre, EAN dudosos y
+  // categoria por nombre. GET solo cuenta; aplicar corrige (con respaldo en el servidor).
+  getRevision(businessAccountId: number): Observable<RevisionProductos> {
+    return this.http.get<RevisionProductos>(`${this.baseUrl}/revision`, { params: { businessAccountId: String(businessAccountId) } });
+  }
+
+  aplicarRevision(businessAccountId: number): Observable<RevisionAplicada> {
+    return this.http.post<RevisionAplicada>(`${this.baseUrl}/revision/aplicar`, { businessAccountId });
   }
 
   undoBatch(batchId: number, businessAccountId: number): Observable<UndoCsvImportBatchResult> {

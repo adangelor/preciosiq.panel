@@ -412,3 +412,15 @@ button:disabled {
   color: var(--warning);
   white-space: nowrap;
 }
+
+// BP-140 -- diferencia con pocos productos para comparar: se muestra en gris.
+.delta--pocos {
+  color: var(--text-3);
+}
+
+// BP-138 -- categoria leida del nombre del producto.
+.adivinada {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-left: 0.25rem;
+}

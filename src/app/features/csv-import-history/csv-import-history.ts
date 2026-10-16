@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CsvImportService } from '../../core/csv-import';
-import { CsvImportBatch, CsvImportGroup } from '../../core/csv-import.models';
+import { CsvImportBatch, CsvImportGroup, RevisionAplicada, RevisionProductos } from '../../core/csv-import.models';
 import { BusinessContextService } from '../../core/business-context';
 
 // BP-132 (16-oct-2026) -- una fila del historial: un lote suelto (carga a una sucursal, como siempre) o una carga
@@ -62,6 +62,7 @@ export class CsvImportHistoryComponent implements OnInit {
         }
         this.businessAccountId = ctx.account.businessAccountId;
         this.loadBatches();
+        this.cargarRevision();
       },
       error: () => {
         this.loadingContext.set(false);
@@ -95,6 +96,50 @@ export class CsvImportHistoryComponent implements OnInit {
       error: (err) => {
         this.loading.set(false);
         this.errorMessage.set(err?.error?.error ?? 'No se pudo cargar el historial de importaciones.');
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BP-136 / BP-137 / BP-138 (16-oct-2026) -- "Revisar mis productos": las marcas que la carga puso desde la red y no
+  // aparecen en el nombre (Rufino: "QSO PORT SALUT" con marca COLGATE KIDS), los EAN que en la red son otro producto y
+  // la categoria por nombre. Primero se cuenta y se muestran ejemplos; "Corregir" aplica (el servidor guarda respaldo).
+  // ─────────────────────────────────────────────────────────────
+  protected readonly revision = signal<RevisionProductos | null>(null);
+  protected readonly revisionAplicada = signal<RevisionAplicada | null>(null);
+  protected readonly revisando = signal(false);
+
+  /** Hay algo para corregir: marcas, o dudosos que todavia no estan marcados. */
+  protected hayParaCorregir(r: RevisionProductos): boolean {
+    return r.tablasListas && (r.marcasARevisar > 0 || (r.eanDudososPendientes ?? r.eanDudosos) > 0);
+  }
+
+  private cargarRevision(): void {
+    if (!this.businessAccountId) return;
+    this.csvImportService.getRevision(this.businessAccountId).subscribe({
+      next: (r) => this.revision.set(r),
+      error: () => this.revision.set(null),   // backend viejo: no se muestra
+    });
+  }
+
+  protected aplicarRevision(): void {
+    const r = this.revision();
+    if (!this.businessAccountId || !r || this.revisando()) return;
+    const ok = confirm(
+      `¿Corregir ${r.marcasARevisar} marca${r.marcasARevisar === 1 ? '' : 's'} y marcar ${r.eanDudosos} EAN dudoso${r.eanDudosos === 1 ? '' : 's'}? ` +
+        `Las marcas pasan a la que se lee en el nombre del producto, o quedan vacías. Se guarda un respaldo.`,
+    );
+    if (!ok) return;
+    this.revisando.set(true);
+    this.csvImportService.aplicarRevision(this.businessAccountId).subscribe({
+      next: (res) => {
+        this.revisando.set(false);
+        this.revisionAplicada.set(res);
+        this.cargarRevision();
+      },
+      error: (err) => {
+        this.revisando.set(false);
+        this.errorMessage.set(err?.error?.error ?? 'No se pudo aplicar la revisión.');
       },
     });
   }

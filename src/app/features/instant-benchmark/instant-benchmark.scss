@@ -242,3 +242,16 @@ button:disabled {
 .bench-count {
   white-space: nowrap;
 }
+
+// BP-140 -- pocos productos para comparar: el numero va en gris.
+.pocos {
+  color: var(--text-3);
+}
+
+// BP-140 / BP-143 -- aviso chico debajo de la diferencia.
+.atipicos {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--warning);
+}

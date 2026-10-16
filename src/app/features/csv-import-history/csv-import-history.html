@@ -22,6 +22,59 @@
       <p class="success-message">{{ undoMessage() }}</p>
     }
 
+    <!-- BP-136 / 137 / 138 -- revisar mis productos. -->
+    @if (revision(); as rv) {
+      @if (rv.marcasARevisar > 0 || rv.eanDudosos > 0 || revisionAplicada()) {
+        <div class="revision">
+          <h2><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Revisar mis productos</h2>
+          @if (revisionAplicada(); as ap) {
+            <p class="success-message">
+              Listo: {{ ap.marcasCorregidas }} marca{{ ap.marcasCorregidas === 1 ? '' : 's' }} corregida{{ ap.marcasCorregidas === 1 ? '' : 's' }},
+              {{ ap.eanDudosos }} EAN dudoso{{ ap.eanDudosos === 1 ? '' : 's' }} (no se comparan) y
+              {{ ap.categoriasAdivinadas }} producto{{ ap.categoriasAdivinadas === 1 ? '' : 's' }} con categoría leída del nombre.
+            </p>
+          }
+          @if (rv.marcasARevisar > 0) {
+            <p>
+              <strong>{{ rv.marcasARevisar }}</strong> producto{{ rv.marcasARevisar === 1 ? '' : 's' }} tiene{{ rv.marcasARevisar === 1 ? '' : 'n' }}
+              una marca que vino de la red y no aparece en su nombre (casi siempre es la de otro producto con ese código).
+            </p>
+            <table class="preview-table">
+              <thead><tr><th>Producto</th><th>Marca de hoy</th><th>Pasa a</th></tr></thead>
+              <tbody>
+                @for (m of rv.ejemplosMarcas.slice(0, 8); track m.ean) {
+                  <tr><td>{{ m.descripcion ?? m.ean }}</td><td>{{ m.marcaActual }}</td><td>{{ m.marcaPropuesta || '(sin marca)' }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (rv.eanDudosos > 0) {
+            <p>
+              <strong>{{ rv.eanDudosos }}</strong> producto{{ rv.eanDudosos === 1 ? '' : 's' }} con un EAN que en la red es otro producto:
+              @if ((rv.eanDudososPendientes ?? rv.eanDudosos) > 0) {
+                al corregir, dejan de compararse con la zona hasta que revises el código.
+              } @else {
+                no se comparan con la zona hasta que revises el código en tu sistema (la próxima carga lo toma).
+              }
+            </p>
+            <table class="preview-table">
+              <thead><tr><th>Tu producto</th><th>En la red es</th></tr></thead>
+              <tbody>
+                @for (d of rv.ejemplosDudosos.slice(0, 8); track d.ean) {
+                  <tr><td>{{ d.descripcion }}</td><td>{{ d.nombreRed }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (hayParaCorregir(rv)) {
+            <button type="button" (click)="aplicarRevision()" [disabled]="revisando()">
+              {{ revisando() ? 'Corrigiendo…' : 'Corregir' }}
+            </button>
+          }
+        </div>
+      }
+    }
+
     @if (loading()) {
       <p class="hint">Cargando historial…</p>
     } @else if (filas().length === 0) {

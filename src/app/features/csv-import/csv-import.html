@@ -684,6 +684,38 @@
         </div>
       }
 
+      <!-- BP-137 -- EAN que en la red son OTRO producto: no se comparan. -->
+      @if (r.eanDudososDetalle?.length) {
+        <div class="sin-marca">
+          <h3><i class="fa-solid fa-barcode" aria-hidden="true"></i> {{ r.eanDudososDetalle!.length }} producto{{ r.eanDudososDetalle!.length === 1 ? '' : 's' }} con un EAN que en la red es otro producto</h3>
+          <p>
+            El nombre de tu planilla y el que tiene la red para ese código no tienen nada que ver (por ejemplo, un queso con el
+            EAN de una gaseosa). No los comparamos con la zona hasta que revises el código: si lo corregís en tu sistema, la
+            próxima carga lo toma.
+          </p>
+          <table class="preview-table">
+            <thead><tr><th>Fila</th><th>Producto</th></tr></thead>
+            <tbody>
+              @for (e of r.eanDudososDetalle!.slice(0, 20); track e.rowNumber) {
+                <tr><td>{{ e.rowNumber }}</td><td>{{ e.reason }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- BP-136 -- marcas de la red que no se usaron porque no aparecen en el nombre. -->
+      @if (r.marcasDeRedDescartadasDetalle?.length) {
+        <div class="sin-marca">
+          <h3><i class="fa-solid fa-tag" aria-hidden="true"></i> {{ r.marcasDeRedDescartadasDetalle!.length }} marca{{ r.marcasDeRedDescartadasDetalle!.length === 1 ? '' : 's' }} de la red que no usamos</h3>
+          <p>
+            La red tiene otra marca para esos códigos y no aparece en tu nombre del producto: no se la pusimos (usamos la que
+            se lee en tu nombre, o quedó sin marca).
+          </p>
+          <p class="hint">Por ejemplo: {{ ejemplos(r.marcasDeRedDescartadasDetalle!) }}{{ r.marcasDeRedDescartadasDetalle!.length > 6 ? '…' : '' }}</p>
+        </div>
+      }
+
       <!-- BP-77 -- costos de una zona que la cuenta no tiene (por nombre). -->
       @if (r.costosZonaDesconocida?.length) {
         <h3>Costos sin cargar ({{ r.costosZonaDesconocida!.length }})</h3>
