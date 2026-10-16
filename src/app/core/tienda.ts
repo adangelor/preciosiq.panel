@@ -118,6 +118,26 @@ export interface PedidoTienda {
   estado: EstadoPedido;
   estadoAtUtc: string;
   productos: RenglonPedidoTienda[];
+  // BP-131 -- el chat del WhatsApp central (false/null/0 si el cliente no escribio ahi).
+  tieneChat?: boolean;
+  clienteNombre?: string | null;
+  mensajesSinLeer?: number;
+  ventanaHastaUtc?: string | null;
+}
+
+export interface MensajeChatPedido {
+  autor: 'cliente' | 'almacen' | 'sistema';
+  texto: string;
+  creadoAtUtc: string;
+}
+
+export interface ChatPedido {
+  conectado: boolean;
+  clienteNombre: string | null;
+  clienteTelefono: string | null;
+  ventanaHastaUtc: string | null;
+  ventanaAbierta: boolean;
+  mensajes: MensajeChatPedido[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -159,6 +179,26 @@ export class TiendaService {
   /** BP-130 -- cambia el estado de un pedido. Devuelve el estado que quedo ("visto" no pisa uno posterior). */
   cambiarEstadoPedido(tiendaId: number, codigo: string, estado: Exclude<EstadoPedido, 'nuevo'>): Observable<{ codigo: string; estado: EstadoPedido }> {
     return this.http.patch<{ codigo: string; estado: EstadoPedido }>(`${this.url}/${tiendaId}/pedidos/${codigo}`, { estado });
+  }
+
+  /** BP-131 -- para el aviso de la barra: pedidos nuevos y mensajes sin leer de la cuenta (ultimos 30 dias). */
+  pendientes(businessAccountId: number): Observable<{ pedidosNuevos: number; mensajesSinLeer: number }> {
+    return this.http.get<{ pedidosNuevos: number; mensajesSinLeer: number }>(`${this.url}/pendientes`, { params: { businessAccountId } });
+  }
+
+  /** BP-131 -- el chat de WhatsApp del pedido (numero central). Abrirlo lo marca leido. */
+  chatPedido(tiendaId: number, codigo: string): Observable<ChatPedido> {
+    return this.http.get<ChatPedido>(`${this.url}/${tiendaId}/pedidos/${codigo}/chat`);
+  }
+
+  /** BP-131 -- contestar por WhatsApp (solo dentro de las 24 h desde el ultimo mensaje del cliente; si no, 409). */
+  contestarPedido(tiendaId: number, codigo: string, texto: string): Observable<MensajeChatPedido> {
+    return this.http.post<MensajeChatPedido>(`${this.url}/${tiendaId}/pedidos/${codigo}/chat`, { texto });
+  }
+
+  /** BP-131 -- "tu pedido esta listo" por plantilla de WhatsApp (sale tambien fuera de las 24 h). */
+  avisarListo(tiendaId: number, codigo: string): Observable<MensajeChatPedido> {
+    return this.http.post<MensajeChatPedido>(`${this.url}/${tiendaId}/pedidos/${codigo}/listo`, {});
   }
 
   /** La direccion publica: misuper.app/<slug>. */

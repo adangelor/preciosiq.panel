@@ -20,6 +20,7 @@ import { ThemeService } from '../../core/theme';
 import { BusinessAccountService } from '../../core/business-account';
 import { BusinessAccountResponse, resolveLogoUrl } from '../../core/business-account.models';
 import { AccountMenuComponent } from '../account-menu/account-menu';
+import { TiendaService } from '../../core/tienda';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -153,9 +154,28 @@ export class PanelHeaderComponent implements OnInit {
         this.cuentas.set(accounts);   // BP-88: la elegida viene primera (ver BusinessAccountService.getMine)
         this.razonSocial.set(accounts[0].razonSocial);
         this.logoUrl.set(accounts[0].logoUrl);
+        this.vigilarPedidos(accounts[0].businessAccountId);
       },
       error: () => {},
     });
+  }
+
+  /**
+   * BP-131 (16-oct-2026) -- el numerito al lado de "Mi tienda online": pedidos nuevos de misuper.app y
+   * mensajes de clientes sin leer. Se mira al entrar y cada minuto. Si falla, no se muestra nada.
+   */
+  protected readonly pendientes = signal(0);
+  private readonly tiendaService = inject(TiendaService);
+
+  private vigilarPedidos(businessAccountId: number): void {
+    const mirar = () =>
+      this.tiendaService.pendientes(businessAccountId).subscribe({
+        next: (p) => this.pendientes.set(p.pedidosNuevos + p.mensajesSinLeer),
+        error: () => this.pendientes.set(0),
+      });
+    mirar();
+    const intervalo = setInterval(mirar, 60_000);
+    this.destroyRef.onDestroy(() => clearInterval(intervalo));
   }
 
   /** BP-88: empresas del usuario, la elegida primero. El selector aparece solo si hay más de una. */

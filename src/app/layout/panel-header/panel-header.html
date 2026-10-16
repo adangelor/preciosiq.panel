@@ -170,6 +170,10 @@
           >
             <mat-icon>shopping_bag</mat-icon>
             <span class="shell__link-text">Mi tienda online</span>
+            <!-- BP-131: pedidos nuevos y mensajes de clientes sin leer. -->
+            @if (pendientes() > 0) {
+              <span class="shell__badge" [attr.aria-label]="pendientes() + ' pedidos o mensajes sin ver'">{{ pendientes() > 99 ? '99+' : pendientes() }}</span>
+            }
           </a>
         </li>
         <li>

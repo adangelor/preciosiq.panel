@@ -1,0 +1,77 @@
+// BP-131 -- el chat de WhatsApp de un pedido. Mismos tokens que el resto de Mi tienda.
+:host { display: block; }
+
+.hint { font-size: 0.85rem; color: var(--text-3); margin: 0.4rem 0; }
+.aviso {
+  background: var(--warning-soft);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.88rem;
+  margin: 0.6rem 0;
+}
+.aviso--error { background: var(--bg-elevated); border: 1px solid var(--danger); color: var(--danger); }
+
+.chat { margin-top: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm, 8px); padding: 0.75rem; }
+.chat__cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.chat__tel { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.chat__por { color: var(--text-3); font-size: 0.8rem; }
+
+.chat__mensajes {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.chat__msg {
+  max-width: 80%;
+  padding: 0.45rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  &[data-autor='almacen'] {
+    align-self: flex-end;
+    background: var(--primary);
+    color: var(--bg-card);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 4px;
+  }
+  &[data-autor='sistema'] {
+    align-self: center;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-2);
+    font-size: 0.8rem;
+    max-width: 90%;
+    border-radius: 8px;
+  }
+}
+.chat__hora { font-size: 0.72rem; opacity: 0.75; align-self: flex-end; }
+
+.chat__form { display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.6rem; }
+.chat__input {
+  flex: 1;
+  resize: vertical;
+  min-height: 2.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--bg-card);
+  color: var(--text);
+}
+.chat__acciones { display: flex; gap: 0.5rem; margin-top: 0.4rem; }

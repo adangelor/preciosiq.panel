@@ -1,5 +1,6 @@
-import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { EstadoPedido, PedidoTienda, TiendaService } from '../../core/tienda';
+import { PedidoChatComponent } from './pedido-chat';
 
 const enteros = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 const unidades = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 3 });
@@ -27,6 +28,7 @@ const ETIQUETA: Record<EstadoPedido, string> = {
 @Component({
   selector: 'app-tienda-pedidos',
   standalone: true,
+  imports: [PedidoChatComponent],
   template: `
     <section class="ped" [attr.aria-labelledby]="'ped-titulo-' + tiendaId()">
       <h3 class="ped__titulo" [id]="'ped-titulo-' + tiendaId()">
@@ -51,7 +53,11 @@ const ETIQUETA: Record<EstadoPedido, string> = {
               <li class="ped__item" [class.ped__item--nuevo]="p.estado === 'nuevo'">
                 <button type="button" class="ped__fila" (click)="abrir(p)" [attr.aria-expanded]="abierto() === p.codigo">
                   <span class="ped__codigo">{{ p.codigo }}</span>
-                  <span class="ped__cuando">{{ cuando(p.creadoAtUtc) }}</span>
+                  <span class="ped__cuando">
+                    {{ cuando(p.creadoAtUtc) }}
+                    @if (p.clienteNombre) { · {{ p.clienteNombre }} }
+                    @if (p.mensajesSinLeer) { <span class="ped__sinleer" [attr.aria-label]="p.mensajesSinLeer + ' mensajes sin leer'">{{ p.mensajesSinLeer }}</span> }
+                  </span>
                   <span class="ped__entrega">{{ p.entrega === 'retiro' ? 'Retira' : 'Envío' }}</span>
                   <span class="ped__total">{{ pesos(p.total) }}</span>
                   <span class="ped__estado" [attr.data-estado]="p.estado">{{ etiqueta[p.estado] }}</span>
@@ -75,6 +81,11 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                       </tbody>
                       <tfoot><tr><td colspan="2">Total estimado</td><td class="num">{{ pesos(p.total) }}</td></tr></tfoot>
                     </table>
+                    @if (p.tieneChat) {
+                      <app-pedido-chat [tiendaId]="tiendaId()" [codigo]="p.codigo" (marcadoListo)="marcarLocal(p.codigo, 'preparado')" />
+                    } @else {
+                      <p class="hint">El cliente mandó este pedido al WhatsApp de tu almacén: contestale desde ahí.</p>
+                    }
                     <div class="ped__acciones">
                       @if (p.estado !== 'preparado' && p.estado !== 'entregado' && p.estado !== 'cancelado') {
                         <button type="button" (click)="marcar(p, 'preparado')" [disabled]="guardando()">Está listo</button>
@@ -98,7 +109,7 @@ const ETIQUETA: Record<EstadoPedido, string> = {
   `,
   styleUrl: './tienda-pedidos.scss',
 })
-export class TiendaPedidosComponent implements OnInit {
+export class TiendaPedidosComponent implements OnInit, OnDestroy {
   private readonly tienda = inject(TiendaService);
 
   readonly tiendaId = input.required<number>();
@@ -115,11 +126,28 @@ export class TiendaPedidosComponent implements OnInit {
   protected readonly cuando = cuando;
   protected readonly cant = (n: number) => unidades.format(n);
 
+  private intervalo?: ReturnType<typeof setInterval>;
+
   ngOnInit(): void {
+    this.cargar();
+    // BP-131: pedidos y mensajes nuevos sin recargar la pagina.
+    this.intervalo = setInterval(() => this.cargar(), 60_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalo) clearInterval(this.intervalo);
+  }
+
+  private cargar(): void {
     this.tienda.pedidos(this.tiendaId()).subscribe({
-      next: (lista) => this.pedidos.set(lista),
-      error: () => this.error.set(true),
+      next: (lista) => { this.pedidos.set(lista); this.error.set(false); },
+      error: () => { if (!this.pedidos()) this.error.set(true); },
     });
+  }
+
+  /** Cambia el estado en la lista sin volver a pedirla (lo que el servidor ya hizo). */
+  protected marcarLocal(codigo: string, estado: EstadoPedido): void {
+    this.pedidos.update((lista) => (lista ?? []).map((x) => (x.codigo === codigo ? { ...x, estado } : x)));
   }
 
   protected link(codigo: string): string {
@@ -129,6 +157,9 @@ export class TiendaPedidosComponent implements OnInit {
   /** Abrir un pedido lo marca "visto" (si era nuevo): quien pidio lo ve en su link. */
   protected abrir(p: PedidoTienda): void {
     this.abierto.set(this.abierto() === p.codigo ? null : p.codigo);
+    // El chat se marca leido al abrirse (lo hace el servidor al traerlo).
+    if (this.abierto() === p.codigo && p.mensajesSinLeer)
+      this.pedidos.update((lista) => (lista ?? []).map((x) => (x.codigo === p.codigo ? { ...x, mensajesSinLeer: 0 } : x)));
     if (this.abierto() === p.codigo && p.estado === 'nuevo') this.marcar(p, 'visto');
   }
 

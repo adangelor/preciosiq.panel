@@ -41,6 +41,20 @@
 }
 .ped__codigo { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', monospace; font-weight: 700; letter-spacing: 0.04em; }
 .ped__cuando, .ped__entrega { color: var(--text-2); }
+// BP-131 -- mensajes del cliente sin leer en el chat del pedido.
+.ped__sinleer {
+  display: inline-block;
+  min-width: 1.25rem;
+  margin-left: 0.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--bg-card);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+}
 .ped__total { font-weight: 600; font-variant-numeric: tabular-nums; }
 .ped__estado {
   font-size: 0.75rem;
