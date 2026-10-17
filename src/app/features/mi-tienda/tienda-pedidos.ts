@@ -1,4 +1,6 @@
 import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AvisosService } from '../../core/avisos';
 import { EstadoPedido, PedidoTienda, TiendaService } from '../../core/tienda';
 import { PedidoChatComponent } from './pedido-chat';
 
@@ -28,7 +30,7 @@ const ETIQUETA: Record<EstadoPedido, string> = {
 @Component({
   selector: 'app-tienda-pedidos',
   standalone: true,
-  imports: [PedidoChatComponent],
+  imports: [PedidoChatComponent, RouterLink],
   template: `
     <section class="ped" [attr.aria-labelledby]="'ped-titulo-' + tiendaId()">
       <h3 class="ped__titulo" [id]="'ped-titulo-' + tiendaId()">
@@ -88,14 +90,23 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                     }
                     <div class="ped__acciones">
                       @if (p.estado !== 'preparado' && p.estado !== 'entregado' && p.estado !== 'cancelado') {
-                        <button type="button" (click)="marcar(p, 'preparado')" [disabled]="guardando()">Está listo</button>
+                        <!-- BP-151: con el WhatsApp central, el aviso le sale solo; si no, se abre WhatsApp con el mensaje escrito. -->
+                        <button type="button" (click)="listo(p)" [disabled]="guardando()">Está listo</button>
                       }
                       @if (p.estado !== 'entregado' && p.estado !== 'cancelado') {
                         <button type="button" class="boton-secundario" (click)="marcar(p, 'entregado')" [disabled]="guardando()">Entregado</button>
-                        <button type="button" class="boton-secundario" (click)="marcar(p, 'cancelado')" [disabled]="guardando()">Cancelar</button>
+                      }
+                      <!-- BP-150: la hoja para armar el pedido (se imprime o se guarda como PDF). -->
+                      <a class="boton-secundario" [routerLink]="['/pedidos/imprimir', tiendaId(), p.codigo]" target="_blank">Imprimir</a>
+                      @if (p.estado === 'preparado' && !p.tieneChat) {
+                        <a class="boton-secundario" [href]="whatsappListo(p)" target="_blank" rel="noopener">Avisarle por WhatsApp</a>
                       }
                       <a class="boton-secundario" [href]="link(p.codigo)" target="_blank" rel="noopener">Ver como el cliente ↗</a>
+                      @if (p.estado !== 'entregado' && p.estado !== 'cancelado') {
+                        <button type="button" class="boton-secundario boton-peligro" (click)="marcar(p, 'cancelado')" [disabled]="guardando()">Cancelar</button>
+                      }
                     </div>
+                    @if (avisoListo()?.codigo === p.codigo) { <p class="hint ped__avisado">{{ avisoListo()!.texto }}</p> }
                   </div>
                 }
               </li>
@@ -114,11 +125,15 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
 
   readonly tiendaId = input.required<number>();
   readonly slug = input.required<string>();
+  /** BP-151: el nombre de la tienda, para el mensaje de "tu pedido esta listo". */
+  readonly nombre = input<string>('');
 
   protected readonly pedidos = signal<PedidoTienda[] | null>(null);
   protected readonly error = signal(false);
   protected readonly abierto = signal<string | null>(null);
   protected readonly guardando = signal(false);
+  protected readonly avisoListo = signal<{ codigo: string; texto: string } | null>(null);
+  private readonly avisos = inject(AvisosService);
   protected readonly nuevos = computed(() => (this.pedidos() ?? []).filter((p) => p.estado === 'nuevo').length);
 
   protected readonly etiqueta = ETIQUETA;
@@ -161,6 +176,46 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
     if (this.abierto() === p.codigo && p.mensajesSinLeer)
       this.pedidos.update((lista) => (lista ?? []).map((x) => (x.codigo === p.codigo ? { ...x, mensajesSinLeer: 0 } : x)));
     if (this.abierto() === p.codigo && p.estado === 'nuevo') this.marcar(p, 'visto');
+    // BP-149: la campanita y el numerito del menu bajan al toque (el servidor ya lo marco visto o leido).
+    if (this.abierto() === p.codigo && (p.estado === 'nuevo' || p.mensajesSinLeer)) setTimeout(() => this.avisos.refrescar(), 1500);
+  }
+
+  /**
+   * BP-151 -- "Esta listo". Si el cliente escribio por el WhatsApp central (hay chat), le sale la plantilla
+   * aprobada "tu pedido esta listo" (y queda preparado). Si mando el pedido al WhatsApp del almacen, no
+   * tenemos su numero: se abre WhatsApp con el mensaje escrito y el almacenero elige el chat. La ventana se
+   * abre en el mismo toque (despues de esperar al servidor, el navegador la bloquearia).
+   */
+  protected listo(p: PedidoTienda): void {
+    if (p.tieneChat) {
+      this.guardando.set(true);
+      this.tienda.avisarListo(this.tiendaId(), p.codigo).subscribe({
+        next: () => {
+          this.marcarLocal(p.codigo, 'preparado');
+          this.guardando.set(false);
+          this.avisoListo.set({ codigo: p.codigo, texto: 'Listo. Le avisamos por WhatsApp que puede pasar a buscarlo.' });
+        },
+        error: () => {
+          // Sin el aviso (OmniVox caido, plantilla sin aprobar...) igual queda listo: lo ve en su link.
+          this.marcar(p, 'preparado');
+          this.avisoListo.set({ codigo: p.codigo, texto: 'Quedó listo, pero no pudimos mandarle el WhatsApp. Escribile desde el chat.' });
+        },
+      });
+      return;
+    }
+    window.open(this.whatsappListo(p), '_blank', 'noopener');
+    this.marcar(p, 'preparado');
+    this.avisoListo.set({ codigo: p.codigo, texto: 'Se abrió WhatsApp con el aviso escrito: elegí el chat del cliente y mandalo.' });
+  }
+
+  /** wa.me sin numero: WhatsApp abre con el texto y el almacenero elige a quien. */
+  protected whatsappListo(p: PedidoTienda): string {
+    const de = this.nombre() ? ` de ${this.nombre()}` : '';
+    const texto =
+      `¡Hola! Tu pedido ${p.codigo}${de} ya está listo. ` +
+      (p.entrega === 'retiro' ? 'Podés pasar a buscarlo cuando quieras.' : 'En un rato sale para tu casa.') +
+      ` Lo ves acá: ${this.link(p.codigo)}`;
+    return `https://wa.me/?text=${encodeURIComponent(texto)}`;
   }
 
   protected marcar(p: PedidoTienda, estado: Exclude<EstadoPedido, 'nuevo'>): void {
