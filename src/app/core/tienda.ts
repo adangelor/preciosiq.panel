@@ -140,6 +140,56 @@ export interface ChatPedido {
   mensajes: MensajeChatPedido[];
 }
 
+// BP-145 / BP-146 (17-oct-2026) -- destacados y carrusel de inicio. Espejo de TiendaDtos.cs.
+
+/** Un producto de la sucursal, para elegirlo. fotoUrl = la miniatura, o null si no tiene foto. */
+export interface ProductoDeTienda {
+  ean: string;
+  descripcion: string;
+  marca: string | null;
+  precioLista: number | null;
+  fotoUrl: string | null;
+}
+
+export interface TiendaDestacados {
+  productos: ProductoDeTienda[];
+  max: number;
+}
+
+export type TipoCartel = 'producto' | 'categoria' | 'ofertas';
+
+export interface CartelConfig {
+  id: number;
+  tipo: TipoCartel;
+  /** EAN (producto) o id de la categoria; null en ofertas. */
+  destino: string | null;
+  /** El nombre del producto o de la categoria, para mostrar. */
+  destinoNombre: string | null;
+  titulo: string | null;
+  bajada: string | null;
+  imagenUrl: string | null;
+}
+
+export interface CategoriaTienda {
+  id: string;
+  nombre: string;
+  productos: number;
+}
+
+export interface TiendaCarrusel {
+  carteles: CartelConfig[];
+  categorias: CategoriaTienda[];
+  max: number;
+}
+
+export interface CartelRequest {
+  id: number | null;
+  tipo: TipoCartel;
+  destino: string | null;
+  titulo: string | null;
+  bajada: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TiendaService {
   private readonly http = inject(HttpClient);
@@ -201,6 +251,38 @@ export class TiendaService {
     return this.http.post<MensajeChatPedido>(`${this.url}/${tiendaId}/pedidos/${codigo}/listo`, {});
   }
 
+  /** BP-145 -- productos de la sucursal que coinciden con q (hasta 20). */
+  buscarProductos(tiendaId: number, q: string): Observable<ProductoDeTienda[]> {
+    return this.http.get<ProductoDeTienda[]>(`${this.url}/${tiendaId}/productos`, { params: { q } });
+  }
+
+  destacados(tiendaId: number): Observable<TiendaDestacados> {
+    return this.http.get<TiendaDestacados>(`${this.url}/${tiendaId}/destacados`);
+  }
+
+  guardarDestacados(tiendaId: number, eans: string[]): Observable<TiendaDestacados> {
+    return this.http.put<TiendaDestacados>(`${this.url}/${tiendaId}/destacados`, { eans });
+  }
+
+  /** BP-146 -- el carrusel de inicio de la tienda y sus categorias. */
+  carrusel(tiendaId: number): Observable<TiendaCarrusel> {
+    return this.http.get<TiendaCarrusel>(`${this.url}/${tiendaId}/carrusel`);
+  }
+
+  guardarCarrusel(tiendaId: number, carteles: CartelRequest[]): Observable<TiendaCarrusel> {
+    return this.http.put<TiendaCarrusel>(`${this.url}/${tiendaId}/carrusel`, { carteles });
+  }
+
+  subirImagenCartel(tiendaId: number, cartelId: number, imagen: Blob): Observable<{ imagenUrl: string }> {
+    const form = new FormData();
+    form.append('archivo', imagen, 'cartel.jpg');
+    return this.http.post<{ imagenUrl: string }>(`${this.url}/${tiendaId}/carrusel/${cartelId}/imagen`, form);
+  }
+
+  quitarImagenCartel(tiendaId: number, cartelId: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${tiendaId}/carrusel/${cartelId}/imagen`);
+  }
+
   /** La direccion publica: misuper.app/<slug>. */
   urlPublica(slug: string): string {
     return `${environment.misuperUrl}/${slug}`;
@@ -215,8 +297,9 @@ export class TiendaService {
 /**
  * Achica la foto del QR en el navegador antes de subirla: a lo sumo 600 px de lado, en PNG. Una foto
  * de celular de 4 MB queda en unos 50-150 KB y entra holgada en el maximo de 1 MB del servidor.
+ * BP-146: los carteles del carrusel van a 1200 px en JPEG (una foto en PNG a ese tamano pasaria el mega).
  */
-export async function achicarImagen(archivo: File, ladoMax = 600): Promise<Blob> {
+export async function achicarImagen(archivo: File, ladoMax = 600, tipo: 'image/png' | 'image/jpeg' = 'image/png'): Promise<Blob> {
   const url = URL.createObjectURL(archivo);
   try {
     const img = await new Promise<HTMLImageElement>((ok, mal) => {
@@ -235,7 +318,7 @@ export async function achicarImagen(archivo: File, ladoMax = 600): Promise<Blob>
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     return await new Promise<Blob>((ok, mal) =>
-      canvas.toBlob((b) => (b ? ok(b) : mal(new Error('No se pudo convertir la imagen.'))), 'image/png'),
+      canvas.toBlob((b) => (b ? ok(b) : mal(new Error('No se pudo convertir la imagen.'))), tipo, 0.85),
     );
   } finally {
     URL.revokeObjectURL(url);
