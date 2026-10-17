@@ -55,6 +55,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    // BP-150 (17-oct-2026) -- la hoja para armar un pedido, FUERA del shell (como el cartel) para que se
+    // imprima limpia.
+    path: 'pedidos/imprimir/:tiendaId/:codigo',
+    loadComponent: () => import('./features/pedidos/pedido-imprimir').then((m) => m.PedidoImprimirComponent),
+    title: 'PreciosIQ — Pedido para armar',
+    canActivate: [authGuard],
+  },
+  {
     // E1.6 (16-ago-2026) -- shell con logo/nombre del comercio + nav, envolviendo TODAS
     // las pantallas que ya asumen una cuenta creada (a diferencia de 'alta', que arriba
     // queda afuera del shell a proposito). Patron identico al app-shell de
@@ -93,6 +101,12 @@ export const routes: Routes = [
         path: 'mi-tienda',
         loadComponent: () => import('./features/mi-tienda/mi-tienda').then((m) => m.MiTiendaComponent),
         title: 'PreciosIQ — Mi tienda online',
+      },
+      {
+        // BP-148 (17-oct-2026) -- los pedidos de todas las tiendas de la cuenta, con su propio item de menu.
+        path: 'pedidos',
+        loadComponent: () => import('./features/pedidos/pedidos').then((m) => m.PedidosComponent),
+        title: 'PreciosIQ — Pedidos',
       },
       {
         path: 'precios/carga-masiva',

@@ -5,7 +5,6 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError 
 import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeSucursal, TiendaService, achicarImagen } from '../../core/tienda';
 import { BusinessAccountService } from '../../core/business-account';
 import { TiendaEstadisticasComponent } from './tienda-estadisticas';
-import { TiendaPedidosComponent } from './tienda-pedidos';
 import { TiendaDestacadosComponent } from './tienda-destacados';
 import { TiendaCarruselComponent } from './tienda-carrusel';
 
@@ -18,7 +17,7 @@ type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 
 @Component({
   selector: 'app-tienda-sucursal',
   standalone: true,
-  imports: [RouterLink, TiendaEstadisticasComponent, TiendaPedidosComponent, TiendaDestacadosComponent, TiendaCarruselComponent],
+  imports: [RouterLink, TiendaEstadisticasComponent, TiendaDestacadosComponent, TiendaCarruselComponent],
   templateUrl: './tienda-sucursal.html',
   styleUrl: './mi-tienda.scss',
 })

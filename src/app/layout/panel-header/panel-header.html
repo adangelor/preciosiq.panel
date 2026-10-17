@@ -148,6 +148,36 @@
           </a>
         </li>
 
+        <!-- BP-148 (17-oct-2026) -- la tienda online tiene su propia seccion (pedido de Andres): la tienda
+             de misuper.app (BP-71) y sus pedidos, que antes vivian adentro de la tarjeta de la tienda. -->
+        <li class="shell__nav-section">Tienda online</li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/mi-tienda"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Mi tienda' : null"
+          >
+            <mat-icon>shopping_bag</mat-icon>
+            <span class="shell__link-text">Mi tienda</span>
+          </a>
+        </li>
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/pedidos"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Pedidos' : null"
+          >
+            <mat-icon>receipt_long</mat-icon>
+            <span class="shell__link-text">Pedidos</span>
+            <!-- BP-131: pedidos nuevos y mensajes de clientes sin leer. -->
+            @if (pendientes() > 0) {
+              <span class="shell__badge" [attr.aria-label]="pendientes() + ' pedidos o mensajes sin ver'">{{ pendientes() > 99 ? '99+' : pendientes() }}</span>
+            }
+          </a>
+        </li>
+
         <li class="shell__nav-section">Mi cuenta</li>
         <li>
           <a
@@ -158,22 +188,6 @@
           >
             <mat-icon>storefront</mat-icon>
             <span class="shell__link-text">Sucursales</span>
-          </a>
-        </li>
-        <!-- BP-71 (08-oct-2026) -- la tienda online de cada sucursal en misuper.app. -->
-        <li>
-          <a
-            class="shell__link"
-            routerLink="/mi-tienda"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Mi tienda online' : null"
-          >
-            <mat-icon>shopping_bag</mat-icon>
-            <span class="shell__link-text">Mi tienda online</span>
-            <!-- BP-131: pedidos nuevos y mensajes de clientes sin leer. -->
-            @if (pendientes() > 0) {
-              <span class="shell__badge" [attr.aria-label]="pendientes() + ' pedidos o mensajes sin ver'">{{ pendientes() > 99 ? '99+' : pendientes() }}</span>
-            }
           </a>
         </li>
         <li>
@@ -284,6 +298,9 @@
           }
         </select>
       }
+
+      <!-- BP-149: novedades (pedidos nuevos, mensajes de clientes). -->
+      <app-campanita />
 
       <button
         type="button"
