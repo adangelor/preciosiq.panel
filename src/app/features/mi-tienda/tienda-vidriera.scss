@@ -1,3 +1,5 @@
+@use './botones';
+
 // BP-145 / BP-146 -- "Productos destacados" y "Carrusel de inicio" (TiendaDestacadosComponent y
 // TiendaCarruselComponent). Mismos tokens y botones que mi-tienda.scss (los estilos de componente no se heredan).
 :host { display: block; }
@@ -13,43 +15,6 @@
   margin: 0.75rem 0;
 }
 .acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 1rem; }
-
-button {
-  padding: 0.6rem 1.3rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-.boton-secundario {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  color: var(--text);
-  background: var(--bg-card);
-  text-decoration: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.boton-archivo input { display: none; }
-.link-btn { background: none; color: var(--primary); padding: 0.4rem 0.5rem; text-decoration: underline; }
-.icono-btn {
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-2);
-  font-size: 0.95rem;
-  line-height: 1;
-}
-.icono-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-.icono-btn--quitar:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
 
 // ---- la seccion plegable
 .vid { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }

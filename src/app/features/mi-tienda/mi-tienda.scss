@@ -1,3 +1,5 @@
+@use './botones';
+
 // BP-71 -- "Mi tienda" (la pagina y las tarjetas de sucursal comparten este archivo).
 .pagina { max-width: 860px; margin: 2rem auto; }
 .subtitle { color: var(--text-2); margin-bottom: 1.5rem; }
@@ -53,32 +55,6 @@
 
 .acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 1rem; }
 
-button {
-  padding: 0.6rem 1.3rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.boton-secundario {
-  display: inline-block;
-  padding: 0.55rem 1.1rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  color: var(--text);
-  background: var(--bg-card);
-  text-decoration: none;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-.boton-archivo input { display: none; }
-
-.link-btn { background: none; color: var(--primary); padding: 0.4rem 0.5rem; text-decoration: underline; }
-
 .formulario {
   display: grid;
   gap: 1rem;
@@ -117,6 +93,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 .slug__estado { min-height: 1.2rem; }
 
+.ir-pedidos { margin-top: 1.25rem; font-weight: 600; }
 .qr { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
 .qr h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .qr__fila { display: flex; gap: 1rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }

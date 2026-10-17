@@ -1,0 +1,76 @@
+// BP-148 (17-oct-2026) -- los botones de "Mi tienda" y "Pedidos", en un solo lugar. Cada componente lo
+// trae con @use './botones' (los estilos de componente no se heredan: sin esto, los botones de los pedidos
+// y del chat quedaban con el gris del navegador). Solo tokens del tema compartido, ningun color suelto.
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: filter 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+button:hover:not(:disabled) { filter: brightness(1.08); }
+button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.boton-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.boton-secundario:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); filter: none; }
+
+// "Cancelar un pedido" y parecidos: secundario, pero en rojo al pasar.
+.boton-peligro:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+.boton-archivo input { display: none; }
+
+.link-btn {
+  min-height: auto;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: underline;
+}
+.link-btn:hover:not(:disabled) { filter: none; }
+
+.icono-btn {
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-2);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.icono-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); filter: none; }
+.icono-btn--quitar:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }

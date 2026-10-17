@@ -1,3 +1,5 @@
+@use './botones';
+
 // BP-130 -- "Pedidos de tu tienda" (TiendaPedidosComponent). Mismos tokens que "Cómo le va a tu tienda".
 :host { display: block; }
 
@@ -84,7 +86,10 @@
 }
 .ped__promo { color: var(--success) !important; }
 
-.ped__acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.ped__acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center; }
+// La ultima accion (Cancelar) va a la derecha, lejos de "Esta listo".
+.ped__acciones .boton-peligro { margin-left: auto; }
+.ped__avisado { color: var(--success); }
 
 @media (max-width: 560px) {
   .ped__fila { grid-template-columns: auto 1fr auto; }
