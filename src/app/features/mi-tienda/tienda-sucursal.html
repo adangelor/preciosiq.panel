@@ -81,6 +81,10 @@
 
       <app-tienda-estadisticas [tiendaId]="t.id" />
 
+      <!-- BP-146 / BP-145: lo que se ve primero en la tienda. -->
+      <app-tienda-carrusel [tiendaId]="t.id" />
+      <app-tienda-destacados [tiendaId]="t.id" />
+
       <section class="qr">
         <h3>QR para que te paguen</h3>
         <p class="hint">
