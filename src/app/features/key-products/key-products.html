@@ -36,26 +36,30 @@
     }
 
     <!-- ============================================================ dónde se mide -->
+    <!-- 17-oct-2026 -- pedido de Andres ("queda mucho muy espantoso"): filtros en una barra, con los controles del tema. -->
     <div class="testigos__filtros">
+      <div class="testigos__filtros-campos">
       @if (branches().length > 1) {
-        <label>
-          Sucursal
-          <select (change)="onSucursal($event)">
+        <label class="testigos__campo">
+          <span>Sucursal</span>
+          <select class="select" (change)="onSucursal($event)">
             @for (b of branches(); track b.branchId) {
               <option [value]="b.branchId" [selected]="b.branchId === branchId()">{{ b.branchName }}{{ b.city ? ' — ' + b.city : '' }}</option>
             }
           </select>
         </label>
       }
-      <label>
-        Radio
-        <select (change)="onRadio($event)">
+      <label class="testigos__campo">
+        <span>Radio</span>
+        <select class="select" (change)="onRadio($event)">
           @for (r of radios(); track r) {
             <option [value]="r" [selected]="r === radio()">{{ num(r) }} m</option>
           }
         </select>
       </label>
+      </div>
       <p class="muted testigos__filtros-nota">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
         La lista es una sola para toda la cuenta. La posición de cada testigo se mide por sucursal, contra
         las cadenas de ese radio.
       </p>
@@ -99,11 +103,14 @@
 
     <!-- ============================================================ acciones -->
     <div class="testigos__acciones">
-      <button type="button" class="btn" (click)="sugerir()" [disabled]="cargandoSugerencia() || guardando()">
+      <button type="button" class="btn testigos__sugerir" (click)="sugerir()" [disabled]="cargandoSugerencia() || guardando()">
+        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
         {{ cargandoSugerencia() ? 'Armando la sugerencia…' : 'Sugerirme testigos' }}
       </button>
       <form class="testigos__buscar" (submit)="buscar(); $event.preventDefault()">
+        <i class="fa-solid fa-magnifying-glass testigos__lupa" aria-hidden="true"></i>
         <input
+          class="input"
           type="search"
           placeholder="Buscar en tu catálogo por nombre, marca o código"
           aria-label="Buscar un producto de tu catálogo para agregarlo como testigo"

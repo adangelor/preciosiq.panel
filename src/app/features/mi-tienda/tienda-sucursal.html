@@ -75,15 +75,22 @@
         <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', sucursal().branchId]">Cartel para la vidriera</a>
       </div>
 
+      <!-- BP-146 / BP-145: lo que se ve primero en la tienda. 17-oct-2026 -- Andres no los encontraba: estaban plegados
+           al fondo, debajo de las estadisticas. Suben aca, con titulo propio. -->
+      <section class="vidriera" [attr.aria-labelledby]="'vidriera-' + t.id">
+        <h3 class="vidriera__titulo" [id]="'vidriera-' + t.id">
+          <i class="fa-solid fa-store" aria-hidden="true"></i> Lo primero que ve tu cliente
+        </h3>
+        <p class="hint">El carrusel de arriba de todo y los productos que salen primeros. Tocá cada uno para armarlo.</p>
+        <app-tienda-carrusel [tiendaId]="t.id" />
+        <app-tienda-destacados [tiendaId]="t.id" />
+      </section>
+
       <!-- BP-122: visitas y pedidos. Tambien con la tienda despublicada: lo que paso antes sigue valiendo. -->
       <!-- BP-148: los pedidos tienen su propia pantalla (menu "Tienda online" > Pedidos). -->
       <p class="hint ir-pedidos"><a routerLink="/pedidos">Ver los pedidos de tu tienda →</a></p>
 
       <app-tienda-estadisticas [tiendaId]="t.id" />
-
-      <!-- BP-146 / BP-145: lo que se ve primero en la tienda. -->
-      <app-tienda-carrusel [tiendaId]="t.id" />
-      <app-tienda-destacados [tiendaId]="t.id" />
 
       <section class="qr">
         <h3>QR para que te paguen</h3>

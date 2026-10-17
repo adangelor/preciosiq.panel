@@ -15,25 +15,50 @@ h2 {
   margin: 0;
 }
 
+// 17-oct-2026 -- pedido de Andres ("queda mucho muy espantoso"): los select nativos sin relleno y la nota apretada al
+// costado. Ahora es una barra: los campos arriba, con la caja del tema (.select / .input) y la misma altura que los
+// botones, y la nota abajo a lo ancho.
 .testigos__filtros {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.testigos__filtros-campos {
   display: flex;
   align-items: flex-end;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+}
 
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.85rem;
+.testigos__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+
+  .select {
+    height: 2.5rem;
+    min-width: 9rem;
+    padding: 0 0.75rem;
+    font-weight: 400;
   }
 }
 
 .testigos__filtros-nota {
-  flex: 1 1 18rem;
-  margin: 0;
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  margin: 0.75rem 0 0;
   font-size: 0.8125rem;
+
+  i {
+    color: var(--info);
+  }
 }
 
 .testigos__tiles {
@@ -61,7 +86,13 @@ h2 {
   margin-bottom: 1.25rem;
 }
 
+.testigos__sugerir,
+.testigos__buscar .btn {
+  height: 2.5rem;
+}
+
 .testigos__buscar {
+  position: relative;
   display: flex;
   gap: 0.5rem;
   flex: 1 1 22rem;
@@ -69,7 +100,19 @@ h2 {
   input {
     flex: 1 1 auto;
     min-width: 0;
+    height: 2.5rem;
+    padding-left: 2.25rem;
   }
+}
+
+.testigos__lupa {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
 .testigos__panel {

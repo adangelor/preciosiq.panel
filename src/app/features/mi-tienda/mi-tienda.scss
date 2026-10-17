@@ -93,6 +93,22 @@
 }
 .slug__estado { min-height: 1.2rem; }
 
+// 17-oct-2026 -- carrusel y destacados juntos, arriba de las estadisticas y a la vista (antes plegados al fondo).
+.vidriera {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--primary-soft);
+  border-radius: var(--radius);
+  background: var(--bg-selected);
+}
+.vidriera__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem;
+  font-size: 1.05rem;
+  i { color: var(--primary); }
+}
 .ir-pedidos { margin-top: 1.25rem; font-weight: 600; }
 .qr { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-soft); }
 .qr h3 { margin: 0 0 0.25rem; font-size: 1rem; }
