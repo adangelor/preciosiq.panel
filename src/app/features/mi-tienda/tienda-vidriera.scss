@@ -101,7 +101,7 @@
   font-size: 0.9rem;
 }
 
-input[type='search'], input[type='text'], select {
+input[type='search'], input[type='text'], input[type='url'], input[type='date'], select {
   padding: 0.5rem 0.65rem;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
@@ -120,7 +120,39 @@ input[type='search'], input[type='text'], select {
   padding: 0.75rem 0.9rem;
   background: var(--bg-card);
 }
-.car__cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.car__cabecera { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.car__cabecera strong { flex: none; }
+.car__cabecera .vid__botones { margin-left: auto; }
+
+// BP-153 -- estado de la vigencia, numeros del cartel y los que no se ven (vencidos / programados).
+.car__estado {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+}
+.car__estado--programado { background: var(--info-soft); color: var(--info); }
+.car__estado--vencido { background: var(--danger-soft); color: var(--danger); }
+.car__cartel--apagado { background: var(--bg-elevated); }
+.car__cartel--apagado .car__miniatura { opacity: 0.55; }
+.car__numeros {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  strong { color: var(--text); font-variant-numeric: tabular-nums; }
+}
+.car__fechas {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border-soft);
+}
+.aviso--chico { flex-basis: 100%; margin: 0.25rem 0 0; font-size: 0.85rem; padding: 0.4rem 0.7rem; }
+.car__pie { margin-top: 0.75rem; font-size: 0.8rem; }
 .car__campos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -147,8 +179,9 @@ input[type='search'], input[type='text'], select {
   margin-top: 0.75rem;
   small { flex-basis: 100%; }
 }
-.car__miniatura { width: 160px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+// BP-153 -- la proporcion de los banners (1080 x 500), entera: es la vista previa de lo que se va a ver.
+.car__miniatura { width: 216px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
 
 @media (max-width: 640px) {
-  .car__campos { grid-template-columns: 1fr; }
+  .car__campos, .car__fechas { grid-template-columns: 1fr; }
 }

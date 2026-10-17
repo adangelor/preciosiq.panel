@@ -156,18 +156,35 @@ export interface TiendaDestacados {
   max: number;
 }
 
-export type TipoCartel = 'producto' | 'categoria' | 'ofertas';
+/** BP-153: 'imagen' = solo el banner (no lleva a ningun lado); 'enlace' = un link https afuera de la tienda. */
+export type TipoCartel = 'producto' | 'categoria' | 'ofertas' | 'imagen' | 'enlace';
+
+/** BP-153 -- vigente hoy, programado (empieza despues) o vencido (ya no se ve en la tienda). */
+export type EstadoCartel = 'vigente' | 'programado' | 'vencido';
+
+/** BP-153 -- los numeros de un cartel en los ultimos TiendaCarrusel.diasNumeros dias. */
+export interface NumerosCartel {
+  vistas: number;
+  clics: number;
+  pedidos: number;
+  monto: number;
+}
 
 export interface CartelConfig {
   id: number;
   tipo: TipoCartel;
-  /** EAN (producto) o id de la categoria; null en ofertas. */
+  /** EAN (producto), id de la categoria o link (enlace); null en ofertas e imagen. */
   destino: string | null;
   /** El nombre del producto o de la categoria, para mostrar. */
   destinoNombre: string | null;
   titulo: string | null;
   bajada: string | null;
   imagenUrl: string | null;
+  /** BP-153 -- 'yyyy-MM-dd' o null (sin limite). Fechas de Argentina, inclusive. */
+  vigenteDesde?: string | null;
+  vigenteHasta?: string | null;
+  estado?: EstadoCartel;
+  numeros?: NumerosCartel | null;
 }
 
 export interface CategoriaTienda {
@@ -180,6 +197,9 @@ export interface TiendaCarrusel {
   carteles: CartelConfig[];
   categorias: CategoriaTienda[];
   max: number;
+  /** BP-153 -- tope del banner propio (bytes) y dias de los numeros. 0 con un backend viejo. */
+  imagenMaxBytes?: number;
+  diasNumeros?: number;
 }
 
 export interface CartelRequest {
@@ -188,6 +208,8 @@ export interface CartelRequest {
   destino: string | null;
   titulo: string | null;
   bajada: string | null;
+  vigenteDesde: string | null;
+  vigenteHasta: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -273,9 +295,9 @@ export class TiendaService {
     return this.http.put<TiendaCarrusel>(`${this.url}/${tiendaId}/carrusel`, { carteles });
   }
 
-  subirImagenCartel(tiendaId: number, cartelId: number, imagen: Blob): Observable<{ imagenUrl: string }> {
+  subirImagenCartel(tiendaId: number, cartelId: number, imagen: Blob, nombre = 'cartel.jpg'): Observable<{ imagenUrl: string }> {
     const form = new FormData();
-    form.append('archivo', imagen, 'cartel.jpg');
+    form.append('archivo', imagen, nombre);
     return this.http.post<{ imagenUrl: string }>(`${this.url}/${tiendaId}/carrusel/${cartelId}/imagen`, form);
   }
 
