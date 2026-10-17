@@ -49,6 +49,8 @@ export interface BenchmarkDetailDialogData {
   toggleSort: (column: ProductSortColumn) => void;
   resetSort: () => void;
   sourceLabel: (source: string) => string;
+  // BP-152 -- abre el popup de revision de un producto "para revisar" o con EAN dudoso.
+  review: (row: ProductDetailRow) => void;
 }
 
 @Component({

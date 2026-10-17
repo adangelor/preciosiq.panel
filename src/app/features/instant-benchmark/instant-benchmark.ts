@@ -60,7 +60,8 @@ export class InstantBenchmarkComponent implements OnInit {
   private readonly openKeys = signal<ReadonlySet<string>>(new Set());
 
   protected readonly groups = computed<BenchmarkCategoryGroup[]>(() => {
-    const rows = this.result()?.categories ?? [];
+    // BP-152 (17-oct-2026) -- pedido de Andres: las categorias donde no vendes nada no se muestran.
+    const rows = (this.result()?.categories ?? []).filter((c) => c.ownProductCount > 0);
     const byCategory = new Map<string, BenchmarkCategoryGroup>();
     const order: string[] = [];
     for (const row of rows) {

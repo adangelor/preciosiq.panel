@@ -1,0 +1,122 @@
+<div class="dialog-header">
+  <div>
+    <h2>Revisar precio</h2>
+    <p class="product">
+      {{ row.description ?? row.ean }}
+      @if (row.brand | brandLabel; as brand) {
+        <span class="brand-tag">({{ brand }})</span>
+      }
+    </p>
+    <p class="hint">Código {{ row.ean }} · {{ data.branchName }}</p>
+  </div>
+  <button type="button" class="dialog-close" (click)="close()" aria-label="Cerrar">×</button>
+</div>
+
+<div class="dialog-body">
+  <!-- BP-137 -- el codigo es otro producto en la red: lo primero es el codigo, no el precio. -->
+  @if (row.eanDudoso) {
+    <div class="aviso">
+      <i class="fa-solid fa-barcode" aria-hidden="true"></i>
+      <div>
+        En la red, el código <strong>{{ row.ean }}</strong> es <strong>«{{ row.nombreRed }}»</strong>, no tu producto.
+        Seguramente se cargó con el código de otro: corregilo y la próxima vez se compara bien.
+      </div>
+    </div>
+  } @else if (ratio() !== null) {
+    <div class="aviso">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <div>
+        Tu precio es <strong>{{ ratioText() }}</strong>. Una diferencia así casi siempre es un error de carga.
+        @if (commaFix(); as fix) {
+          Parece la coma corrida o un cero de más: ¿no era <strong>${{ fmt(fix) }}</strong>?
+        } @else {
+          Puede ser otra presentación (un pack contra la unidad) o el código de otro producto.
+        }
+      </div>
+    </div>
+  }
+
+  <table class="compare">
+    <tbody>
+      <tr class="compare__own">
+        <td>Tu precio</td>
+        <td>{{ row.ownPrice != null ? '$' + fmt(row.ownPrice) : '—' }}</td>
+      </tr>
+      @for (c of row.sepaChains; track c.commerceId + '|' + c.bannerId) {
+        <tr>
+          <td>
+            {{ c.chainName ?? (c.commerceId + '-' + c.bannerId) }}
+            @if (c.branchCount > 1) {
+              <span class="hint">({{ c.branchCount }} sucursales)</span>
+            }
+          </td>
+          <td>${{ fmt(c.avgPrice) }}</td>
+        </tr>
+      }
+      @if (row.familySufficientCoverage && row.familyAvgPrice != null) {
+        <tr>
+          <td>Otras cuentas de la zona ({{ row.familyCompetitorCount }})</td>
+          <td>${{ fmt(row.familyAvgPrice) }}</td>
+        </tr>
+      }
+      @if (zoneRef(); as ref) {
+        <tr class="compare__ref">
+          <td>Promedio de la zona</td>
+          <td>${{ fmt(ref) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (!editable) {
+    <p class="empty-state">
+      Este precio lo publica tu cadena en SEPA: se corrige en el sistema que lo informa, no desde acá.
+    </p>
+  } @else {
+    @if (!row.eanDudoso) {
+      <h3>Corregir el precio</h3>
+      <div class="edit-row">
+        <label class="price-input">
+          $
+          <input type="number" min="0" step="0.01" [value]="newPrice()" (input)="setPrice($any($event.target).valueAsNumber)" />
+        </label>
+        @if (commaFix(); as fix) {
+          <button type="button" class="chip" (click)="setPrice(fix)">Usar ${{ fmt(fix) }}</button>
+        }
+        @if (zoneRef(); as ref) {
+          <button type="button" class="chip" (click)="setPrice(+ref.toFixed(2))">Usar el de la zona (${{ fmt(ref) }})</button>
+        }
+        <button type="button" class="primary" [disabled]="saving()" (click)="savePrice()">
+          {{ saving() ? 'Guardando…' : 'Guardar precio' }}
+        </button>
+      </div>
+      @if (!showEanForm()) {
+        <button type="button" class="link-button" (click)="showEanForm.set(true)">¿El que está mal es el código?</button>
+      }
+    }
+
+    @if (showEanForm()) {
+      <h3>Corregir el código</h3>
+      <div class="edit-row">
+        <input
+          type="text"
+          inputmode="numeric"
+          class="ean-input"
+          placeholder="Código de barras correcto"
+          [value]="newEan()"
+          (input)="newEan.set($any($event.target).value)"
+        />
+        <button type="button" class="primary" [disabled]="saving()" (click)="saveEan()">
+          {{ saving() ? 'Guardando…' : 'Cambiar código' }}
+        </button>
+      </div>
+      <p class="hint">
+        Mantiene el precio y la promo, y desde ahí se compara con el producto del código nuevo{{ row.nombreRed ? ', no con «' + row.nombreRed + '»' : '' }}.
+      </p>
+    }
+
+    @if (error()) {
+      <p class="form-error">{{ error() }}</p>
+    }
+  }
+</div>

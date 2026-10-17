@@ -186,3 +186,14 @@
   background: var(--warning-soft);
   color: var(--warning);
 }
+
+// BP-152 -- el cartel es un boton: abre el popup de revision.
+button.atipico {
+  border: 1px solid transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.atipico:hover {
+  border-color: var(--warning);
+}

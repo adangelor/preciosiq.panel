@@ -14,6 +14,7 @@ import {
   ProductSortColumn,
 } from './benchmark-detail-dialog';
 import { AdvisorReportDialogComponent, AdvisorReportDialogData } from './advisor-report-dialog';
+import { PriceReviewDialogComponent, PriceReviewDialogData, PriceReviewResult } from './price-review-dialog';
 import { AdvisorService } from '../../core/advisor';
 import { PriceZoneItem } from '../../core/advisor.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
@@ -99,11 +100,17 @@ export class BenchmarkDashboardComponent implements OnInit {
 
   // La SP v3 devuelve los dos niveles juntos, separados por flag (isCategoryTotal) --
   // NO por subcategoryId null, que tambien aparece en hojas legitimas.
+  // BP-152 (17-oct-2026) -- pedido de Andres: "si no vendo en una categoria NO ME LOS MUESTRES". Las categorias y
+  // subcategorias sin productos propios salen del tablero, del resumen y del Excel (lo que vende la competencia y vos
+  // no queda en la hoja "Solo en la zona" del Excel y en el Asesor, que lo pide aparte).
+  private readonly ownCategories = computed<BenchmarkCategoryResult[]>(
+    () => (this.categories() ?? []).filter((c) => c.ownProductCount > 0),
+  );
   protected readonly categoryTotals = computed<BenchmarkCategoryResult[]>(
-    () => (this.categories() ?? []).filter((c) => c.isCategoryTotal),
+    () => this.ownCategories().filter((c) => c.isCategoryTotal),
   );
   protected readonly leafRows = computed<BenchmarkCategoryResult[]>(
-    () => (this.categories() ?? []).filter((c) => !c.isCategoryTotal),
+    () => this.ownCategories().filter((c) => !c.isCategoryTotal),
   );
 
   // Lo que muestra la tabla jerarquica segun el nivel: raiz = totales de categoria;
@@ -237,8 +244,9 @@ export class BenchmarkDashboardComponent implements OnInit {
     return { ...p, competitorRefPrice, deltaPct };
   }
 
+  // BP-152 -- solo tus productos: lo que vende la competencia y vos no, no sirve para compararte.
   protected readonly productRows = computed<ProductDetailRow[]>(() =>
-    (this.products() ?? []).map((p) => this.toDetailRow(p)),
+    (this.products() ?? []).filter((p) => p.ownPrice != null).map((p) => this.toDetailRow(p)),
   );
 
   protected readonly sortColumn = signal<ProductSortColumn | 'default'>('default');
@@ -302,8 +310,9 @@ export class BenchmarkDashboardComponent implements OnInit {
   protected readonly flatSortColumn = signal<FlatSortColumn | 'default'>('default');
   protected readonly flatSortDirection = signal<'asc' | 'desc'>('desc');
 
+  // BP-152 -- igual que el detalle: solo tus productos (el Excel arma "Solo en la zona" desde allProducts).
   protected readonly flatRows = computed<FlatProductRow[]>(() =>
-    (this.allProducts() ?? []).map((p) => this.toDetailRow(p)),
+    (this.allProducts() ?? []).filter((p) => p.ownPrice != null).map((p) => this.toDetailRow(p)),
   );
 
   protected readonly filteredFlatRows = computed<FlatProductRow[]>(() => {
@@ -775,6 +784,7 @@ export class BenchmarkDashboardComponent implements OnInit {
     this.allProducts.set(null);
     this.allProductsError.set(null);
     this.flatPage.set(1);
+    this.revisados.set(0);
 
     this.benchmarkService.getInstant(businessAccountId!, branchId, maxDistanceMeters).subscribe({
       next: (response) => {
@@ -875,6 +885,7 @@ export class BenchmarkDashboardComponent implements OnInit {
           toggleSort: (column: ProductSortColumn) => this.toggleProductSort(column),
           resetSort: () => this.resetProductSort(),
           sourceLabel: (source: string) => this.sourceLabel(source),
+          review: (row: ProductDetailRow) => this.openPriceReview(row),
         },
         width: '90vw',
         maxWidth: '960px',
@@ -884,6 +895,60 @@ export class BenchmarkDashboardComponent implements OnInit {
     );
 
     dialogRef.afterClosed().subscribe(() => this.closeDetail());
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BP-152 -- "para revisar" y "EAN dudoso" abren el popup de revision (price-review-dialog.ts). Un precio corregido se
+  // actualiza en la fila al toque (las cadenas no cambian); un codigo corregido cambia contra que se compara, asi que se
+  // vuelve a pedir el detalle. La fila de la categoria (mediana, "N para revisar") se pone al dia con Recalcular.
+  // ─────────────────────────────────────────────────────────────
+  protected readonly revisados = signal(0);
+
+  protected openPriceReview(row: ProductDetailRow): void {
+    const { businessAccountId, branchId } = this.parametrosDelCalculo();
+    if (businessAccountId == null || !branchId) return;
+    const branchName = this.branches()?.find((b) => b.branchId === branchId)?.branchName ?? branchId;
+
+    this.dialog
+      .open<PriceReviewDialogComponent, PriceReviewDialogData, PriceReviewResult>(PriceReviewDialogComponent, {
+        data: { row, businessAccountId, branchId, branchName },
+        width: '92vw',
+        maxWidth: '560px',
+        maxHeight: '90vh',
+        autoFocus: false,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+        this.revisados.update((n) => n + 1);
+        if (result.kind === 'price') {
+          const fix = (list: CategoryProductDetailItem[] | null) =>
+            list?.map((p) => (p.ean === result.ean ? { ...p, ownPrice: result.listPrice, ownPriceSource: 'self_reported' } : p)) ?? null;
+          this.products.set(fix(this.products()));
+          this.allProducts.set(fix(this.allProducts()));
+          return;
+        }
+        const category = this.selectedCategory();
+        if (category) this.reloadCategoryDetail(category);
+        if (this.allProducts() !== null) {
+          this.allProducts.set(null);
+          if (this.viewMode() === 'productos') this.ensureAllProducts();
+        }
+      });
+  }
+
+  private reloadCategoryDetail(category: BenchmarkCategoryResult): void {
+    const { businessAccountId, branchId, maxDistanceMeters } = this.parametrosDelCalculo();
+    this.loadingDetail.set(true);
+    this.trendService
+      .getCategoryDetail(businessAccountId!, branchId, category.categoryId, maxDistanceMeters, category.subcategoryId)
+      .subscribe({
+        next: (response) => {
+          this.loadingDetail.set(false);
+          this.products.set(response.products);
+        },
+        error: () => this.loadingDetail.set(false),
+      });
   }
 
   protected goToCategoryPage(page: number): void {

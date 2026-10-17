@@ -413,6 +413,20 @@ button:disabled {
   white-space: nowrap;
 }
 
+// BP-152 -- "para revisar" / "EAN dudoso" abren el popup de revision.
+.atipicos--btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+
+.atipicos--btn:hover {
+  text-decoration-style: solid;
+}
+
 // BP-140 -- diferencia con pocos productos para comparar: se muestra en gris.
 .delta--pocos {
   color: var(--text-3);

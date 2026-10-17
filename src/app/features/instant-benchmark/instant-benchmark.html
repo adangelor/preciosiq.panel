@@ -62,6 +62,9 @@
   @if (result(); as r) {
     @if (r.categories.length === 0) {
       <p class="hint">No encontramos categorías con datos en ese radio. Probá ampliar el radio.</p>
+    } @else if (groups().length === 0) {
+      <!-- BP-152 -- solo se muestran las categorias donde vendes. -->
+      <p class="hint">Todavía no tenés productos cargados en esta sucursal: cargá tus precios y acá vas a ver cómo estás contra la zona.</p>
     } @else {
       <!--
         25-ago-2026 -- pedido de Andres: antes era UNA tabla plana con categorías y
@@ -167,7 +170,7 @@
             {{ deltaLabel(row) }} <span class="atipicos">pocos para comparar</span>
           </td>
         } @else {
-          <td colspan="2" class="insufficient">Sin cadenas SEPA cerca y menos de 3 cuentas de la familia</td>
+          <td colspan="2" class="insufficient" title="Ninguna cadena del radio publica precios de esta categoría (y hay menos de 3 cuentas de PreciosIQ para promediar).">Nadie cerca vende de esta categoría</td>
         }
       </ng-template>
 

@@ -16,14 +16,14 @@
     <p class="empty-state">Cargando detalle…</p>
   } @else if (data.products(); as prods) {
     @if (prods.length === 0) {
-      <p class="empty-state">No encontramos productos propios ni de competencia en esta categoría todavía.</p>
+      <p class="empty-state">No tenés productos cargados en esta categoría.</p>
     } @else {
       <!-- 16-ago-2026 -- pedido de Andres: orden por defecto = primero lo que EL cargo,
            y entre esos primero lo mas caro respecto a la zona (ver sortedProducts() en
            el .ts). Ademas, que pueda reordenar clickeando cualquier columna. -->
       <div class="sort-hint">
         @if (data.sortColumn() === 'default') {
-          <span class="hint">Orden sugerido: tus precios primero, los más caros vs. la zona arriba de todo.</span>
+          <span class="hint">Orden sugerido: los más caros vs. la zona arriba de todo.</span>
         } @else {
           <span class="hint">Orden: {{ sortLabel(data.sortColumn()) }} ({{ data.sortDirection() === 'asc' ? 'ascendente' : 'descendente' }}).</span>
           <button type="button" class="link-button" (click)="data.resetSort()">Volver al orden sugerido</button>
@@ -72,12 +72,13 @@
                      nuevo del backend. -->
                 {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
                 <!-- BP-137 -- el EAN es otro producto en la red: no se compara. -->
+                <!-- BP-152 -- los dos carteles abren el popup de revision. -->
                 @if (p.eanDudoso) {
-                  <span class="atipico" title="En la red este código es «{{ p.nombreRed }}». No lo comparamos hasta que revises el EAN.">EAN dudoso</span>
+                  <button type="button" class="atipico" (click)="data.review(p)" title="En la red este código es «{{ p.nombreRed }}». Tocá para revisarlo.">EAN dudoso</button>
                 }
                 <!-- BP-143 -- 3x o mas arriba/abajo de la zona: no entra en la diferencia de la categoria. -->
                 @if (p.deltaPct !== null && (p.deltaPct >= 2 || p.deltaPct <= -2 / 3)) {
-                  <span class="atipico" title="Tu precio está 3 veces o más arriba o abajo del de la zona: revisalo. No entra en la diferencia de la categoría.">para revisar</span>
+                  <button type="button" class="atipico" (click)="data.review(p)" title="Tu precio está 3 veces o más arriba o abajo del de la zona. Tocá para revisarlo.">para revisar</button>
                 }
               </td>
               <td>
@@ -96,7 +97,8 @@
                     }
                   </ul>
                 } @else {
-                  <span class="insufficient">Ninguna cadena SEPA cerca</span>
+                  <!-- BP-152 -- antes "Ninguna cadena SEPA cerca": lo que pasa es que ninguna lo vende. -->
+                  <span class="insufficient" title="Ninguna cadena del radio publica precio de este producto: no hay con qué compararlo.">Ninguna cadena cerca lo vende</span>
                 }
               </td>
               <td>

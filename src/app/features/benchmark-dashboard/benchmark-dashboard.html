@@ -73,11 +73,25 @@
     </div>
   }
 
+  <!-- BP-152 -- correcciones hechas desde "para revisar": la fila de la categoria se actualiza al recalcular. -->
+  @if (revisados() > 0 && !formularioCambiado() && !loading()) {
+    <div class="recalcular" role="status">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      Corregiste {{ revisados() }} producto{{ revisados() === 1 ? '' : 's' }}. La diferencia de cada categoría se actualiza al recalcular.
+      <button type="button" class="recalcular__btn" (click)="loadDashboard()">Recalcular</button>
+    </div>
+  }
+
   @if (categories(); as cats) {
-    @if (cats.length === 0) {
+    @if (categoryTotals().length === 0 && leafRows().length === 0) {
       <p class="empty-state">
-        No encontramos categorías con datos en este radio todavía. Probá ampliar el radio
-        o esperá a que haya más productos cargados cerca (propios o de otras cadenas).
+        @if (cats.length === 0) {
+          No encontramos categorías con datos en este radio todavía. Probá ampliar el radio
+          o esperá a que haya más productos cargados cerca (propios o de otras cadenas).
+        } @else {
+          Todavía no tenés productos cargados en esta sucursal: cargá tus precios y acá vas a ver
+          cómo estás contra la zona en cada categoría que vendés.
+        }
       </p>
     } @else {
       @if (summary(); as s) {
@@ -247,15 +261,14 @@
                     @if (c.deltaVsCompetitorsPct !== null) {
                       {{ (c.deltaVsCompetitorsPct * 100).toFixed(1) }}%
                       <span class="atipicos">pocos para comparar</span>
-                    } @else if (c.ownProductCount === 0) {
-                      No vendés de esta {{ c.isCategoryTotal ? 'categoría' : 'subcategoría' }}
                     } @else {
                       Ninguno de tus productos está en la zona
                     }
                   </td>
                   <td class="cat-table__link">{{ c.isCategoryTotal ? 'Ver subcategorías →' : 'Ver detalle →' }}</td>
                 } @else {
-                  <td class="insufficient">Sin cadenas SEPA cerca y menos de 3 cuentas de la familia</td>
+                  <!-- BP-152 -- antes "Sin cadenas SEPA cerca y menos de 3 cuentas de la familia". -->
+                  <td class="insufficient" title="Ninguna cadena del radio publica precios de esta categoría (y hay menos de 3 cuentas de PreciosIQ para promediar).">Nadie cerca vende de esta {{ c.isCategoryTotal ? 'categoría' : 'subcategoría' }}</td>
                   <td class="cat-table__link">
                     @if (c.isCategoryTotal) {
                       Ver subcategorías →
@@ -344,12 +357,13 @@
                   <td [class.delta--above]="(p.deltaPct ?? 0) > 0" [class.delta--below]="(p.deltaPct ?? 0) < 0">
                     {{ p.deltaPct === null ? '—' : ((p.deltaPct > 0 ? '+' : '') + (p.deltaPct * 100).toFixed(1) + '%') }}
                     <!-- BP-137 -- el EAN es otro producto en la red: no se compara. -->
+                    <!-- BP-152 -- los dos carteles abren el popup de revision. -->
                     @if (p.eanDudoso) {
-                      <span class="atipicos" title="En la red este código es «{{ p.nombreRed }}». No lo comparamos hasta que revises el EAN.">EAN dudoso</span>
+                      <button type="button" class="atipicos atipicos--btn" (click)="openPriceReview(p)" title="En la red este código es «{{ p.nombreRed }}». Tocá para revisarlo.">EAN dudoso</button>
                     }
                     <!-- BP-143 -- 3x o mas arriba/abajo de la zona: no entra en la diferencia de la categoria. -->
                     @if (p.deltaPct !== null && (p.deltaPct >= 2 || p.deltaPct <= -2 / 3)) {
-                      <span class="atipicos" title="Tu precio está 3 veces o más arriba o abajo del de la zona: revisalo. No entra en la diferencia de la categoría.">para revisar</span>
+                      <button type="button" class="atipicos atipicos--btn" (click)="openPriceReview(p)" title="Tu precio está 3 veces o más arriba o abajo del de la zona. Tocá para revisarlo.">para revisar</button>
                     }
                   </td>
                   <td>

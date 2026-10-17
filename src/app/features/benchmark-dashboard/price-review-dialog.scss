@@ -1,0 +1,179 @@
+// BP-152 -- popup de "para revisar" / "EAN dudoso" del benchmark (ver price-review-dialog.ts).
+:host {
+  display: block;
+  padding: 1.5rem 1.75rem 1.75rem;
+  font-family: inherit;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialog-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.product {
+  margin: 0;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+.dialog-close {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: var(--border);
+}
+
+.dialog-body h3 {
+  font-size: 0.95rem;
+  margin: 1.25rem 0 0.6rem;
+}
+
+.aviso {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius);
+  background: var(--warning-soft);
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.aviso i {
+  color: var(--warning);
+  margin-top: 0.2rem;
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.compare td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.compare td:last-child {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare__own td {
+  font-weight: 700;
+  color: var(--warning);
+}
+
+.compare__ref td {
+  font-weight: 600;
+  border-bottom: none;
+}
+
+.edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.price-input input {
+  width: 8rem;
+}
+
+.price-input input,
+.ean-input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.ean-input {
+  width: 14rem;
+}
+
+.chip {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.primary {
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.link-button {
+  margin-top: 0.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.empty-state {
+  font-size: 0.88rem;
+  color: var(--text-3);
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0 0;
+}
+
+.form-error {
+  margin: 0.75rem 0 0;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
