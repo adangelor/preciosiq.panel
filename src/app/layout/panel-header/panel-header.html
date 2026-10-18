@@ -113,17 +113,7 @@
         </li>
 
         <li class="shell__nav-section">Análisis</li>
-        <li>
-          <a
-            class="shell__link"
-            routerLink="/benchmark"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Benchmark instantáneo' : null"
-          >
-            <mat-icon>leaderboard</mat-icon>
-            <span class="shell__link-text">Benchmark instantáneo</span>
-          </a>
-        </li>
+        <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->
         <!-- BP-78 (13-oct-2026) -- los productos por los que el cliente compara; los usa el Asesor. -->
         <li>
           <a

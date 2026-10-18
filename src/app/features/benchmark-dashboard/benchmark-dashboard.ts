@@ -26,7 +26,8 @@ import { RadiusAdvisorComponent } from '../../layout/radius-advisor/radius-advis
 import { BenchmarkPreferencesService } from '../../core/benchmark-preferences';
 import { BrandLabelPipe } from '../../core/brand-label';
 
-export type CategorySortColumn = 'categoryName' | 'competitorCount' | 'delta' | 'ownProducts' | 'zoneProducts' | 'matched';
+// BP-164 (18-oct-2026): 'ownAvg' / 'zoneAvg', las columnas de promedios que traia el benchmark instantaneo.
+export type CategorySortColumn = 'categoryName' | 'competitorCount' | 'delta' | 'ownProducts' | 'zoneProducts' | 'matched' | 'ownAvg' | 'zoneAvg';
 
 // Vista por productos ("la bomba" punto 3): columnas ordenables de la tabla plana.
 export type FlatSortColumn = 'description' | 'category' | 'ownPrice' | 'delta' | 'family';
@@ -55,6 +56,11 @@ export interface FlatProductRow extends ProductDetailRow {}
 //   4. Numerales nuevos en las dos tablas jerarquicas: "Tus productos"
 //      (ownProductCount) y "Productos en zona" (zoneProductCount, EANs distintos de
 //      la competencia) -- ambos ordenables como cualquier otra columna.
+//
+// BP-164 (18-oct-2026) -- pedido de Andres: un solo benchmark. El "Benchmark instantaneo" (/benchmark) usaba los mismos
+// datos (GET /business/benchmark/instant) con menos cosas: se borro, /benchmark redirige aca, y este suma lo unico que
+// tenia y este no: las columnas "Tu promedio" / "Promedio zona" (sobre la misma canasta, BP-140) y el buscador de
+// categorias. La tabla y el resumen son de todo plan; el detalle, la tendencia y la vista por producto, desde Pyme.
 //
 // E1.7 (16-ago-2026) -- BUG real marcado por Andres: "¿Qué carajo quiere decir 'ID de
 // cuenta de negocio'?" -- el formulario pedia el businessAccountId y el branchId a
@@ -115,11 +121,40 @@ export class BenchmarkDashboardComponent implements OnInit {
 
   // Lo que muestra la tabla jerarquica segun el nivel: raiz = totales de categoria;
   // drilleado = las hojas (subcategorias) de la categoria elegida.
+  // BP-164 -- con texto en el buscador: las categorias y subcategorias (de cualquier categoria) cuyo nombre lo tiene.
+  protected readonly categorySearch = signal('');
   protected readonly currentLevelRows = computed<BenchmarkCategoryResult[]>(() => {
+    const q = this.categorySearch().trim().toLowerCase();
+    if (q) {
+      return [
+        ...this.categoryTotals().filter((c) => c.categoryName.toLowerCase().includes(q)),
+        ...this.leafRows().filter((c) => (c.subcategoryName ?? '').toLowerCase().includes(q)),
+      ];
+    }
     const drill = this.drillCategoryId();
     if (drill === null) return this.categoryTotals();
     return this.leafRows().filter((c) => c.categoryId === drill);
   });
+
+  protected onCategorySearch(term: string): void {
+    this.categorySearch.set(term);
+    this.categoryPage.set(1);
+  }
+
+  // BP-164 (traido del benchmark instantaneo) -- BP-140: los dos promedios sobre la MISMA canasta, tus productos que
+  // tienen precio en la zona sin los atipicos. Con un backend viejo, los de antes.
+  protected tuPromedio(row: BenchmarkCategoryResult): number | null {
+    return row.ownAvgMatchedPrice !== undefined ? row.ownAvgMatchedPrice : row.ownAvgPrice;
+  }
+
+  protected promedioZona(row: BenchmarkCategoryResult): number | null {
+    if (!this.tienePrecioDeZona(row)) return null;
+    return row.zoneAvgMatchedPrice !== undefined ? row.zoneAvgMatchedPrice : row.competitorAvgPrice;
+  }
+
+  protected pesos(n: number | null): string {
+    return n === null || n === undefined ? '—' : '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   protected readonly drillCategoryName = computed<string | null>(() => {
     const drill = this.drillCategoryId();
@@ -128,6 +163,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   });
 
   protected drillInto(category: BenchmarkCategoryResult): void {
+    this.categorySearch.set('');
     this.drillCategoryId.set(category.categoryId);
     this.categoryPage.set(1);
     this.categorySortColumn.set('default');
@@ -190,6 +226,12 @@ export class BenchmarkDashboardComponent implements OnInit {
           break;
         case 'delta':
           cmp = (a.deltaVsCompetitorsPct ?? -Infinity) - (b.deltaVsCompetitorsPct ?? -Infinity);
+          break;
+        case 'ownAvg':
+          cmp = (this.tuPromedio(a) ?? -Infinity) - (this.tuPromedio(b) ?? -Infinity);
+          break;
+        case 'zoneAvg':
+          cmp = (this.promedioZona(a) ?? -Infinity) - (this.promedioZona(b) ?? -Infinity);
           break;
       }
       return cmp * mult;
@@ -417,6 +459,7 @@ export class BenchmarkDashboardComponent implements OnInit {
   // y si su subcategoria tiene cobertura, abrir directo el detalle de siempre.
   protected goToProductCategory(p: FlatProductRow): void {
     this.viewMode.set('categorias');
+    this.categorySearch.set('');
     this.drillCategoryId.set(p.categoryId);
     this.categoryPage.set(1);
 
@@ -781,6 +824,7 @@ export class BenchmarkDashboardComponent implements OnInit {
     this.productPage.set(1);
     // v3 -- cambiar sucursal/radio invalida el drilldown y el catalogo plano.
     this.drillCategoryId.set(null);
+    this.categorySearch.set('');
     this.allProducts.set(null);
     this.allProductsError.set(null);
     this.flatPage.set(1);

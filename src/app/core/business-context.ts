@@ -14,7 +14,7 @@ export interface BusinessContext {
 // benchmark-dashboard.ts (E1.7 -- pedir el businessAccountId/branchId a mano, en texto
 // plano, como si fuera una pantalla de debugging) estaba repetido en TODAS las demas
 // pantallas del panel (branch-signup, branches-list, csv-import, price-upsert,
-// price-history, instant-benchmark). Este service centraliza la resolucion de "cual es
+// price-history; el benchmark instantaneo se unifico con el dashboard en BP-164). Este service centraliza la resolucion de "cual es
 // mi cuenta y que sucursales tiene" UNA sola vez por sesion de panel (shareReplay), en
 // vez de repetir el mismo par de llamadas (getMine + listBranches) en cada pantalla.
 //

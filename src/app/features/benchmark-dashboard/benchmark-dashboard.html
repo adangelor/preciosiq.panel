@@ -177,21 +177,36 @@
         <!-- v3 -- navegación jerárquica ("la bomba" punto 1): raíz = las categorías
              canónicas (filas total); drilldown = subcategorías de la elegida; el
              click en una subcategoría abre el detalle por producto de siempre. -->
-        <nav class="breadcrumb">
-          @if (drillCategoryId() === null) {
-            <span class="breadcrumb__current">Todas las categorías</span>
-          } @else {
-            <button type="button" class="link-button" (click)="drillBack()">← Todas las categorías</button>
-            <span class="breadcrumb__sep">/</span>
-            <span class="breadcrumb__current">{{ drillCategoryName() }}</span>
-          }
-        </nav>
+        <!-- BP-164 -- el buscador de categorias que tenia el benchmark instantaneo. -->
+        <div class="cat-nav">
+          <nav class="breadcrumb">
+            @if (categorySearch().trim()) {
+              <span class="breadcrumb__current">{{ currentLevelRows().length }} resultado{{ currentLevelRows().length === 1 ? '' : 's' }} para «{{ categorySearch().trim() }}»</span>
+            } @else if (drillCategoryId() === null) {
+              <span class="breadcrumb__current">Todas las categorías</span>
+            } @else {
+              <button type="button" class="link-button" (click)="drillBack()">← Todas las categorías</button>
+              <span class="breadcrumb__sep">/</span>
+              <span class="breadcrumb__current">{{ drillCategoryName() }}</span>
+            }
+          </nav>
+          <label class="cat-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input
+              type="search"
+              placeholder="Buscar categoría o subcategoría…"
+              aria-label="Buscar categoría o subcategoría"
+              [value]="categorySearch()"
+              (input)="onCategorySearch($any($event.target).value)"
+            />
+          </label>
+        </div>
 
         <table class="cat-table">
           <thead>
             <tr>
               <th class="sort-th" (click)="toggleCategorySort('categoryName')">
-                {{ drillCategoryId() === null ? 'Categoría' : 'Subcategoría' }}{{ categorySortArrow('categoryName') }}
+                {{ categorySearch().trim() ? 'Categoría / subcategoría' : drillCategoryId() === null ? 'Categoría' : 'Subcategoría' }}{{ categorySortArrow('categoryName') }}
               </th>
               <th class="sort-th" (click)="toggleCategorySort('competitorCount')">
                 Competidores{{ categorySortArrow('competitorCount') }}
@@ -211,6 +226,15 @@
                   title="Tus productos con coincidencia de EAN en la zona / tus productos totales">
                 A comparar{{ categorySortArrow('matched') }}
               </th>
+              <!-- BP-164 -- los dos promedios del benchmark instantaneo, sobre la misma canasta (BP-140). -->
+              <th class="sort-th" (click)="toggleCategorySort('ownAvg')"
+                  title="Tu precio promedio de los productos que se pueden comparar con la zona (sin los precios para revisar)">
+                Tu promedio{{ categorySortArrow('ownAvg') }}
+              </th>
+              <th class="sort-th" (click)="toggleCategorySort('zoneAvg')"
+                  title="El promedio de la zona para esos mismos productos">
+                Promedio zona{{ categorySortArrow('zoneAvg') }}
+              </th>
               <th class="sort-th" (click)="toggleCategorySort('delta')">
                 Diferencia{{ categorySortArrow('delta') }}
               </th>
@@ -228,6 +252,7 @@
                   @if (c.isCategoryTotal) {
                     {{ c.categoryName }}
                   } @else {
+                    @if (categorySearch().trim()) { <span class="cat-padre">{{ c.categoryName }} /</span> }
                     {{ c.subcategoryName ?? '(sin subcategoría)' }}
                   }
                 </td>
@@ -238,6 +263,8 @@
                     title="{{ c.matchedProductCount }} coincidentes con la zona, {{ c.ownProductCount - c.matchedProductCount }} sin coincidencia">
                   {{ c.matchedProductCount }} / {{ c.ownProductCount }}
                 </td>
+                <td class="num">{{ pesos(tuPromedio(c)) }}</td>
+                <td class="num">{{ pesos(promedioZona(c)) }}</td>
                 @if (c.sufficientCoverage) {
                   <td [class.delta--above]="(c.deltaVsCompetitorsPct ?? 0) > 0" [class.delta--below]="(c.deltaVsCompetitorsPct ?? 0) < 0">
                     <!-- 22-ago -- el "(sobre N productos)" que vivia aca se mudo a la

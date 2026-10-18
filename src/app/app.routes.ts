@@ -84,12 +84,8 @@ export const routes: Routes = [
           import('./features/price-upsert/price-upsert').then((m) => m.PriceUpsertComponent),
         title: 'PreciosIQ — Cargar precio',
       },
-      {
-        path: 'benchmark',
-        loadComponent: () =>
-          import('./features/instant-benchmark/instant-benchmark').then((m) => m.InstantBenchmarkComponent),
-        title: 'PreciosIQ — Benchmark instantáneo',
-      },
+      // BP-164 (18-oct-2026) -- el "Benchmark instantaneo" se unifico con el dashboard: los links viejos van ahi.
+      { path: 'benchmark', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'sucursales',
         loadComponent: () =>
