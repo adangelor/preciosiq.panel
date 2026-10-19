@@ -16,7 +16,8 @@ import {
   PromoTipo,
   UpsertBusinessPriceRequest,
 } from '../../core/business-price.models';
-import { vistaPrevia } from '../../core/promo-calculator';
+import { PromoReglaGrupo, reglaDesdeValores, valoresDesdeRegla } from '../../core/promo-regla-form';
+import { PromoReglaEditorComponent } from '../../shared/promo-regla-editor/promo-regla-editor';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
 import { BranchListItem } from '../../core/business-account.models';
@@ -48,7 +49,7 @@ import { BrandLabelPipe } from '../../core/brand-label';
 @Component({
   selector: 'app-price-upsert',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, BrandLabelPipe],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, BrandLabelPipe, PromoReglaEditorComponent],
   templateUrl: './price-upsert.html',
   styleUrl: './price-upsert.scss',
 })
@@ -98,11 +99,10 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
   protected readonly changingEan = signal(false);
   protected readonly changeEanError = signal<string | null>(null);
 
-  // BP-38 -- la regla activa del producto elegido (para mostrar "cargada en la caja", etc.),
-  // la vista previa en vivo y el error de la regla (mismos mensajes que la caja y el servidor).
+  // BP-38 -- la regla activa del producto elegido (para mostrar "cargada en la caja", etc.) y el error de la regla
+  // al guardar (mismos mensajes que la caja y el servidor). BP-169: la vista previa la muestra el editor.
   protected readonly loadedRule = signal<PromoRule | null>(null);
   protected readonly loadedRuleOrigin = signal<'propio' | null>(null);
-  protected readonly promoPreview = signal<string | null>(null);
   protected readonly promoError = signal<string | null>(null);
   protected readonly showPromo2 = signal(false);
 
@@ -206,6 +206,11 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     return this.form.controls.promo.controls.tipo.value;
   }
 
+  /** BP-169 -- el grupo de la promo para el editor (tiene además "todas las sucursales", que el editor no mira). */
+  protected get promoGrupo(): PromoReglaGrupo {
+    return this.form.controls.promo as unknown as PromoReglaGrupo;
+  }
+
   private lastOwnLookup = '';
 
   /** Si el EAN ya está cargado en la sucursal elegida, trae precio, presentación y la regla activa. */
@@ -277,141 +282,36 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
   /** Carga la regla en la sección Promo SIN marcarla como tocada (guardar igual manda promoRule ausente). */
   private patchRule(r: PromoRule | null): void {
     const promo = this.form.controls.promo;
-    promo.reset(
-      {
-        tipo: r?.tipo ?? '',
-        precio: r?.precioPromo ?? null,
-        porcentaje: r?.porcentaje ?? null,
-        grupoN: r?.grupoN ?? null,
-        pagaM: r?.pagaM ?? null,
-        cadaN: r?.cadaN ?? null,
-        min: r?.minQty ?? null,
-        max: r?.maxQty ?? null,
-        desde: r?.validFrom ?? '',
-        hasta: r?.validTo ?? '',
-        leyenda: r?.leyenda ?? '',
-        todasLasSucursales: r ? r.branchId === null : false,
-      },
-      { emitEvent: false },
-    );
+    promo.reset({ ...valoresDesdeRegla(r), todasLasSucursales: r ? r.branchId === null : false }, { emitEvent: false });
     promo.markAsPristine();
     this.recomputePromo();
   }
 
   private onPromoTipoChange(): void {
-    // Defaults razonables por tipo, para que la vista previa aparezca de una (como la caja).
-    const c = this.form.controls.promo.controls;
-    const min = c.min.value;
-    switch (this.promoTipo) {
-      case 'n_x_m': {
-        const n = c.grupoN.value ?? 3;
-        c.grupoN.setValue(n);
-        if (c.pagaM.value == null) c.pagaM.setValue(2);
-        c.min.setValue(Math.max(min ?? 0, n));
-        break;
-      }
-      case 'enesima_porcentaje': {
-        const n = c.cadaN.value ?? 2;
-        c.cadaN.setValue(n);
-        if (c.porcentaje.value == null) c.porcentaje.setValue(50);
-        c.min.setValue(Math.max(min ?? 0, n));
-        break;
-      }
-      case 'precio_unitario':
-      case 'porcentaje':
-        if (min == null) c.min.setValue(3);
-        break;
-      case '':
-        // BP-40 -- "Sin promo" arranca en "solo en esta sucursal": apagarla en todas hay que tildarlo.
-        c.todasLasSucursales.setValue(false);
-        break;
-    }
+    // BP-169 -- los defaults por tipo los pone el editor (shared/promo-regla-editor). Acá queda el ámbito:
+    // BP-40 -- "Sin promo" arranca en "solo en esta sucursal": apagarla en todas hay que tildarlo.
+    if (this.promoTipo === '') this.form.controls.promo.controls.todasLasSucursales.setValue(false);
     this.recomputePromo();
   }
 
   /** La regla tal como se manda (null = sin promo). Lanza un Error con mensaje a persona si está mal. */
   protected buildRule(): PromoRule | null {
-    const v = this.form.controls.promo.getRawValue();
-    const tipo = v.tipo;
-    if (!tipo) return null;
-    const num = (x: number | string | null | undefined): number | null =>
-      x === null || x === '' || x === undefined ? null : Number(x);
-    const listPrice = num(this.form.controls.listPrice.value);
-    const unit = this.form.controls.presentationUnit.value;
-    const rule: PromoRule = {
-      id: null,
-      branchId: null, // el ámbito lo decide promoRuleTodasLasSucursales
-      tipo,
-      minQty: num(v.min) ?? 1,
-      maxQty: num(v.max),
-      precioPromo: tipo === 'precio_unitario' ? num(v.precio) : null,
-      porcentaje: tipo === 'porcentaje' || tipo === 'enesima_porcentaje' ? num(v.porcentaje) : null,
-      grupoN: tipo === 'n_x_m' ? num(v.grupoN) : null,
-      pagaM: tipo === 'n_x_m' ? num(v.pagaM) : null,
-      cadaN: tipo === 'enesima_porcentaje' ? num(v.cadaN) : null,
-      validFrom: v.desde || null,
-      validTo: v.hasta || null,
-      activa: true,
-      leyenda: v.leyenda?.trim() ? v.leyenda.trim() : null,
-    };
-    // Misma validación que la caja (pages/producto) y el servidor (PromoRuleService.ValidarRegla).
-    if (rule.minQty <= 0) throw new Error('El mínimo tiene que ser mayor a cero.');
-    if (rule.maxQty != null && rule.maxQty < rule.minQty) throw new Error('El máximo no puede ser menor que el mínimo.');
-    if (rule.validFrom && rule.validTo && rule.validTo < rule.validFrom)
-      throw new Error('La vigencia termina antes de empezar: revisá las fechas.');
-    switch (rule.tipo) {
-      case 'precio_unitario':
-        if (!rule.precioPromo || rule.precioPromo <= 0) throw new Error('Falta el precio promo (mayor a cero).');
-        if (listPrice && rule.precioPromo >= listPrice) throw new Error('El precio promo tiene que ser menor que el de lista.');
-        break;
-      case 'porcentaje':
-        if (!rule.porcentaje || rule.porcentaje <= 0 || rule.porcentaje > 100)
-          throw new Error('El porcentaje tiene que estar entre 0 y 100.');
-        break;
-      case 'n_x_m':
-        if (esPesable(unit)) throw new Error(`Un producto que se vende por ${unit} no puede tener 3x2.`);
-        if (!rule.grupoN || !rule.pagaM || rule.pagaM <= 0 || rule.grupoN <= rule.pagaM)
-          throw new Error('NxM necesita N mayor que M y M mayor a cero (ej. 3x2).');
-        if (rule.minQty < rule.grupoN)
-          throw new Error(`Con ${rule.grupoN}x${rule.pagaM} el mínimo tiene que ser al menos ${rule.grupoN}.`);
-        if (rule.minQty !== Math.floor(rule.minQty)) throw new Error('Con NxM el mínimo tiene que ser entero.');
-        break;
-      case 'enesima_porcentaje':
-        if (esPesable(unit)) throw new Error(`Un producto que se vende por ${unit} no puede tener "segunda al 50 %".`);
-        if (!rule.cadaN || rule.cadaN < 2) throw new Error('La N-ésima unidad tiene que ser la segunda o más (N ≥ 2).');
-        if (!rule.porcentaje || rule.porcentaje <= 0 || rule.porcentaje > 100)
-          throw new Error('El porcentaje tiene que estar entre 0 y 100.');
-        if (rule.minQty < rule.cadaN)
-          throw new Error(`Con la ${rule.cadaN}ª unidad con descuento el mínimo tiene que ser al menos ${rule.cadaN}.`);
-        if (rule.minQty !== Math.floor(rule.minQty)) throw new Error('Con N-ésima el mínimo tiene que ser entero.');
-        break;
-    }
-    return rule;
+    // BP-169 -- la misma validación de antes, ahora en core/promo-regla-form (la usan también las "para confirmar").
+    return reglaDesdeValores(
+      this.form.controls.promo.getRawValue(),
+      this.form.controls.listPrice.value,
+      this.form.controls.presentationUnit.value,
+    );
   }
 
-  /** Vista previa en vivo con la misma función que cobra la caja: "Llevando 3 de $2.500: $6.300 (ahorra $1.200)". */
+  /** Pasó a pesable con un 2x1 cargado: "sin promo" tiene que viajar (null), no quedar ausente. */
   private recomputePromo(): void {
     const tipo = this.form.controls.promo.controls.tipo;
     if (this.pesable && (tipo.value === 'n_x_m' || tipo.value === 'enesima_porcentaje')) {
       tipo.setValue('', { emitEvent: false });
-      // Pasó a pesable con un 3x2 cargado: "sin promo" tiene que viajar (null), no quedar ausente.
       this.form.controls.promo.markAsDirty();
     }
-    try {
-      const rule = this.buildRule();
-      const listPrice = Number(this.form.controls.listPrice.value);
-      this.promoError.set(null);
-      this.promoPreview.set(rule && listPrice > 0 ? vistaPrevia(rule, listPrice, PriceUpsertComponent.hoy()) : null);
-    } catch (e) {
-      this.promoPreview.set(null);
-      this.promoError.set((e as Error).message);
-    }
-  }
-
-  private static hoy(): string {
-    const d = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    this.promoError.set(null);
   }
 
   protected submit(): void {

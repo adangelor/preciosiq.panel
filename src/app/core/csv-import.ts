@@ -5,6 +5,9 @@ import { environment } from '../../environments/environment';
 import {
   CatalogoCompletoGrupoResult,
   CatalogoCompletoResult,
+  ConfirmarPromosResponse,
+  PromoConfirmada,
+  PromosParaConfirmarResponse,
   CsvImportBatch,
   CsvImportChunkOptions,
   CsvImportDestino,
@@ -128,6 +131,18 @@ export class CsvImportService {
 
   aplicarRevision(businessAccountId: number): Observable<RevisionAplicada> {
     return this.http.post<RevisionAplicada>(`${this.baseUrl}/revision/aplicar`, { businessAccountId });
+  }
+
+  // BP-169 (19-oct-2026) -- las promos de una carga que quedaron "para confirmar", y confirmarlas (regla) o
+  // descartarlas (null). En una carga agrupada, confirmar aplica en todas sus sucursales.
+  promosParaConfirmar(batchId: number, businessAccountId: number): Observable<PromosParaConfirmarResponse> {
+    return this.http.get<PromosParaConfirmarResponse>(`${this.baseUrl}/batches/${batchId}/promos`, {
+      params: { businessAccountId: String(businessAccountId) },
+    });
+  }
+
+  confirmarPromos(batchId: number, businessAccountId: number, promos: PromoConfirmada[]): Observable<ConfirmarPromosResponse> {
+    return this.http.post<ConfirmarPromosResponse>(`${this.baseUrl}/batches/${batchId}/promos`, { businessAccountId, promos });
   }
 
   undoBatch(batchId: number, businessAccountId: number): Observable<UndoCsvImportBatchResult> {

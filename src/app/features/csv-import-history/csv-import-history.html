@@ -122,6 +122,12 @@
                     <button type="button" class="link-btn link-btn--danger" [disabled]="undoingId() === '' + b.id" (click)="undo(b)">
                       {{ undoingId() === '' + b.id ? 'Deshaciendo…' : 'Deshacer' }}
                     </button>
+                    <!-- BP-169 -- promos por cantidad que no se entendieron: se confirman acá. -->
+                    @if (sinConfirmar()[b.id] > 0) {
+                      <button type="button" class="link-btn link-btn--warning" [attr.aria-expanded]="promosAbiertas()?.batchId === b.id" (click)="alternarPromos(b.id)">
+                        {{ sinConfirmar()[b.id] }} {{ sinConfirmar()[b.id] === 1 ? 'promo' : 'promos' }} sin confirmar
+                      </button>
+                    }
                   }
                 </td>
               </tr>
@@ -155,9 +161,15 @@
                     <button type="button" class="link-btn link-btn--danger" [disabled]="undoingId() === 'g' + g.id" (click)="undoGrupo(g)">
                       {{ undoingId() === 'g' + g.id ? 'Deshaciendo…' : 'Deshacer todo' }}
                     </button>
+                    @if (sinConfirmarDelGrupo(g); as pend) {
+                      <button type="button" class="link-btn link-btn--warning" [attr.aria-expanded]="promosAbiertas()?.batchId === pend.batchId" (click)="alternarPromos(pend.batchId, g)">
+                        {{ pend.n }} {{ pend.n === 1 ? 'promo' : 'promos' }} sin confirmar
+                      </button>
+                    }
                   }
                 </td>
               </tr>
+
               @if (abiertos()[g.id]) {
                 @for (b of g.lotes; track b.id) {
                   <tr class="grupo__lote" [class.batch--reverted]="b.revertedAt">
@@ -190,6 +202,17 @@
         </tbody>
       </table>
       </div>
+      <!-- BP-169 -- las promos para confirmar del lote elegido, debajo de la tabla (adentro tomaba su scroll horizontal). -->
+      @if (promosAbiertas(); as abierto) {
+        @if (cuenta(); as cuentaId) {
+          <app-promos-para-confirmar
+            id="promos-para-confirmar"
+            [businessAccountId]="cuentaId"
+            [batchId]="abierto.batchId"
+            (quedan)="alCambiarAbiertas($event)"
+          />
+        }
+      }
       <p class="hint">
         En una carga a varias sucursales, "Con error" son las filas del archivo que no se cargaron en ninguna;
         desplegala para ver lo de cada sucursal.

@@ -133,16 +133,13 @@
           </button>
         </p>
       }
-      <label>
-        Tipo
-        <select formControlName="tipo">
-          <option value="">Sin promo</option>
-          <option value="precio_unitario">Precio por cantidad (“llevando 3, $2.100 c/u”)</option>
-          <option value="porcentaje">Porcentaje (“15 % llevando 3”)</option>
-          <option value="n_x_m" [disabled]="pesable">NxM (“3x2”){{ pesable ? ' — no aplica por ' + form.controls.presentationUnit.value : '' }}</option>
-          <option value="enesima_porcentaje" [disabled]="pesable">N-ésima con descuento (“2da al 50 %”){{ pesable ? ' — no aplica por ' + form.controls.presentationUnit.value : '' }}</option>
-        </select>
-      </label>
+      <!-- BP-169 (19-oct-2026) -- el selector y la vista previa son un componente: el mismo que usa la carga masiva
+           para las promos "para confirmar". El ámbito (BP-40) queda acá. -->
+      <app-promo-regla-editor
+        [grupo]="promoGrupo"
+        [listPrice]="form.controls.listPrice.value"
+        [unidad]="form.controls.presentationUnit.value"
+      />
       <!-- BP-40 (10-oct-2026) -- "Sin promo" con una promo de toda la cuenta: ¿solo acá o en todas? -->
       @if (!promoTipo && loadedRule()?.branchId === null && form.controls.promo.dirty) {
         <label class="promo__check">
@@ -153,47 +150,13 @@
           Sin tildar, la promo se apaga <strong>solo en esta sucursal</strong> y las demás la siguen teniendo.
         </p>
       }
-      @if (pesable) {
-        <p class="hint">
-          Un producto que se vende por {{ form.controls.presentationUnit.value }} no puede tener 3x2 ni “2da al 50 %”: la
-          cantidad no es entera. Usá precio por cantidad o porcentaje.
-        </p>
-      }
-
       @if (promoTipo) {
-        <div class="signup__row promo__fields">
-          @if (promoTipo === 'precio_unitario') {
-            <label>Precio promo c/u <input type="number" formControlName="precio" step="0.01" min="0" placeholder="2100" /></label>
-          }
-          @if (promoTipo === 'porcentaje' || promoTipo === 'enesima_porcentaje') {
-            <label>Descuento % <input type="number" formControlName="porcentaje" step="0.01" min="0" max="100" placeholder="15" /></label>
-          }
-          @if (promoTipo === 'n_x_m') {
-            <label>Lleva N <input type="number" formControlName="grupoN" step="1" min="2" placeholder="3" /></label>
-            <label>Paga M <input type="number" formControlName="pagaM" step="1" min="1" placeholder="2" /></label>
-          }
-          @if (promoTipo === 'enesima_porcentaje') {
-            <label>Cada N-ésima <input type="number" formControlName="cadaN" step="1" min="2" placeholder="2" /></label>
-          }
-          <label>Mínimo <input type="number" formControlName="min" min="0" [step]="pesable ? '0.001' : '1'" placeholder="3" /></label>
-          <label>Máximo (opcional) <input type="number" formControlName="max" min="0" [step]="pesable ? '0.001' : '1'" placeholder="—" /></label>
-        </div>
-        <div class="signup__row promo__fields">
-          <label>Vigente desde (opcional) <input type="date" formControlName="desde" /></label>
-          <label>Hasta (opcional) <input type="date" formControlName="hasta" /></label>
-          <label class="signup__grow">
-            Leyenda (opcional)
-            <input type="text" formControlName="leyenda" maxlength="100" placeholder="Vacía = el texto de la regla" />
-          </label>
-        </div>
         <label class="promo__check">
           <input type="checkbox" formControlName="todasLasSucursales" />
           Aplicar a todas las sucursales
         </label>
         @if (promoError()) {
           <p class="field-error">{{ promoError() }}</p>
-        } @else if (promoPreview()) {
-          <p class="promo__preview">{{ promoPreview() }}</p>
         }
       }
       <p class="hint">La promo se publica en la red y la caja la cobra igual: es una sola regla.</p>

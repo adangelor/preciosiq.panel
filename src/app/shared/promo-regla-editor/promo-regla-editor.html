@@ -1,0 +1,90 @@
+<div class="pre" [formGroup]="grupo()">
+  <label>
+    Tipo
+    <select formControlName="tipo">
+      <option value="">Sin promo</option>
+      <option value="n_x_m" [disabled]="pesable()">
+        Llevando X pagás Y (2x1, 3x2, 6x5){{ pesable() ? ' — no aplica por ' + unidad() : '' }}
+      </option>
+      <option value="enesima_porcentaje" [disabled]="pesable()">
+        La 2da (o 3ra…) con descuento (2da al 50 %){{ pesable() ? ' — no aplica por ' + unidad() : '' }}
+      </option>
+      <option value="precio_unitario">Precio por cantidad (“llevando 3, $2.100 c/u”)</option>
+      <option value="porcentaje">Porcentaje (“15 % llevando 3”)</option>
+    </select>
+  </label>
+
+  @if (!pesable()) {
+    <div class="pre__atajos" role="group" aria-label="Atajos">
+      @for (a of atajos; track a.etiqueta) {
+        <button type="button" class="pre__atajo" [class.pre__atajo--activo]="atajoActivo(a)" (click)="usarAtajo(a)">
+          {{ a.etiqueta }}
+        </button>
+      }
+    </div>
+  } @else {
+    <p class="hint">
+      Un producto que se vende por {{ unidad() }} no puede tener 2x1 ni “2da al 50 %”: la cantidad no es entera. Usá precio
+      por cantidad o porcentaje.
+    </p>
+  }
+
+  @if (tipo()) {
+    <div class="signup__row pre__fields">
+      @switch (tipo()) {
+        @case ('n_x_m') {
+          <label>Llevando <input type="number" formControlName="grupoN" step="1" min="2" placeholder="2" /></label>
+          <label>Pagás <input type="number" formControlName="pagaM" step="1" min="1" placeholder="1" /></label>
+        }
+        @case ('enesima_porcentaje') {
+          <label>
+            ¿Qué unidad?
+            <select formControlName="cadaN">
+              <option [ngValue]="2">La 2da</option>
+              <option [ngValue]="3">La 3ra</option>
+              <option [ngValue]="4">La 4ta</option>
+            </select>
+          </label>
+          <label>Descuento % <input type="number" formControlName="porcentaje" step="0.01" min="0" max="100" placeholder="50" /></label>
+        }
+        @case ('precio_unitario') {
+          <label>Llevando desde <input type="number" formControlName="min" min="0" [step]="pesable() ? '0.001' : '1'" placeholder="3" /></label>
+          <label>Precio c/u <input type="number" formControlName="precio" step="0.01" min="0" placeholder="2100" /></label>
+        }
+        @case ('porcentaje') {
+          <label>Llevando desde <input type="number" formControlName="min" min="0" [step]="pesable() ? '0.001' : '1'" placeholder="3" /></label>
+          <label>Descuento % <input type="number" formControlName="porcentaje" step="0.01" min="0" max="100" placeholder="15" /></label>
+        }
+      }
+      <label>Máximo (opcional) <input type="number" formControlName="max" min="0" [step]="pesable() ? '0.001' : '1'" placeholder="—" /></label>
+    </div>
+    @if (minimoRaro(); as m) {
+      <p class="hint">Esta promo está cargada desde {{ m }} unidades.</p>
+    }
+    <div class="signup__row pre__fields">
+      <label>Vigente desde (opcional) <input type="date" formControlName="desde" /></label>
+      <label>Hasta (opcional) <input type="date" formControlName="hasta" /></label>
+      @if (conLeyenda()) {
+        <label class="signup__grow">
+          Leyenda (opcional)
+          <input type="text" formControlName="leyenda" maxlength="100" placeholder="Vacía = el texto de la regla" />
+        </label>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="field-error">{{ error() }}</p>
+    } @else if (filas().length) {
+      <p class="pre__preview" aria-label="Vista previa">
+        @for (f of filas(); track f.cantidad; let ultima = $last) {
+          <span class="pre__paso">
+            {{ f.cantidad }} → {{ plata(f.total) }}@if (f.porUnidad != null) {&nbsp;<small>({{ plata(f.porUnidad) }} c/u)</small>}
+          </span>
+          @if (!ultima) { <span class="pre__sep" aria-hidden="true">·</span> }
+        }
+      </p>
+    } @else if (!listPrice()) {
+      <p class="hint">Cargá el precio de lista para ver cuánto sale.</p>
+    }
+  }
+</div>

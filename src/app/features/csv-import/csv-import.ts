@@ -14,7 +14,9 @@ import {
   CsvImportRowError,
   CsvMapping,
   CsvPreviewResponse,
+  PromoParaConfirmar,
 } from '../../core/csv-import.models';
+import { PromosParaConfirmarComponent } from '../../shared/promos-para-confirmar/promos-para-confirmar';
 import { BusinessPriceService } from '../../core/business-price';
 import { BusinessAccountProductItem, UpsertBusinessPriceRequest } from '../../core/business-price.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
@@ -36,7 +38,7 @@ type Step = 'upload' | 'map' | 'result';
 @Component({
   selector: 'app-csv-import',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgTemplateOutlet],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgTemplateOutlet, PromosParaConfirmarComponent],
   templateUrl: './csv-import.html',
   styleUrl: './csv-import.scss',
 })
@@ -292,6 +294,8 @@ export class CsvImportComponent implements OnInit {
     promoMaxQtyColumn: [''],
     // 17-sep-2026 -- descuento %: la fila crea una regla de porcentaje.
     promoPercentColumn: [''],
+    // BP-169 (19-oct-2026) -- la mecanica de la promo ("2x1", "3x2", "2da 50"): gana sobre la leyenda.
+    promoMecanicaColumn: [''],
     // 10-oct-2026 -- "Esta planilla es mi catalogo completo" (ver catalogo() mas abajo).
     catalogoCompleto: [false],
     costPriceColumn: [''],
@@ -360,6 +364,7 @@ export class CsvImportComponent implements OnInit {
       promoMinQtyColumn: mapping.promoMinQtyColumn ?? '',
       promoMaxQtyColumn: mapping.promoMaxQtyColumn ?? '',
       promoPercentColumn: mapping.promoPercentColumn ?? '',
+      promoMecanicaColumn: mapping.promoMecanicaColumn ?? '',
       costPriceColumn: mapping.costPriceColumn ?? '',
       costPriceWithTaxColumn: mapping.costPriceWithTaxColumn ?? '',
       supplierColumn: mapping.supplierColumn ?? '',
@@ -524,6 +529,7 @@ export class CsvImportComponent implements OnInit {
         promoMinQtyColumn: nullIfEmpty(value.promoMinQtyColumn),
         promoMaxQtyColumn: nullIfEmpty(value.promoMaxQtyColumn),
         promoPercentColumn: nullIfEmpty(value.promoPercentColumn),
+        promoMecanicaColumn: nullIfEmpty(value.promoMecanicaColumn),
         costPriceColumn: nullIfEmpty(value.costPriceColumn),
         costPriceWithTaxColumn: nullIfEmpty(value.costPriceWithTaxColumn),
         supplierColumn: nullIfEmpty(value.supplierColumn),
@@ -582,6 +588,8 @@ export class CsvImportComponent implements OnInit {
     const altasSinMarcaDetalle: CsvImportRowError[] = [];    // BP-135
     const marcasDescartadas: CsvImportRowError[] = [];       // BP-136
     const eanDudosos: CsvImportRowError[] = [];              // BP-137
+    const paraConfirmar: PromoParaConfirmar[] = [];          // BP-169
+    let paraConfirmarGuardadas = true;
     let promoRulesSaved = 0;
     let promoRulesDeactivated = 0;
 
@@ -618,6 +626,8 @@ export class CsvImportComponent implements OnInit {
             altasSinMarcaDetalle.push(...(r.altasSinMarcaDetalle ?? []));
             marcasDescartadas.push(...(r.marcasDeRedDescartadasDetalle ?? []));
             eanDudosos.push(...(r.eanDudososDetalle ?? []));
+            paraConfirmar.push(...(r.promosParaConfirmarDetalle ?? []));
+            if (r.promosParaConfirmarGuardadas === false) paraConfirmarGuardadas = false;
             promoRulesSaved += r.promoRulesSaved ?? 0;
             promoRulesDeactivated += r.promoRulesDeactivated ?? 0;
 
@@ -651,6 +661,9 @@ export class CsvImportComponent implements OnInit {
               marcasDeRedDescartadasDetalle: marcasDescartadas,
               eanDudosos: eanDudosos.length,
               eanDudososDetalle: eanDudosos,
+              promosParaConfirmar: paraConfirmar.length,
+              promosParaConfirmarDetalle: paraConfirmar,
+              promosParaConfirmarGuardadas: paraConfirmarGuardadas,
               promoRulesSaved,
               promoRulesDeactivated,
               errors,

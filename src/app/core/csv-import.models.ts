@@ -1,4 +1,5 @@
 // Espejo de Data/DTOs/CsvImportDtos.cs (E5).
+import { PromoRule } from './business-price.models';
 
 // E12 (19-ago-2026) -- columnas de promo opcionales en el mapeo, mismo tratamiento que
 // descriptionColumn/brandColumn: si quedan null, esta carga masiva no toca esa promo
@@ -38,6 +39,9 @@ export interface CsvMapping {
   catalogoCompleto?: boolean;
   // BP-77 (14-oct-2026) -- columna con el nombre de la zona de precio del costo (vacia = toda la cuenta).
   costZoneColumn?: string | null;
+  // BP-169 (19-oct-2026) -- columna con la mecanica de la promo ("2x1", "3x2", "2da 50"): la regla sale de ahi y gana
+  // sobre la leyenda, que queda como texto del cartel.
+  promoMecanicaColumn?: string | null;
 }
 
 // 17-sep-2026 -- "probar este mapeo con un archivo": no carga nada, solo dice que columnas
@@ -109,6 +113,8 @@ export interface SaveCsvMappingRequest {
   catalogoCompleto?: boolean;
   // BP-77 -- ver CsvMapping.costZoneColumn.
   costZoneColumn?: string | null;
+  // BP-169 -- ver CsvMapping.promoMecanicaColumn.
+  promoMecanicaColumn?: string | null;
 }
 
 export interface CsvImportRowError {
@@ -182,6 +188,45 @@ export interface CsvImportResult {
   // las filas del archivo con error, contadas una vez. null en la carga a una sola sucursal.
   groupId?: number | null;
   porSucursal?: CsvImportSucursalResult[] | null;
+  // BP-169 (19-oct-2026) -- promos de esta llamada que quedaron "para confirmar" (la leyenda o la mecanica hablan de
+  // cantidad y no se entendieron): no se creo regla y la de la sucursal se bajo. Guardadas = quedaron en el lote (false =
+  // falta el script del servidor: solo vienen aca). El panel las suma.
+  promosParaConfirmar?: number;
+  promosParaConfirmarDetalle?: PromoParaConfirmar[] | null;
+  promosParaConfirmarGuardadas?: boolean;
+}
+
+// BP-169 -- una promo de la carga "para confirmar". reglaPropuesta: la que se pudo armar (null = ninguna).
+export interface PromoParaConfirmar {
+  fila: number;
+  ean: string;
+  descripcion: string | null;
+  leyenda: string | null;
+  precioPlanilla: number | null;
+  precioLista: number;
+  reglaPropuesta: Partial<PromoRule> | null;
+  motivo: string;
+}
+
+// BP-169 -- GET /batches/{id}/promos. groupId: la carga agrupada del lote (confirmar aplica en todas sus sucursales).
+export interface PromosParaConfirmarResponse {
+  batchId: number;
+  groupId: number | null;
+  guardadas: boolean;
+  promos: PromoParaConfirmar[];
+}
+
+// BP-169 -- POST /batches/{id}/promos. regla null = sin promo.
+export interface PromoConfirmada {
+  ean: string;
+  regla: PromoRule | null;
+}
+
+export interface ConfirmarPromosResponse {
+  confirmadas: number;
+  descartadas: number;
+  reglasGuardadas: number;
+  pendientes: PromoParaConfirmar[];
 }
 
 export interface CsvImportSucursalResult {
@@ -222,6 +267,7 @@ export interface CsvImportBatch {
   importedAt: string;
   revertedAt: string | null;
   groupId?: number | null;   // BP-132: la carga agrupada de la que es parte (null = una sola sucursal)
+  promosSinConfirmar?: number;   // BP-169: promos que quedaron "para confirmar" en este lote
 }
 
 // BP-132 (16-oct-2026) -- GET /groups: una carga a una zona o a todas las sucursales, con el lote de cada una.

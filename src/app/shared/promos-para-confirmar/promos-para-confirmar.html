@@ -1,0 +1,52 @@
+@if (filas().length || mensaje()) {
+  <section class="ppc" aria-labelledby="ppc-titulo">
+    <h3 id="ppc-titulo" class="ppc__titulo">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      Promos para confirmar ({{ filas().length }})
+    </h3>
+    @if (filas().length) {
+      <p class="ppc__intro">
+        Estas promos dependen de la cantidad (2x1, “2da al 50 %”…) y no terminamos de entender la leyenda. <strong>Hasta que
+        las confirmes no se cobran ni se publican</strong>: elegí cómo es cada una y tocá Confirmar.
+      </p>
+      @if (!guardadas()) {
+        <p class="ppc__aviso">Estas no quedaron guardadas con la carga: confirmalas ahora, antes de salir de esta pantalla.</p>
+      }
+      @if (conPropuesta() > 1) {
+        <button type="button" class="btn ppc__todas" [disabled]="enviando()" (click)="confirmarTodas()">
+          Confirmar las {{ conPropuesta() }} propuestas
+        </button>
+      }
+    }
+    @if (mensaje()) {
+      <p class="ppc__ok" role="status">{{ mensaje() }}</p>
+    }
+    @if (error()) {
+      <p class="form-error">{{ error() }}</p>
+    }
+
+    @for (f of filas(); track f.promo.ean) {
+      <article class="ppc__fila">
+        <header class="ppc__cab">
+          <strong>{{ f.promo.descripcion || f.promo.ean }}</strong>
+          <span class="ppc__meta">EAN {{ f.promo.ean }} · fila {{ f.promo.fila }}</span>
+        </header>
+        <p class="ppc__datos">
+          @if (f.promo.leyenda) { La planilla dice <q>{{ f.promo.leyenda }}</q> · }
+          precio de la planilla {{ plata(f.promo.precioPlanilla) }} · lista {{ plata(f.promo.precioLista) }}
+        </p>
+        <p class="hint">{{ f.promo.motivo }}</p>
+        <app-promo-regla-editor [grupo]="f.grupo" [listPrice]="f.promo.precioLista" />
+        @if (f.error) {
+          <p class="field-error">{{ f.error }}</p>
+        }
+        <div class="ppc__acciones">
+          <button type="button" class="btn" [disabled]="enviando()" (click)="confirmar(f)">Confirmar</button>
+          <button type="button" class="btn btn--ghost" [disabled]="enviando()" (click)="sinPromo(f)">Sin promo</button>
+        </div>
+      </article>
+    }
+  </section>
+} @else if (cargando()) {
+  <p class="hint">Buscando promos para confirmar…</p>
+}

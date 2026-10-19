@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { CsvImportService } from '../../core/csv-import';
 import { CsvImportBatch, CsvImportGroup, RevisionAplicada, RevisionProductos } from '../../core/csv-import.models';
 import { BusinessContextService } from '../../core/business-context';
+import { PromosParaConfirmarComponent } from '../../shared/promos-para-confirmar/promos-para-confirmar';
 
 // BP-132 (16-oct-2026) -- una fila del historial: un lote suelto (carga a una sucursal, como siempre) o una carga
 // agrupada (zona / todas las sucursales) que se despliega con el lote de cada sucursal.
@@ -27,7 +28,7 @@ type FilaHistorial =
 @Component({
   selector: 'app-csv-import-history',
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, PromosParaConfirmarComponent],
   templateUrl: './csv-import-history.html',
   styleUrl: './csv-import-history.scss',
 })
@@ -51,6 +52,53 @@ export class CsvImportHistoryComponent implements OnInit {
   // toda la pantalla (podrian ser lotes de sucursales distintas).
   protected readonly undoingId = signal<string | null>(null);
   protected readonly undoMessage = signal<string | null>(null);
+
+  // BP-169 (19-oct-2026) -- promos de cada lote que quedaron "para confirmar" (de GET /batches) y el lote cuyo
+  // panel para confirmarlas esta abierto. En una carga agrupada todos los lotes tienen la misma lista: se usa el primero.
+  protected readonly sinConfirmar = signal<Record<number, number>>({});
+  protected readonly promosAbiertas = signal<{ batchId: number; grupo: CsvImportGroup | null } | null>(null);
+
+  protected cuenta(): number | null {
+    return this.businessAccountId;
+  }
+
+  protected sinConfirmarDelGrupo(g: CsvImportGroup): { batchId: number; n: number } | null {
+    const mapa = this.sinConfirmar();
+    const lote = g.lotes.find((l) => !l.revertedAt && (mapa[l.id] ?? 0) > 0);
+    return lote ? { batchId: lote.id, n: mapa[lote.id] } : null;
+  }
+
+  protected alternarPromos(batchId: number, grupo: CsvImportGroup | null = null): void {
+    this.promosAbiertas.update((abierto) => (abierto?.batchId === batchId ? null : { batchId, grupo }));
+    // El panel va debajo de la tabla: que se vea.
+    setTimeout(() => document.getElementById('promos-para-confirmar')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  /** Lo que quedo sin confirmar en el lote abierto (o en su carga agrupada). */
+  protected alCambiarAbiertas(n: number): void {
+    const abierto = this.promosAbiertas();
+    if (!abierto) return;
+    if (abierto.grupo) this.alCambiarPendientesDelGrupo(abierto.grupo, abierto.batchId, n);
+    else this.alCambiarPendientes([abierto.batchId], n);
+  }
+
+  /** Lo que quedo sin confirmar en esos lotes (los de una carga agrupada cambian juntos). */
+  protected alCambiarPendientes(batchIds: number[], n: number): void {
+    this.sinConfirmar.update((mapa) => {
+      const nuevo = { ...mapa };
+      for (const id of batchIds) nuevo[id] = n;
+      return nuevo;
+    });
+  }
+
+  /**
+   * En una carga agrupada cambia solo el lote cuya lista esta abierta (si se actualizaran todos, "el primero con
+   * pendientes" pasaria a ser otro lote y el panel abierto se cerraria solo); cuando no queda ninguna, todos a cero
+   * (el servidor las saca de todos los lotes de la carga).
+   */
+  protected alCambiarPendientesDelGrupo(g: CsvImportGroup, batchId: number, n: number): void {
+    this.alCambiarPendientes(n === 0 ? g.lotes.map((l) => l.id) : [batchId], n);
+  }
 
   ngOnInit(): void {
     this.context.load().subscribe({
@@ -92,6 +140,7 @@ export class CsvImportHistoryComponent implements OnInit {
         ];
         filas.sort((a, b) => b.importedAt.localeCompare(a.importedAt));
         this.filas.set(filas);
+        this.sinConfirmar.set(Object.fromEntries(batches.map((b) => [b.id, b.promosSinConfirmar ?? 0])));
       },
       error: (err) => {
         this.loading.set(false);

@@ -272,10 +272,22 @@
                 @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
               </select>
             </label>
-            <label class="signup__grow"></label>
+            <!-- BP-169 (19-oct-2026) -- la mecanica (2x1, 3x2, 2da al 50 %), opcional. -->
+            <label>
+              Columna de Mecánica (opcional)
+              <select formControlName="promoMecanicaColumn">
+                <option value="">(ninguna)</option>
+                @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+              </select>
+            </label>
           </div>
           <p class="hint">
-            Si tus ofertas son del tipo 'llevando de 3 a 9999', mapeá acá esas columnas; sin mínimo, la promo vale desde la primera unidad.
+            Si tu sistema tiene una columna con 2x1, 3x2 o 2da al 50 %, mapeala en Mecánica: la promo se arma con eso y la
+            leyenda queda como texto del cartel. Sin esa columna, leemos la mecánica de la leyenda (“2x1”, “2da al 50 %”,
+            “Llevando 3 a $2.100”); si habla de cantidad y no la entendemos, te la mostramos para que la confirmes.
+          </p>
+          <p class="hint">
+            Si tus ofertas son del tipo 'llevando de 3 a 9999', mapeá acá esas columnas; sin mínimo ni una leyenda con cantidad, la promo vale desde la primera unidad.
             Con "Descuento %" la promo se guarda como porcentaje: si después cambiás el precio de lista, el descuento se recalcula solo.
             Si una fila trae precio promo y % a la vez, mandamos el precio y te lo avisamos en el resumen.
           </p>
@@ -429,11 +441,12 @@
         </table>
         <p class="hint">"Con error" de arriba son las filas del archivo que no se cargaron en ninguna sucursal; acá, las de cada una.</p>
       }
-      @if ((r.promoRulesSaved ?? 0) > 0 || (r.promoRulesDeactivated ?? 0) > 0 || (r.promosIgnoradas ?? 0) > 0) {
+      @if ((r.promoRulesSaved ?? 0) > 0 || (r.promoRulesDeactivated ?? 0) > 0 || (r.promosIgnoradas ?? 0) > 0 || (r.promosParaConfirmar ?? 0) > 0) {
         <p>
           <i class="fa-solid fa-tags" aria-hidden="true"></i>
           Promos: {{ r.promoRulesSaved ?? 0 }} nuevas o cambiadas, {{ r.promoRulesDeactivated ?? 0 }} quitadas,
-          {{ r.promosIgnoradas ?? 0 }} ignoradas. Se publican en la red y la caja las cobra.
+          {{ r.promosIgnoradas ?? 0 }} ignoradas@if ((r.promosParaConfirmar ?? 0) > 0) {, <strong>{{ r.promosParaConfirmar }} para confirmar</strong> (abajo)}.
+          Se publican en la red y la caja las cobra.
         </p>
       }
       <!-- 10-oct-2026 -- catalogo completo: lo publicado que no vino, con confirmacion. -->
@@ -731,6 +744,16 @@
             }
           </tbody>
         </table>
+      }
+
+      <!-- BP-169 -- las promos por cantidad que no se entendieron: se confirman acá, con el mismo selector de "Cargar precio". -->
+      @if (r.promosParaConfirmarDetalle?.length) {
+        <app-promos-para-confirmar
+          [businessAccountId]="uploadForm.getRawValue().businessAccountId!"
+          [batchId]="r.batchId"
+          [iniciales]="r.promosParaConfirmarDetalle ?? null"
+          [guardadas]="r.promosParaConfirmarGuardadas ?? true"
+        />
       }
 
       @if (r.promosConAvisoDetalle?.length) {

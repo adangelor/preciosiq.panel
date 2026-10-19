@@ -14,6 +14,7 @@ type CampoColumna = Extract<
   | 'promoMinQtyColumn' | 'promoMaxQtyColumn' | 'promo2UnitPriceColumn' | 'promo2TextColumn'
   | 'costPriceColumn' | 'costPriceWithTaxColumn' | 'supplierColumn' | 'costValidFromColumn'
   | 'costZoneColumn'   // BP-77
+  | 'promoMecanicaColumn'   // BP-169
 >;
 
 // 17-sep-2026 -- pedido de Andres: "que el mapeo de columnas se pueda guardar y administrar;
@@ -115,6 +116,7 @@ export class CsvMappingsComponent implements OnInit {
       ['Descuento %', m.promoPercentColumn],
       ['Llevando desde', m.promoMinQtyColumn],
       ['Llevando hasta', m.promoMaxQtyColumn],
+      ['Mecánica de promo', m.promoMecanicaColumn ?? null],   // BP-169
       ['Precio promo 2', m.promo2UnitPriceColumn],
       ['Leyenda adicional', m.promo2TextColumn],
       ['Costo sin IVA', m.costPriceColumn],
@@ -211,6 +213,7 @@ export class CsvMappingsComponent implements OnInit {
         promoMinQtyColumn: m.promoMinQtyColumn ?? null,
         promoMaxQtyColumn: m.promoMaxQtyColumn ?? null,
         promoPercentColumn: m.promoPercentColumn ?? null,
+        promoMecanicaColumn: m.promoMecanicaColumn ?? null,   // BP-169
         catalogoCompleto: m.catalogoCompleto ?? false,
         ...cambios,
     };
@@ -254,6 +257,7 @@ export class CsvMappingsComponent implements OnInit {
     { key: 'promoPercentColumn', campo: 'Descuento %' },
     { key: 'promoMinQtyColumn', campo: 'Llevando desde' },
     { key: 'promoMaxQtyColumn', campo: 'Llevando hasta' },
+    { key: 'promoMecanicaColumn', campo: 'Mecánica de promo' },   // BP-169
     { key: 'promo2UnitPriceColumn', campo: 'Precio promo 2' },
     { key: 'promo2TextColumn', campo: 'Leyenda adicional' },
     { key: 'costPriceColumn', campo: 'Costo sin IVA' },

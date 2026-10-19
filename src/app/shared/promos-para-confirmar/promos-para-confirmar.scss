@@ -1,0 +1,86 @@
+// BP-169 -- promos "para confirmar" de una carga (ver promos-para-confirmar.ts).
+:host {
+  display: block;
+}
+
+.ppc {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--warning);
+  border-radius: 10px;
+  background: var(--warning-soft);
+}
+
+.ppc__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.4rem;
+  color: var(--warning);
+  font-size: 1.05rem;
+}
+
+.ppc__intro {
+  margin: 0 0 0.7rem;
+}
+
+.ppc__aviso {
+  margin: 0 0 0.7rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.ppc__ok {
+  margin: 0 0 0.7rem;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.ppc__todas {
+  margin-bottom: 0.8rem;
+}
+
+.ppc__fila {
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.ppc__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+}
+
+.ppc__meta {
+  color: var(--text-3);
+  font-size: 0.8rem;
+}
+
+.ppc__datos {
+  margin: 0.3rem 0 0.2rem;
+  color: var(--text-2);
+  font-size: 0.88rem;
+}
+
+.ppc__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.hint {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.field-error,
+.form-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+}

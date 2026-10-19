@@ -159,3 +159,9 @@
 .revision .preview-table {
   margin-bottom: 0.8rem;
 }
+
+// BP-169 -- "N promos sin confirmar" (el panel para confirmarlas va debajo de la tabla).
+.link-btn--warning {
+  margin-left: 0.6rem;
+  color: var(--warning);
+}
