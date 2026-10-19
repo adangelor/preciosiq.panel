@@ -1,0 +1,111 @@
+// BP-167 (19-oct-2026) -- "Sucursales en tu tienda". Solo tokens del tema compartido.
+.sucs {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-soft);
+}
+.sucs__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem;
+  font-size: 1.05rem;
+  i { color: var(--primary); }
+}
+.sucs__lista { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
+
+.suc {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-card);
+}
+// Las que no estan en la tienda, mas apagadas (pero legibles: hay que poder leer por que).
+.suc--fuera { background: var(--bg-soft); .suc__nombre { color: var(--text-2); } }
+
+.suc__cabeza { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.suc__datos { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; min-width: 0; }
+.suc__nombre { font-size: 1rem; }
+.suc__domicilio { flex-basis: 100%; margin: 0; }
+
+.interruptor {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  input {
+    appearance: none;
+    width: 2.4rem;
+    height: 1.35rem;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--border-strong);
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  input::after {
+    content: '';
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 50%;
+    background: var(--bg-card);
+    transition: transform 0.15s;
+  }
+  input:checked { background: var(--success); }
+  input:checked::after { transform: translateX(1.05rem); }
+  input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  input:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.suc__regla { margin: 0.45rem 0 0; font-size: 0.88rem; color: var(--text-2); display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.suc__regla .link-btn { padding: 0 0.2rem; font-size: 0.85rem; }
+.suc__falta { margin: 0.3rem 0 0; font-size: 0.85rem; color: var(--warning); }
+.suc__app { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--text-2); .link-btn { padding: 0 0.2rem; } }
+
+.etiqueta {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.etiqueta--auto { background: var(--info-soft); color: var(--info); border-color: transparent; }
+.etiqueta--abre { background: var(--primary-soft); color: var(--primary); border-color: transparent; }
+
+.suc__opciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.7rem;
+  .check { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; margin-bottom: 0.55rem; }
+}
+.suc__whatsapp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  flex: 1 1 220px;
+  input {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font: inherit;
+    background: var(--bg-input);
+    color: var(--text);
+  }
+  .hint { font-size: 0.8rem; margin: 0; }
+}
+.sucs__guardar { position: sticky; bottom: 0; padding: 0.6rem 0; background: var(--bg-card); }

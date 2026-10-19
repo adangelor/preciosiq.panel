@@ -1,6 +1,6 @@
-import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TiendaDiaStats, TiendaEstadisticas, TiendaPeriodo, TiendaService } from '../../core/tienda';
+import { SucursalDeTienda, TiendaDiaStats, TiendaEstadisticas, TiendaPeriodo, TiendaService } from '../../core/tienda';
 
 const enteros = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 const unidades = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 3 });
@@ -100,6 +100,8 @@ export class ColumnasDiariasComponent {
  * Andres (15-oct-2026): el resumen de 7 dias es de todo plan; el detalle (30 dias, lo mas pedido, lo mas
  * mirado) desde Pyme, con el "subi de plan" debajo. Los numeros vienen de misuper.app: una visita por
  * sesion del navegador, sin robots, y el monto es el que estimo el pedido, no lo cobrado.
+ * BP-167 (19-oct-2026) -- una tienda por cuenta: filtro "Todas" / cada sucursal (?sucursal=) y la tabla "Por sucursal"
+ * (los ultimos 7 dias de cada una, siempre de toda la tienda). Tocar una sucursal de la tabla la filtra.
  */
 @Component({
   selector: 'app-tienda-estadisticas',
@@ -108,10 +110,21 @@ export class ColumnasDiariasComponent {
   template: `
     <section class="est" [attr.aria-labelledby]="'est-titulo-' + tiendaId()">
       <h3 class="est__titulo" [id]="'est-titulo-' + tiendaId()">Cómo le va a tu tienda</h3>
+      @if (sucursales().length > 1) {
+        <label class="est__filtro">
+          Ver
+          <select [value]="sucursal() ?? ''" (change)="elegir($any($event.target).value)">
+            <option value="">Todas las sucursales</option>
+            @for (s of sucursales(); track s.branchId) {
+              <option [value]="s.branchId" [selected]="s.branchId === sucursal()">{{ s.nombre }}</option>
+            }
+          </select>
+        </label>
+      }
       @if (error()) {
         <p class="hint">No pudimos cargar las estadísticas. Probá de nuevo en un rato.</p>
       } @else if (datos(); as e) {
-        <p class="hint">Últimos 7 días, contra los 7 anteriores.</p>
+        <p class="hint">Últimos 7 días, contra los 7 anteriores{{ nombreSucursal() ? ', en ' + nombreSucursal() : '' }}.</p>
         <div class="est__tiles">
           @for (t of tiles(); track t.label) {
             <div class="est__tile">
@@ -123,6 +136,30 @@ export class ColumnasDiariasComponent {
             </div>
           }
         </div>
+
+        @if (porSucursal().length > 1) {
+          <!-- BP-167: los ultimos 7 dias de cada sucursal (de toda la tienda, aunque haya filtro). -->
+          <div class="est__porsucursal">
+            <h4>Por sucursal <small>últimos 7 días</small></h4>
+            <table class="est__tabla">
+              <thead><tr><th scope="col">Sucursal</th><th scope="col" class="num">Visitas</th><th scope="col" class="num">Pedidos</th><th scope="col" class="num">Monto estimado</th></tr></thead>
+              <tbody>
+                @for (f of porSucursal(); track f.branchId) {
+                  <tr [class.est__fila--elegida]="f.branchId !== null && f.branchId === sucursal()">
+                    <td>
+                      @if (f.branchId !== null && f.branchId !== sucursal()) {
+                        <button type="button" class="est__link" (click)="elegir(f.branchId)">{{ f.nombre ?? f.branchId }}</button>
+                      } @else {
+                        {{ f.branchId === null ? 'Sin sucursal (antes del cambio)' : (f.nombre ?? f.branchId) }}
+                      }
+                    </td>
+                    <td class="num">{{ n(f.actual.visitas) }}</td><td class="num">{{ n(f.actual.pedidos) }}</td><td class="num">{{ plata(f.actual.monto) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
 
         @if (sinNada()) {
           <p class="aviso">
@@ -204,10 +241,17 @@ export class ColumnasDiariasComponent {
   `,
   styleUrl: './tienda-estadisticas.scss',
 })
-export class TiendaEstadisticasComponent implements OnInit {
+export class TiendaEstadisticasComponent {
   private readonly service = inject(TiendaService);
 
   readonly tiendaId = input.required<number>();
+  /** BP-167: las sucursales que estan en la tienda, para el filtro (con una sola, no se muestra). */
+  readonly sucursales = input<SucursalDeTienda[]>([]);
+
+  /** BP-167: null = toda la tienda. */
+  protected readonly sucursal = signal<string | null>(null);
+  protected readonly nombreSucursal = computed(() => this.sucursales().find((s) => s.branchId === this.sucursal())?.nombre ?? null);
+  protected readonly porSucursal = computed(() => this.datos()?.porSucursal ?? []);
 
   protected readonly datos = signal<TiendaEstadisticas | null>(null);
   protected readonly error = signal(false);
@@ -237,11 +281,26 @@ export class TiendaEstadisticasComponent implements OnInit {
 
   protected readonly diasAlReves = computed(() => [...(this.datos()?.detalle?.dias ?? [])].reverse());
 
-  ngOnInit(): void {
-    this.service.estadisticas(this.tiendaId()).subscribe({
-      next: (e) => this.datos.set(e),
+  constructor() {
+    // Se vuelve a pedir al cambiar la sucursal del filtro.
+    effect(() => {
+      const tiendaId = this.tiendaId();
+      const sucursal = this.sucursal();
+      untracked(() => this.cargar(tiendaId, sucursal));
+    });
+  }
+
+  private cargar(tiendaId: number, sucursal: string | null): void {
+    this.datos.set(null);
+    this.error.set(false);
+    this.service.estadisticas(tiendaId, sucursal).subscribe({
+      next: (e) => { if (sucursal === this.sucursal()) this.datos.set(e); },
       error: () => this.error.set(true),
     });
+  }
+
+  protected elegir(valor: string): void {
+    this.sucursal.set(valor || null);
   }
 }
 

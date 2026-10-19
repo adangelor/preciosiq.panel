@@ -1,38 +1,41 @@
-import { Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
-import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeSucursal, TiendaService, achicarImagen } from '../../core/tienda';
-import { BusinessAccountService } from '../../core/business-account';
+import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeCuenta, TiendaService, achicarImagen } from '../../core/tienda';
 import { TiendaEstadisticasComponent } from './tienda-estadisticas';
 import { TiendaDestacadosComponent } from './tienda-destacados';
 import { TiendaCarruselComponent } from './tienda-carrusel';
+import { TiendaSucursalesComponent } from './tienda-sucursales';
 
-type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 'cvu' | 'qr';
+type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 'cvu' | 'qr' | 'activa';
 
 /**
- * BP-71 -- la tienda de UNA sucursal: ver como esta, crearla o editarla, y el QR de pago.
- * La direccion se chequea en vivo contra el servidor (formato, reservados, ocupada) mientras se tipea.
+ * BP-71 -- la tienda: ver como esta, crearla o editarla, y el QR de pago. La direccion se chequea en vivo contra el
+ * servidor (formato, reservados, ocupada) mientras se tipea.
+ * BP-167 (19-oct-2026) -- antes era la tienda de UNA sucursal (una tarjeta por sucursal). Ahora es LA tienda de la
+ * cuenta (decision de Andres: habilitar las 10 sucursales de Aiello una por una era engorroso). Las sucursales entran
+ * solas y se sacan o se suman en "Sucursales en tu tienda" (TiendaSucursalesComponent), adentro de esta tarjeta.
  */
 @Component({
-  selector: 'app-tienda-sucursal',
+  selector: 'app-tienda-cuenta',
   standalone: true,
-  imports: [RouterLink, TiendaEstadisticasComponent, TiendaDestacadosComponent, TiendaCarruselComponent],
-  templateUrl: './tienda-sucursal.html',
+  imports: [RouterLink, TiendaEstadisticasComponent, TiendaDestacadosComponent, TiendaCarruselComponent, TiendaSucursalesComponent],
+  templateUrl: './tienda-cuenta.html',
   styleUrl: './mi-tienda.scss',
 })
-export class TiendaSucursalComponent implements OnInit {
+export class TiendaCuentaComponent implements OnInit {
   private readonly service = inject(TiendaService);
-  private readonly cuentas = inject(BusinessAccountService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly sucursal = input.required<TiendaDeSucursal>();
+  readonly cuenta = input.required<TiendaDeCuenta>();
   readonly businessAccountId = input.required<number>();
-  /** BP-72: si la sucursal se muestra en la app BuscaPrecios (IsPublic); null = no se sabe, no se dice nada. */
-  readonly enApp = input<boolean | null>(null);
-  readonly guardada = output<TiendaConfig>();
+  /** BP-72: si cada sucursal se muestra en la app BuscaPrecios (IsPublic); sin dato, no se dice nada. */
+  readonly enApp = input<Partial<Record<string, boolean>>>({});
 
-  protected readonly tienda = signal<TiendaConfig | null>(null);
+  /** Lo de GET /cuenta, actualizado con cada guardado (de la tienda o de sus sucursales). */
+  protected readonly datos = signal<TiendaDeCuenta | null>(null);
+  protected readonly tienda = computed(() => this.datos()?.tienda ?? null);
   protected readonly editando = signal(false);
 
   // ---- formulario
@@ -52,9 +55,6 @@ export class TiendaSucursalComponent implements OnInit {
   protected readonly errorGeneral = signal<string | null>(null);
   protected readonly mensaje = signal<string | null>(null);
   protected readonly subiendoQr = signal(false);
-  protected readonly enAppActual = signal<boolean | null>(null);
-  protected readonly cambiandoApp = signal(false);
-  protected readonly errorApp = signal<string | null>(null);
 
   protected readonly urlPublica = computed(() => {
     const t = this.tienda();
@@ -63,11 +63,31 @@ export class TiendaSucursalComponent implements OnInit {
   protected readonly urlPrevia = computed(() => this.service.urlPublica(this.slug() || '…'));
   protected readonly faltaWhatsApp = computed(() => !!this.tienda() && !this.tienda()!.whatsApp);
 
+  /** BP-167 -- las sucursales que estan en la tienda (o, sin tienda todavia, las que van a entrar solas). */
+  protected readonly habilitadas = computed(() => (this.datos()?.sucursales ?? []).filter((s) => s.habilitada));
+  /** La sucursal en la que abre la tienda: su cartel es el de "Cartel para la vidriera". */
+  protected readonly porDefecto = computed(() => {
+    const d = this.datos();
+    return d?.sucursales.find((s) => s.branchId === d.sucursalPorDefecto) ?? null;
+  });
+  /**
+   * BP-167 -- una cuenta de UNA sucursal sin ubicacion (o sin productos) no entraria sola: como antes de BP-167, el alta
+   * la mete a mano (manda su branchId). Con varias, el comercio elige despues cuales suma.
+   */
+  protected readonly sucursalDelAlta = computed(() => {
+    const d = this.datos();
+    if (!d || d.tienda || this.habilitadas().length > 0 || d.sucursales.length !== 1) return null;
+    return d.sucursales[0].branchId;
+  });
+  /** Sin tienda, con varias sucursales y ninguna que entre sola: no se puede publicar todavia. */
+  protected readonly sinSucursalesParaPublicar = computed(
+    () => !this.tienda() && this.habilitadas().length === 0 && !this.sucursalDelAlta(),
+  );
+
   private readonly slug$ = new Subject<string>();
 
   ngOnInit(): void {
-    this.tienda.set(this.sucursal().tienda);
-    this.enAppActual.set(this.enApp());
+    this.datos.set(this.cuenta());
 
     // Primero se suscribe y DESPUES se abre el editor: abrirEditor() manda el slug sugerido por slug$,
     // y si nadie escucha todavia el chequeo inicial se pierde (el campo quedaba sin "Disponible").
@@ -77,7 +97,7 @@ export class TiendaSucursalComponent implements OnInit {
         distinctUntilChanged(),
         switchMap((s) => {
           this.chequeandoSlug.set(true);
-          return this.service.chequearSlug(this.businessAccountId(), this.sucursal().branchId, s).pipe(catchError(() => of(null)));
+          return this.service.chequearSlug(this.businessAccountId(), s).pipe(catchError(() => of(null)));
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -92,15 +112,16 @@ export class TiendaSucursalComponent implements OnInit {
 
   protected abrirEditor(): void {
     const t = this.tienda();
-    const s = this.sucursal();
-    this.slug.set(t?.slug ?? s.slugSugerido);
-    this.nombre.set(t?.nombreVisible ?? s.nombreSugerido);
+    const d = this.datos()!;
+    this.slug.set(t?.slug ?? d.slugSugerido);
+    this.nombre.set(t?.nombreVisible ?? d.nombreSugerido);
     this.presentacion.set(t?.presentacion ?? '');
     this.whatsApp.set(t?.whatsApp ?? '');
     this.alias.set(t?.alias ?? '');
     this.cvu.set(t?.cvu ?? '');
     this.mostrarDomicilio.set(t?.mostrarDomicilio ?? true);
-    this.activa.set(t?.activa ?? true);
+    // BP-167: sin ninguna sucursal para abrir, el alta arranca sin publicar (si no, el servidor contesta 400 en "activa").
+    this.activa.set(t?.activa ?? !this.sinSucursalesParaPublicar());
     this.errores.set({});
     this.errorGeneral.set(null);
     this.mensaje.set(null);
@@ -131,10 +152,11 @@ export class TiendaSucursalComponent implements OnInit {
     this.errores.set({});
     this.errorGeneral.set(null);
     this.mensaje.set(null);
+    const primeraVez = !this.tienda();
     this.service
       .guardar({
         businessAccountId: this.businessAccountId(),
-        branchId: this.sucursal().branchId,
+        ...(primeraVez && this.sucursalDelAlta() ? { branchId: this.sucursalDelAlta() } : {}),
         slug: this.slug(),
         activa: this.activa(),
         nombreVisible: this.nombre(),
@@ -147,15 +169,15 @@ export class TiendaSucursalComponent implements OnInit {
       .subscribe({
         next: (t) => {
           this.guardando.set(false);
-          const primeraVez = !this.tienda();
-          this.tienda.set(t);
+          this.datos.update((d) => (d ? { ...d, tienda: t } : d));
           this.editando.set(false);
           this.mensaje.set(
             primeraVez && t.activa
               ? '¡Listo! Tu tienda ya está publicada.'
               : t.activa ? 'Cambios guardados. Ya se ven en tu tienda.' : 'Cambios guardados. La tienda no está publicada.',
           );
-          this.guardada.emit(t);
+          // En el alta, las sucursales quedan como las armo el servidor (la principal, la que abre): se vuelven a pedir.
+          if (primeraVez) this.refrescar();
         },
         error: (err) => {
           this.guardando.set(false);
@@ -164,6 +186,15 @@ export class TiendaSucursalComponent implements OnInit {
           else this.errorGeneral.set(e?.error ?? 'No se pudo guardar. Probá de nuevo en un rato.');
         },
       });
+  }
+
+  private refrescar(): void {
+    this.service.cuenta(this.businessAccountId()).subscribe({ next: (d) => this.datos.set(d), error: () => {} });
+  }
+
+  /** BP-167 -- lo que devolvio PUT /sucursales. */
+  protected sucursalesGuardadas(d: TiendaDeCuenta): void {
+    this.datos.set(d);
   }
 
   // ------------------------------------------------------------------ QR de pago
@@ -181,7 +212,7 @@ export class TiendaSucursalComponent implements OnInit {
       this.service.subirQr(t.id, imagen).subscribe({
         next: (r) => {
           this.subiendoQr.set(false);
-          this.tienda.set({ ...t, qrPagoUrl: r.qrPagoUrl });
+          this.cambiarTienda({ qrPagoUrl: r.qrPagoUrl });
           this.mensaje.set('QR de pago guardado.');
         },
         error: (err) => {
@@ -200,36 +231,18 @@ export class TiendaSucursalComponent implements OnInit {
     if (!t) return;
     this.service.quitarQr(t.id).subscribe({
       next: () => {
-        this.tienda.set({ ...t, qrPagoUrl: null });
+        this.cambiarTienda({ qrPagoUrl: null });
         this.mensaje.set('Sacamos el QR de pago.');
       },
       error: () => this.errores.update((e) => ({ ...e, qr: 'No se pudo sacar el QR.' })),
     });
   }
 
-  protected valor(ev: Event): string {
-    return (ev.target as HTMLInputElement | HTMLTextAreaElement).value;
+  private cambiarTienda(cambio: Partial<TiendaConfig>): void {
+    this.datos.update((d) => (d?.tienda ? { ...d, tienda: { ...d.tienda, ...cambio } } : d));
   }
 
-  /**
-   * BP-72 -- prende "visible en la app" de esta sucursal (el mismo interruptor de Sucursales). Con eso,
-   * quien busca un producto cerca en BuscaPrecios ve el precio y el boton "Pedíselo a…" a esta tienda.
-   */
-  protected mostrarEnApp(): void {
-    this.cambiandoApp.set(true);
-    this.errorApp.set(null);
-    this.cuentas
-      .updateBranchVisibility(this.sucursal().branchId, { businessAccountId: this.businessAccountId(), isPublic: true })
-      .subscribe({
-        next: (b) => {
-          this.cambiandoApp.set(false);
-          this.enAppActual.set(b.isPublic);
-          this.mensaje.set('Listo: tu sucursal ya se muestra en la app BuscaPrecios, con el botón para pedirte por tu tienda.');
-        },
-        error: (err) => {
-          this.cambiandoApp.set(false);
-          this.errorApp.set(err?.error?.error ?? 'No pudimos cambiarlo. Probá de nuevo o hacelo desde Sucursales.');
-        },
-      });
+  protected valor(ev: Event): string {
+    return (ev.target as HTMLInputElement | HTMLTextAreaElement).value;
   }
 }

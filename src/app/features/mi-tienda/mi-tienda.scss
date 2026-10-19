@@ -115,3 +115,9 @@
 .qr__fila { display: flex; gap: 1rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
 .qr__imagen { width: 120px; height: 120px; object-fit: contain; background: #fff; border-radius: 8px; border: 1px solid var(--border); }
 .qr__botones { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+
+// BP-167 -- "Tus links viejos siguen andando".
+.links-viejos {
+  p { margin: 0 0 0.35rem; }
+  ul { margin: 0 0 0.35rem; padding-left: 1.2rem; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+}

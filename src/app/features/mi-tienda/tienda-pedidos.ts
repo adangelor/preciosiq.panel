@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AvisosService } from '../../core/avisos';
 import { EstadoPedido, PedidoTienda, TiendaService } from '../../core/tienda';
@@ -26,6 +26,7 @@ const ETIQUETA: Record<EstadoPedido, string> = {
  * BP-130 (16-oct-2026) -- los pedidos que entraron por misuper.app, guardados con su codigo. Al abrir uno
  * se marca "visto" (la persona lo ve en su link); despues, "Listo", "Entregado" o "Cancelar". Sin datos
  * de quien pidio: el nombre y la direccion vienen en su WhatsApp, buscando el codigo.
+ * BP-167 (19-oct-2026) -- una tienda por cuenta: cada pedido dice de que sucursal es, y `sucursal` filtra (?sucursal=).
  */
 @Component({
   selector: 'app-tienda-pedidos',
@@ -42,8 +43,12 @@ const ETIQUETA: Record<EstadoPedido, string> = {
       } @else if (pedidos(); as lista) {
         @if (lista.length === 0) {
           <p class="hint">
-            Todavía no entró ningún pedido en los últimos 30 días. Cuando alguien toque "Pedir por WhatsApp" en tu
-            tienda, te llega el WhatsApp con el código y el pedido aparece acá.
+            @if (sucursal()) {
+              Todavía no entró ningún pedido para esta sucursal en los últimos 30 días.
+            } @else {
+              Todavía no entró ningún pedido en los últimos 30 días. Cuando alguien toque "Pedir por WhatsApp" en tu
+              tienda, te llega el WhatsApp con el código y el pedido aparece acá.
+            }
           </p>
         } @else {
           <p class="hint">
@@ -57,6 +62,7 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                   <span class="ped__codigo">{{ p.codigo }}</span>
                   <span class="ped__cuando">
                     {{ cuando(p.creadoAtUtc) }}
+                    @if (mostrarSucursal() && p.sucursalNombre) { · <span class="ped__sucursal">{{ p.sucursalNombre }}</span> }
                     @if (p.clienteNombre) { · {{ p.clienteNombre }} }
                     @if (p.mensajesSinLeer) { <span class="ped__sinleer" [attr.aria-label]="p.mensajesSinLeer + ' mensajes sin leer'">{{ p.mensajesSinLeer }}</span> }
                   </span>
@@ -66,6 +72,10 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                 </button>
                 @if (abierto() === p.codigo) {
                   <div class="ped__detalle">
+                    @if (mostrarSucursal() && p.sucursalNombre) {
+                      <!-- BP-167: tambien aca, porque en el celular la linea de la fecha no se ve. -->
+                      <p class="hint">Pedido para la sucursal <strong>{{ p.sucursalNombre }}</strong>.</p>
+                    }
                     <table class="ped__tabla">
                       <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Total</th></tr></thead>
                       <tbody>
@@ -127,6 +137,10 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
   readonly slug = input.required<string>();
   /** BP-151: el nombre de la tienda, para el mensaje de "tu pedido esta listo". */
   readonly nombre = input<string>('');
+  /** BP-167: solo los pedidos de esta sucursal (null = todos). */
+  readonly sucursal = input<string | null>(null);
+  /** BP-167: con varias sucursales en la tienda, cada pedido dice de cual es. */
+  readonly mostrarSucursal = input(false);
 
   protected readonly pedidos = signal<PedidoTienda[] | null>(null);
   protected readonly error = signal(false);
@@ -143,8 +157,20 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
 
   private intervalo?: ReturnType<typeof setInterval>;
 
+  constructor() {
+    // BP-167: al cambiar el filtro de sucursal, la lista se vuelve a pedir (y se ve "Cargando…" mientras tanto).
+    effect(() => {
+      this.tiendaId();
+      this.sucursal();
+      untracked(() => {
+        this.pedidos.set(null);
+        this.abierto.set(null);
+        this.cargar();
+      });
+    });
+  }
+
   ngOnInit(): void {
-    this.cargar();
     // BP-131: pedidos y mensajes nuevos sin recargar la pagina.
     this.intervalo = setInterval(() => this.cargar(), 60_000);
   }
@@ -154,8 +180,10 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
   }
 
   private cargar(): void {
-    this.tienda.pedidos(this.tiendaId()).subscribe({
-      next: (lista) => { this.pedidos.set(lista); this.error.set(false); },
+    const sucursal = this.sucursal();
+    this.tienda.pedidos(this.tiendaId(), 30, sucursal).subscribe({
+      // Si mientras tanto cambio el filtro, esta respuesta ya no va.
+      next: (lista) => { if (sucursal === this.sucursal()) { this.pedidos.set(lista); this.error.set(false); } },
       error: () => { if (!this.pedidos()) this.error.set(true); },
     });
   }
