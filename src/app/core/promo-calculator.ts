@@ -100,6 +100,43 @@ export function calcular(regla: PromoRule | null | undefined, cantidad: number, 
   return { descuento, texto: texto(regla), aplica: true };
 }
 
+/** BP-169 -- lo que devuelve proximoBeneficio. */
+export interface ProximoBeneficio {
+  /** Cuantas unidades mas hay que sumar. */
+  faltan: number;
+  /** Cuanto mas se ahorra con esas unidades. */
+  ahorroExtra: number;
+  /** El total del renglon con esa cantidad. */
+  totalCon: number;
+}
+
+/**
+ * BP-169 (19-oct-2026) -- el empujon del carrito ("Sumá 1 más y te llevás 2 por $5.317"): la menor cantidad `faltan`
+ * (1 a grupoN / cadaN, o lo que falte para el minimo) con la que el descuento AUMENTA. Null si no hay regla, si no esta
+ * vigente, si ya esta en el tope, si la cantidad no es entera (pesable) o si es un precio / porcentaje que ya llego al
+ * minimo (ahi cada unidad suma el mismo descuento: no hay escalon que empujar). Igual a PromoCalculator.Proximo en C#.
+ */
+export function proximoBeneficio(
+  regla: PromoRule | null | undefined, cantidad: number, precioLista: number, hoy: string,
+): ProximoBeneficio | null {
+  if (!regla || regla.activa === false || precioLista <= 0 || cantidad < 0 || !esEntera(cantidad)) return null;
+  if (regla.validFrom && hoy < regla.validFrom) return null;
+  if (regla.validTo && hoy > regla.validTo) return null;
+  const porGrupo = regla.tipo === 'n_x_m' || regla.tipo === 'enesima_porcentaje';
+  if (!porGrupo && cantidad >= regla.minQty) return null;
+
+  const paso = regla.tipo === 'n_x_m' ? regla.grupoN ?? 0 : regla.tipo === 'enesima_porcentaje' ? regla.cadaN ?? 0 : 0;
+  const maximoAProbar = Math.max(paso, Math.ceil(regla.minQty - cantidad));
+  const actual = calcular(regla, cantidad, precioLista, hoy).descuento;
+  for (let faltan = 1; faltan <= maximoAProbar; faltan++) {
+    const con = cantidad + faltan;
+    if (regla.maxQty != null && con > regla.maxQty) return null;
+    const d = calcular(regla, con, precioLista, hoy).descuento;
+    if (d > actual) return { faltan, ahorroExtra: round2Away(d - actual), totalCon: lineTotal(con, precioLista, d) };
+  }
+  return null;
+}
+
 /** LineTotal = round(cantidad x lista, 2) - descuento. */
 export function lineTotal(cantidad: number, precioLista: number, descuento: number): number {
   return round2Away(round2Away(cantidad * precioLista) - descuento);

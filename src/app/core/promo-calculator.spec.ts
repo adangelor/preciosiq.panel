@@ -3,7 +3,7 @@
 // El original: Buscaprecios.web/shared-ts/promo-calculator.spec.ts (ver promo-calculator.ts).
 // Corre igual en el `ng test` de la caja, del panel de PreciosIQ y de misuper.app.
 // ============================================================================================
-import { PromoRule, calcular, lineTotal, texto, textoCondicion, vistaPrevia } from './promo-calculator';
+import { PromoRule, calcular, lineTotal, proximoBeneficio, texto, textoCondicion, vistaPrevia } from './promo-calculator';
 
 // Los diez casos de PROMPT_Caja_promos_por_cantidad_15sep.md §2.1. El harness de C#
 // (Caja_promos_estado_16sep.md) corre exactamente los mismos contra PromoCalculator.cs.
@@ -65,6 +65,25 @@ describe('promo-calculator (los diez casos del prompt, iguales a PromoCalculator
     expect(texto(regla({ tipo: 'enesima_porcentaje', minQty: 2, cadaN: 2, porcentaje: 50 }))).toBe('2da al 50 %');
     expect(textoCondicion(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 2100 }))).toBe('Llevando 3: $2.100 c/u');
     expect(textoCondicion(regla({ tipo: 'porcentaje', minQty: 3, porcentaje: 15 }))).toBe('Llevando 3: 15 % off');
+  });
+
+  // BP-169 -- los mismos casos que el harness de C# (HarnessLeyendas.CoincideYProximo) contra PromoCalculator.Proximo.
+  it('proximo beneficio (el empujon del carrito)', () => {
+    const dosPorUno = regla({ tipo: 'n_x_m', minQty: 2, grupoN: 2, pagaM: 1 });
+    expect(proximoBeneficio(dosPorUno, 1, 5317, HOY)).toEqual({ faltan: 1, ahorroExtra: 5317, totalCon: 5317 });
+    expect(proximoBeneficio(dosPorUno, 2, 5317, HOY)).toEqual({ faltan: 2, ahorroExtra: 5317, totalCon: 10634 });
+    expect(proximoBeneficio(dosPorUno, 3, 5317, HOY)).toEqual({ faltan: 1, ahorroExtra: 5317, totalCon: 10634 });
+    expect(proximoBeneficio(regla({ tipo: 'enesima_porcentaje', minQty: 2, porcentaje: 50, cadaN: 2 }), 1, 1000, HOY))
+      .toEqual({ faltan: 1, ahorroExtra: 500, totalCon: 1500 });
+    expect(proximoBeneficio(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 900 }), 1, 1000, HOY))
+      .toEqual({ faltan: 2, ahorroExtra: 300, totalCon: 2700 });
+    // Ya llego al minimo de un precio por cantidad / un % desde 1: cada unidad suma lo mismo, no hay empujon.
+    expect(proximoBeneficio(regla({ tipo: 'precio_unitario', minQty: 3, precioPromo: 900 }), 3, 1000, HOY)).toBeNull();
+    expect(proximoBeneficio(regla({ tipo: 'porcentaje', minQty: 1, porcentaje: 15 }), 1, 1000, HOY)).toBeNull();
+    expect(proximoBeneficio(regla({ tipo: 'n_x_m', minQty: 3, maxQty: 3, grupoN: 3, pagaM: 2 }), 3, 1000, HOY)).toBeNull();
+    expect(proximoBeneficio(regla({ tipo: 'n_x_m', minQty: 3, grupoN: 3, pagaM: 2 }), 2.5, 1000, HOY)).toBeNull();
+    expect(proximoBeneficio(regla({ tipo: 'n_x_m', minQty: 2, grupoN: 2, pagaM: 1, validTo: AYER }), 1, 1000, HOY)).toBeNull();
+    expect(proximoBeneficio(null, 1, 1000, HOY)).toBeNull();
   });
 
   it('vista previa de la pantalla Producto', () => {
