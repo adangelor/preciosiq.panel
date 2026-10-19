@@ -153,3 +153,17 @@
   font-size: 0.75rem;
   color: var(--text-3);
 }
+
+// BP-167 -- filtro por sucursal y la tabla "Por sucursal".
+.est__filtro { display: inline-flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0 0.5rem; font-size: 0.9rem; font-weight: 600; }
+.est__filtro select {
+  padding: 0.35rem 0.55rem; border: 1px solid var(--border-strong); border-radius: 6px;
+  font: inherit; font-weight: 400; background: var(--bg-input); color: var(--text);
+}
+.est__porsucursal { margin: 1rem 0; }
+.est__porsucursal h4 { margin: 0 0 0.4rem; }
+.est__porsucursal h4 small { font-weight: 400; color: var(--text-3); font-size: 0.8rem; margin-left: 0.3rem; }
+.est__fila--elegida td { font-weight: 700; }
+.est__link {
+  border: 0; background: none; padding: 0; color: var(--primary); font: inherit; text-decoration: underline; cursor: pointer;
+}

@@ -95,3 +95,6 @@
   .ped__fila { grid-template-columns: auto 1fr auto; }
   .ped__cuando, .ped__entrega { display: none; }
 }
+
+// BP-167 -- la sucursal del pedido, en la linea de la fecha.
+.ped__sucursal { font-weight: 600; color: var(--text-2); }

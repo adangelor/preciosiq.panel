@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // BP-71 (08-oct-2026) -- cliente de Buscaprecios.web/Endpoints/TiendaEndpoints.cs ("Mi tienda"):
-// la tienda de cada sucursal en misuper.app/<slug>. Espejo de Data/DTOs/TiendaDtos.cs.
+// la tienda en misuper.app/<slug>. Espejo de Data/DTOs/TiendaDtos.cs.
+// BP-167 (19-oct-2026) -- UNA tienda por cuenta (antes, una por sucursal): GET /cuenta trae la tienda y TODAS las
+// sucursales de la cuenta; PUT /{id}/sucursales habilita o saca cada una, su WhatsApp y la principal.
 
 export interface TiendaConfig {
   id: number;
@@ -18,20 +20,61 @@ export interface TiendaConfig {
   cvu: string | null;
   qrPagoUrl: string | null;
   mostrarDomicilio: boolean;
-  /** Slugs que la tienda uso y siguen reservados (30 dias): el QR viejo sigue llevando aca. */
+  /**
+   * Slugs que la tienda uso y siguen llevando a ella: los de 30 dias (BP-71) y, desde BP-167, los de las tiendas
+   * por sucursal que se fusionaron (permanentes: abren la tienda en esa sucursal).
+   */
   slugsAnteriores: string[];
+  /** BP-167 -- la sucursal principal que marco el comercio (null = abre en la habilitada de menor BranchId). */
+  sucursalPrincipal?: string | null;
 }
 
-export interface TiendaDeSucursal {
+/**
+ * BP-167 -- una sucursal de la cuenta en "Mi tienda". Habilitada = esta en la tienda. HabilitadaPorDefecto = estaria
+ * sin tocar nada (tiene ubicacion y productos). HabilitadaAMano = lo que eligio el comercio (null = no la toco, vale la
+ * regla por defecto). Principal = la que marco el comercio; PorDefecto = en la que abre la tienda. WhatsApp = el propio
+ * (null = el de la tienda). SlugAnterior = su link de cuando era una tienda aparte (sigue llevando a esta sucursal).
+ */
+export interface SucursalDeTienda {
   branchId: string;
-  branchName: string;
+  nombre: string;
   domicilio: string | null;
   ciudad: string | null;
   tieneUbicacion: boolean;
   productos: number;
+  habilitadaPorDefecto: boolean;
+  habilitadaAMano: boolean | null;
+  habilitada: boolean;
+  principal: boolean;
+  porDefecto: boolean;
+  whatsApp: string | null;
+  slugAnterior: string | null;
+}
+
+/** BP-167 -- GET /cuenta: la tienda (null = todavia no la creo: se crea con lo sugerido) y TODAS las sucursales. */
+export interface TiendaDeCuenta {
+  tienda: TiendaConfig | null;
   slugSugerido: string;
   nombreSugerido: string;
-  tienda: TiendaConfig | null;
+  /** La sucursal en la que abre la tienda (null = ninguna habilitada). */
+  sucursalPorDefecto: string | null;
+  sucursales: SucursalDeTienda[];
+}
+
+/**
+ * BP-167 -- PUT /{id}/sucursales. Cada sucursal que viene queda como dice: habilitada true/false (a mano) o null (la
+ * regla por defecto); whatsApp un celular o null/"" (el de la tienda). Las que no vienen no se tocan.
+ * principal: null no la cambia, "" la saca, un branchId la fija.
+ */
+export interface SucursalTiendaRequest {
+  branchId: string;
+  habilitada: boolean | null;
+  whatsApp: string | null;
+}
+
+export interface GuardarSucursalesRequest {
+  sucursales: SucursalTiendaRequest[];
+  principal: string | null;
 }
 
 export interface SlugDisponibilidad {
@@ -42,7 +85,8 @@ export interface SlugDisponibilidad {
 
 export interface GuardarTiendaRequest {
   businessAccountId: number;
-  branchId: string;
+  /** BP-167: opcional. En el alta, esa sucursal entra a mano (aunque no tenga ubicacion) y queda principal. */
+  branchId?: string | null;
   slug: string;
   activa: boolean;
   nombreVisible: string;
@@ -51,6 +95,8 @@ export interface GuardarTiendaRequest {
   alias: string | null;
   cvu: string | null;
   mostrarDomicilio: boolean;
+  /** BP-167: null (o sin mandar) no la cambia, "" la saca, un branchId la fija. */
+  sucursalPrincipal?: string | null;
 }
 
 // BP-122 (15-oct-2026) -- visitas y pedidos de la tienda. Espejo de TiendaEstadisticas en TiendaDtos.cs.
@@ -88,6 +134,17 @@ export interface TiendaEstadisticas {
     masPedidos: TiendaProductoStats[];
     masVistos: TiendaProductoStats[];
   } | null;
+  /** BP-167 -- la sucursal del filtro (?sucursal=), o null = toda la tienda. */
+  sucursal?: string | null;
+  /** BP-167 -- los ultimos 7 dias de cada sucursal (siempre de toda la tienda). */
+  porSucursal?: TiendaSucursalStats[];
+}
+
+/** BP-167 -- branchId null = contado sin sucursal (el rato entre el script y el backend nuevo). */
+export interface TiendaSucursalStats {
+  branchId: string | null;
+  nombre: string | null;
+  actual: TiendaPeriodo;
 }
 
 /** El 400 de guardar: el mensaje y el campo al que va pegado. */
@@ -123,6 +180,9 @@ export interface PedidoTienda {
   clienteNombre?: string | null;
   mensajesSinLeer?: number;
   ventanaHastaUtc?: string | null;
+  // BP-167 -- la sucursal en la que se hizo el pedido (null = antes del cambio).
+  sucursal?: string | null;
+  sucursalNombre?: string | null;
 }
 
 export interface MensajeChatPedido {
@@ -217,12 +277,19 @@ export class TiendaService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiBaseUrl}business/tienda`;
 
-  listar(businessAccountId: number): Observable<TiendaDeSucursal[]> {
-    return this.http.get<TiendaDeSucursal[]>(this.url, { params: { businessAccountId } });
+  /** BP-167 -- la tienda de la cuenta (o lo sugerido para crearla) y todas sus sucursales. */
+  cuenta(businessAccountId: number): Observable<TiendaDeCuenta> {
+    return this.http.get<TiendaDeCuenta>(`${this.url}/cuenta`, { params: { businessAccountId } });
   }
 
-  chequearSlug(businessAccountId: number, branchId: string, slug: string): Observable<SlugDisponibilidad> {
-    return this.http.get<SlugDisponibilidad>(`${this.url}/slug`, { params: { businessAccountId, branchId, slug } });
+  /** BP-167 -- habilitar o sacar sucursales, el WhatsApp de cada una y la principal. Devuelve lo mismo que cuenta(). */
+  guardarSucursales(tiendaId: number, request: GuardarSucursalesRequest): Observable<TiendaDeCuenta> {
+    return this.http.put<TiendaDeCuenta>(`${this.url}/${tiendaId}/sucursales`, request);
+  }
+
+  /** BP-167: la tienda propia es la de la cuenta; branchId ya no hace falta. */
+  chequearSlug(businessAccountId: number, slug: string): Observable<SlugDisponibilidad> {
+    return this.http.get<SlugDisponibilidad>(`${this.url}/slug`, { params: { businessAccountId, slug } });
   }
 
   guardar(request: GuardarTiendaRequest): Observable<TiendaConfig> {
@@ -239,13 +306,19 @@ export class TiendaService {
     return this.http.delete<void>(`${this.url}/${tiendaId}/qr`);
   }
 
-  estadisticas(tiendaId: number): Observable<TiendaEstadisticas> {
-    return this.http.get<TiendaEstadisticas>(`${this.url}/${tiendaId}/estadisticas`);
+  /** BP-167: sucursal = solo esa sucursal; null = toda la tienda. */
+  estadisticas(tiendaId: number, sucursal: string | null = null): Observable<TiendaEstadisticas> {
+    const params: Record<string, string> = sucursal ? { sucursal } : {};
+    return this.http.get<TiendaEstadisticas>(`${this.url}/${tiendaId}/estadisticas`, { params });
   }
 
-  /** BP-130 -- los pedidos guardados de la tienda (ultimos `dias` dias), del mas nuevo al mas viejo. */
-  pedidos(tiendaId: number, dias = 30): Observable<PedidoTienda[]> {
-    return this.http.get<PedidoTienda[]>(`${this.url}/${tiendaId}/pedidos`, { params: { dias } });
+  /**
+   * BP-130 -- los pedidos guardados de la tienda (ultimos `dias` dias), del mas nuevo al mas viejo.
+   * BP-167: sucursal = solo los de esa sucursal; null = todos.
+   */
+  pedidos(tiendaId: number, dias = 30, sucursal: string | null = null): Observable<PedidoTienda[]> {
+    const params: Record<string, string | number> = sucursal ? { dias, sucursal } : { dias };
+    return this.http.get<PedidoTienda[]>(`${this.url}/${tiendaId}/pedidos`, { params });
   }
 
   /** BP-130 -- cambia el estado de un pedido. Devuelve el estado que quedo ("visto" no pisa uno posterior). */
@@ -310,6 +383,11 @@ export class TiendaService {
     return `${environment.misuperUrl}/${slug}`;
   }
 
+  /** BP-167 -- la tienda abierta en una sucursal: misuper.app/<slug>?sucursal=<branchId> (el QR del cartel). */
+  urlSucursal(slug: string, branchId: string): string {
+    return `${this.urlPublica(slug)}?sucursal=${encodeURIComponent(branchId)}`;
+  }
+
   /** BP-130 -- el link de un pedido (el mismo que va en el WhatsApp). */
   urlPedido(slug: string, codigo: string): string {
     return `${environment.misuperUrl}/${slug}/pedido/${codigo}`;
@@ -345,4 +423,12 @@ export async function achicarImagen(archivo: File, ladoMax = 600, tipo: 'image/p
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+/** +5492664123456 -> "266 412-3456" (como lo lee un vecino, sin el +54 9). BP-167: sale de cartel.ts, lo usa tambien Mi tienda. */
+export function formatearWhatsApp(e164: string): string {
+  const d = e164.replace(/\D/g, '').replace(/^549/, '');
+  if (d.length !== 10) return e164;
+  const area = d.startsWith('11') ? 2 : 3; // CABA/GBA 11; el resto, 3 digitos alcanza para leerlo
+  return `${d.slice(0, area)} ${d.slice(area, d.length - 4)}-${d.slice(-4)}`;
 }

@@ -1,10 +1,15 @@
+<!-- BP-167 (19-oct-2026): LA tienda de la cuenta (antes, una tarjeta por sucursal). -->
 <article class="tarjeta">
   <header class="tarjeta__cabecera">
     <div>
-      <h2 class="tarjeta__titulo">{{ sucursal().branchName }}</h2>
+      <h2 class="tarjeta__titulo">{{ tienda()?.nombreVisible ?? 'Tu tienda' }}</h2>
       <p class="hint">
-        {{ sucursal().domicilio }}{{ sucursal().ciudad ? ', ' + sucursal().ciudad : '' }}
-        · {{ sucursal().productos }} {{ sucursal().productos === 1 ? 'producto' : 'productos' }}
+        @if (habilitadas().length === 0) {
+          Todavía ninguna sucursal en la tienda.
+        } @else {
+          {{ habilitadas().length }} {{ habilitadas().length === 1 ? 'sucursal' : 'sucursales' }} en la tienda
+          @if (porDefecto(); as p) { · abre en {{ p.nombre }} }
+        }
       </p>
     </div>
     @if (tienda(); as t) {
@@ -16,13 +21,6 @@
 
   @if (mensaje()) {
     <p class="aviso aviso--ok" role="status">{{ mensaje() }}</p>
-  }
-
-  @if (sucursal().productos === 0) {
-    <p class="aviso">
-      Todavía no cargaste precios en esta sucursal: la tienda va a aparecer vacía.
-      <a routerLink="/precios/cargar">Cargar precios →</a>
-    </p>
   }
 
   @if (!editando()) {
@@ -40,82 +38,27 @@
         <p class="aviso">Sin WhatsApp tus clientes no te pueden mandar el pedido. Cargalo con "Editar".</p>
       }
 
-      <!-- BP-72: la tienda publicada recibe gente de la app BuscaPrecios solo si la sucursal se muestra ahí. -->
-      @if (t.activa && enAppActual() === false) {
-        <div class="aviso aviso--app">
-          <p>
-            <strong>Esta sucursal no aparece en la app BuscaPrecios.</strong> Si la mostrás, quien busque tus productos
-            cerca ve tu precio y un botón <em>"Pedíselo a {{ t.nombreVisible }}"</em> que lo trae a tu tienda.
-          </p>
-          @if (errorApp()) {
-            <p class="form-error">{{ errorApp() }}</p>
-          }
-          <div class="acciones acciones--compactas">
-            <button type="button" (click)="mostrarEnApp()" [disabled]="cambiandoApp()">
-              {{ cambiandoApp() ? 'Guardando…' : 'Mostrar en BuscaPrecios' }}
-            </button>
-            <a routerLink="/sucursales">Ver todas mis sucursales</a>
-          </div>
-        </div>
-      } @else if (t.activa && enAppActual() === true) {
-        <p class="hint">
-          ✓ Se muestra en la app BuscaPrecios: quien busque tus productos cerca ve el botón para pedirte por tu tienda.
-        </p>
-      }
+      <!-- BP-167: los links de antes (las tiendas por sucursal y el slug que se cambio) siguen llevando a esta tienda. -->
       @if (t.slugsAnteriores.length > 0) {
-        <p class="hint">
-          La dirección vieja ({{ t.slugsAnteriores.join(', ') }}) sigue llevando a tu tienda por 30 días, así el QR que
-          ya imprimiste funciona mientras reemplazás el cartel.
-        </p>
+        <div class="aviso aviso--ok links-viejos">
+          <p><strong>Tus links viejos siguen andando.</strong> Los QR y los links que ya compartiste llevan a esta tienda:</p>
+          <ul>
+            @for (s of t.slugsAnteriores; track s) { <li>misuper.app/{{ s }}</li> }
+          </ul>
+          <p class="hint">
+            El de cada sucursal la abre en esa sucursal. Una dirección que cambiaste vos sigue andando 30 días, así el
+            cartel que ya imprimiste funciona mientras lo reemplazás.
+          </p>
+        </div>
       }
 
       <div class="acciones">
         <button type="button" (click)="abrirEditor()">Editar</button>
         <a class="boton-secundario" [href]="urlPublica()" target="_blank" rel="noopener">Ver mi tienda ↗</a>
-        <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', sucursal().branchId]">Cartel para la vidriera</a>
-      </div>
-
-      <!-- BP-146 / BP-145: lo que se ve primero en la tienda. 17-oct-2026 -- Andres no los encontraba: estaban plegados
-           al fondo, debajo de las estadisticas. Suben aca, con titulo propio. -->
-      <section class="vidriera" [attr.aria-labelledby]="'vidriera-' + t.id">
-        <h3 class="vidriera__titulo" [id]="'vidriera-' + t.id">
-          <i class="fa-solid fa-store" aria-hidden="true"></i> Lo primero que ve tu cliente
-        </h3>
-        <p class="hint">El carrusel de arriba de todo y los productos que salen primeros. Tocá cada uno para armarlo.</p>
-        <app-tienda-carrusel [tiendaId]="t.id" />
-        <app-tienda-destacados [tiendaId]="t.id" />
-      </section>
-
-      <!-- BP-122: visitas y pedidos. Tambien con la tienda despublicada: lo que paso antes sigue valiendo. -->
-      <!-- BP-148: los pedidos tienen su propia pantalla (menu "Tienda online" > Pedidos). -->
-      <p class="hint ir-pedidos"><a routerLink="/pedidos">Ver los pedidos de tu tienda →</a></p>
-
-      <app-tienda-estadisticas [tiendaId]="t.id" />
-
-      <section class="qr">
-        <h3>QR para que te paguen</h3>
-        <p class="hint">
-          El QR de tu billetera o de tu banco (Mercado Pago, Ualá, Cuenta DNI…). Aparece en tu tienda en "Cómo pagar":
-          el cliente te paga directo a vos.
-        </p>
-        <div class="qr__fila">
-          @if (t.qrPagoUrl) {
-            <img class="qr__imagen" [src]="t.qrPagoUrl" alt="Tu QR de pago" width="120" height="120" />
-          }
-          <div class="qr__botones">
-            <label class="boton-secundario boton-archivo">
-              {{ subiendoQr() ? 'Subiendo…' : t.qrPagoUrl ? 'Cambiar imagen' : 'Subir imagen del QR' }}
-              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirQr($event)" [disabled]="subiendoQr()" />
-            </label>
-            @if (t.qrPagoUrl) {
-              <button type="button" class="link-btn" (click)="quitarQr()">Sacar el QR</button>
-            }
-          </div>
-        </div>
-        @if (errores().qr) {
-          <p class="form-error">{{ errores().qr }}</p>
+        @if (porDefecto(); as p) {
+          <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', p.branchId]">Cartel para la vidriera</a>
         }
-      </section>
+      </div>
     }
   } @else {
     <form class="formulario" (submit)="$event.preventDefault(); guardar()">
@@ -178,12 +121,19 @@
 
       <label class="check">
         <input type="checkbox" [checked]="mostrarDomicilio()" (change)="mostrarDomicilio.set($any($event.target).checked)" />
-        Mostrar el domicilio de la sucursal (con link a Google Maps)
+        Mostrar el domicilio de cada sucursal (con link a Google Maps)
       </label>
       <label class="check">
         <input type="checkbox" [checked]="activa()" (change)="activa.set($any($event.target).checked)" />
         Publicar la tienda (si lo destildás, la dirección deja de mostrarse)
       </label>
+      @if (errores().activa) { <p class="form-error">{{ errores().activa }}</p> }
+      @if (sinSucursalesParaPublicar()) {
+        <p class="aviso">
+          Ninguna de tus sucursales entra sola todavía: les falta la ubicación o los productos (mirá abajo por qué).
+          Creá la tienda sin publicar, sumá una sucursal y después publicala.
+        </p>
+      }
 
       @if (errorGeneral()) {
         <p class="form-error">{{ errorGeneral() }}</p>
@@ -198,5 +148,56 @@
         }
       </div>
     </form>
+  }
+
+  <!-- BP-167: que sucursales estan en la tienda. Tambien con el formulario abierto: en el alta muestra cuales entran solas. -->
+  @if (datos(); as d) {
+    <app-tienda-sucursales [cuenta]="d" [enApp]="enApp()" [businessAccountId]="businessAccountId()" (guardadas)="sucursalesGuardadas($event)" />
+  }
+
+  @if (!editando()) {
+    @if (tienda(); as t) {
+      <!-- BP-146 / BP-145: lo que se ve primero en la tienda. 17-oct-2026 -- Andres no los encontraba: estaban plegados
+           al fondo, debajo de las estadisticas. Suben aca, con titulo propio. -->
+      <section class="vidriera" [attr.aria-labelledby]="'vidriera-' + t.id">
+        <h3 class="vidriera__titulo" [id]="'vidriera-' + t.id">
+          <i class="fa-solid fa-store" aria-hidden="true"></i> Lo primero que ve tu cliente
+        </h3>
+        <p class="hint">El carrusel de arriba de todo y los productos que salen primeros. Tocá cada uno para armarlo.</p>
+        <app-tienda-carrusel [tiendaId]="t.id" />
+        <app-tienda-destacados [tiendaId]="t.id" />
+      </section>
+
+      <!-- BP-122: visitas y pedidos. Tambien con la tienda despublicada: lo que paso antes sigue valiendo. -->
+      <!-- BP-148: los pedidos tienen su propia pantalla (menu "Tienda online" > Pedidos). -->
+      <p class="hint ir-pedidos"><a routerLink="/pedidos">Ver los pedidos de tu tienda →</a></p>
+
+      <app-tienda-estadisticas [tiendaId]="t.id" [sucursales]="habilitadas()" />
+
+      <section class="qr">
+        <h3>QR para que te paguen</h3>
+        <p class="hint">
+          El QR de tu billetera o de tu banco (Mercado Pago, Ualá, Cuenta DNI…). Aparece en tu tienda en "Cómo pagar":
+          el cliente te paga directo a vos.
+        </p>
+        <div class="qr__fila">
+          @if (t.qrPagoUrl) {
+            <img class="qr__imagen" [src]="t.qrPagoUrl" alt="Tu QR de pago" width="120" height="120" />
+          }
+          <div class="qr__botones">
+            <label class="boton-secundario boton-archivo">
+              {{ subiendoQr() ? 'Subiendo…' : t.qrPagoUrl ? 'Cambiar imagen' : 'Subir imagen del QR' }}
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirQr($event)" [disabled]="subiendoQr()" />
+            </label>
+            @if (t.qrPagoUrl) {
+              <button type="button" class="link-btn" (click)="quitarQr()">Sacar el QR</button>
+            }
+          </div>
+        </div>
+        @if (errores().qr) {
+          <p class="form-error">{{ errores().qr }}</p>
+        }
+      </section>
+    }
   }
 </article>

@@ -37,6 +37,8 @@ const cantidad = (n: number) => new Intl.NumberFormat('es-AR', { maximumFraction
             <h1>Pedido {{ p.codigo }}</h1>
             <p class="hoja__datos">
               {{ cuando(p.creadoAtUtc) }} · {{ p.entrega === 'retiro' ? 'Lo pasa a retirar' : 'Para enviar' }}
+              <!-- BP-167: de que sucursal es (una tienda por cuenta: el repositor tiene que saber donde armarlo). -->
+              @if (p.sucursalNombre) { · Sucursal {{ p.sucursalNombre }} }
               @if (p.clienteNombre) { · {{ p.clienteNombre }} }
             </p>
           </div>
@@ -147,18 +149,18 @@ export class PedidoImprimirComponent implements OnInit {
         switchMap((ctx) =>
           forkJoin([
             this.service.pedidos(tiendaId, 90),
-            ctx ? this.service.listar(ctx.account.businessAccountId) : of([]),
+            ctx ? this.service.cuenta(ctx.account.businessAccountId) : of(null),
           ]),
         ),
       )
       .subscribe({
-        next: ([pedidos, tiendas]) => {
+        next: ([pedidos, cuenta]) => {
           const p = pedidos.find((x) => x.codigo === codigo);
           if (!p) {
             this.error.set(`No encontramos el pedido ${codigo} entre los de los últimos 90 días.`);
             return;
           }
-          this.tienda.set(tiendas.find((s) => s.tienda?.id === tiendaId)?.tienda?.nombreVisible ?? '');
+          this.tienda.set(cuenta?.tienda?.id === tiendaId ? cuenta.tienda.nombreVisible : '');
           this.pedido.set(p);
         },
         error: () => this.error.set('No pudimos cargar el pedido. Probá de nuevo en un rato.'),
