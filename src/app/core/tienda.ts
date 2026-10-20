@@ -148,6 +148,18 @@ export interface TiendaSucursalStats {
 }
 
 /** El 400 de guardar: el mensaje y el campo al que va pegado. */
+/** BP-175 (20-oct-2026) -- GET /api/business/tienda/{id}/asistente. */
+export interface AsistenteTienda {
+  activo: boolean;
+  /** El plan incluye el asistente (Avanzado y Cadena). Si no, el interruptor va deshabilitado con el aviso de plan. */
+  disponibleEnPlan: boolean;
+  planActual: string;
+  /** El servidor tiene el canal de omnivox.chat. Sin el, prenderlo no muestra nada todavia. */
+  canalConfigurado: boolean;
+  /** Charlas abiertas y productos agregados desde el chat en los ultimos 7 dias (todas las sucursales). */
+  ultimos7Dias: { abiertos: number; agregados: number };
+}
+
 export interface ErrorDeCampo {
   error: string;
   campo?: string;
@@ -307,6 +319,16 @@ export class TiendaService {
   }
 
   /** BP-167: sucursal = solo esa sucursal; null = toda la tienda. */
+  /** BP-175 -- el asistente de compra con IA de la tienda: como esta y si se puede prender. */
+  asistente(tiendaId: number): Observable<AsistenteTienda> {
+    return this.http.get<AsistenteTienda>(`${this.url}/${tiendaId}/asistente`);
+  }
+
+  /** BP-175 -- prenderlo o apagarlo. 402 si el plan no lo incluye (el panel lo trata como el resto de los candados). */
+  guardarAsistente(tiendaId: number, activo: boolean): Observable<{ activo: boolean }> {
+    return this.http.patch<{ activo: boolean }>(`${this.url}/${tiendaId}/asistente`, { activo });
+  }
+
   estadisticas(tiendaId: number, sucursal: string | null = null): Observable<TiendaEstadisticas> {
     const params: Record<string, string> = sucursal ? { sucursal } : {};
     return this.http.get<TiendaEstadisticas>(`${this.url}/${tiendaId}/estadisticas`, { params });

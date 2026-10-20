@@ -2,7 +2,7 @@ import { Component, DestroyRef, OnInit, computed, inject, input, signal } from '
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
-import { ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeCuenta, TiendaService, achicarImagen } from '../../core/tienda';
+import { AsistenteTienda, ErrorDeCampo, SlugDisponibilidad, TiendaConfig, TiendaDeCuenta, TiendaService, achicarImagen } from '../../core/tienda';
 import { TiendaEstadisticasComponent } from './tienda-estadisticas';
 import { TiendaDestacadosComponent } from './tienda-destacados';
 import { TiendaCarruselComponent } from './tienda-carrusel';
@@ -86,8 +86,43 @@ export class TiendaCuentaComponent implements OnInit {
 
   private readonly slug$ = new Subject<string>();
 
+  // ---- BP-175 (20-oct-2026): el asistente de compra con IA
+  protected readonly asistente = signal<AsistenteTienda | null>(null);
+  protected readonly asistenteGuardando = signal(false);
+  protected readonly asistenteError = signal<string | null>(null);
+
+  private cargarAsistente(): void {
+    const t = this.tienda();
+    if (!t) return;
+    this.service.asistente(t.id).subscribe({ next: (a) => this.asistente.set(a), error: () => this.asistente.set(null) });
+  }
+
+  protected cambiarAsistente(activo: boolean): void {
+    const t = this.tienda();
+    const a = this.asistente();
+    if (!t || !a) return;
+    this.asistenteGuardando.set(true);
+    this.asistenteError.set(null);
+    this.service.guardarAsistente(t.id, activo).subscribe({
+      next: (r) => {
+        this.asistenteGuardando.set(false);
+        this.asistente.set({ ...a, activo: r.activo });
+        this.mensaje.set(r.activo ? 'Asistente prendido. Ya aparece en tu tienda.' : 'Asistente apagado.');
+      },
+      error: (err) => {
+        this.asistenteGuardando.set(false);
+        this.asistenteError.set(
+          err?.status === 402
+            ? 'El asistente está disponible desde el plan Avanzado.'
+            : (err?.error?.error ?? 'No se pudo guardar. Probá de nuevo en un rato.'),
+        );
+      },
+    });
+  }
+
   ngOnInit(): void {
     this.datos.set(this.cuenta());
+    this.cargarAsistente();
 
     // Primero se suscribe y DESPUES se abre el editor: abrirEditor() manda el slug sugerido por slug$,
     // y si nadie escucha todavia el chequeo inicial se pierde (el campo quedaba sin "Disponible").
@@ -177,7 +212,10 @@ export class TiendaCuentaComponent implements OnInit {
               : t.activa ? 'Cambios guardados. Ya se ven en tu tienda.' : 'Cambios guardados. La tienda no está publicada.',
           );
           // En el alta, las sucursales quedan como las armo el servidor (la principal, la que abre): se vuelven a pedir.
-          if (primeraVez) this.refrescar();
+          if (primeraVez) {
+            this.refrescar();
+            this.cargarAsistente();
+          }
         },
         error: (err) => {
           this.guardando.set(false);
