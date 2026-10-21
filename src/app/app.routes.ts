@@ -55,6 +55,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    // BP-181 (21-oct-2026) -- carteles de góndola para imprimir, FUERA del shell (como el cartel de la tienda).
+    path: 'precios/carteles',
+    loadComponent: () => import('./features/precios-formacion/carteles').then((m) => m.CartelesGondolaComponent),
+    title: 'PreciosIQ — Carteles de góndola',
+    canActivate: [authGuard],
+  },
+  {
     // BP-150 (17-oct-2026) -- la hoja para armar un pedido, FUERA del shell (como el cartel) para que se
     // imprima limpia.
     path: 'pedidos/imprimir/:tiendaId/:codigo',
@@ -103,6 +110,17 @@ export const routes: Routes = [
         path: 'pedidos',
         loadComponent: () => import('./features/pedidos/pedidos').then((m) => m.PedidosComponent),
         title: 'PreciosIQ — Pedidos',
+      },
+      // BP-181 (21-oct-2026) -- formación de precios: costo + margen contra la competencia (Avanzado y Cadena).
+      {
+        path: 'precios/formacion',
+        loadComponent: () => import('./features/precios-formacion/formacion').then((m) => m.FormacionPreciosComponent),
+        title: 'PreciosIQ — Formación de precios',
+      },
+      {
+        path: 'precios/formacion/configuracion',
+        loadComponent: () => import('./features/precios-formacion/configuracion').then((m) => m.FormacionConfiguracionComponent),
+        title: 'PreciosIQ — Configuración de la formación de precios',
       },
       {
         path: 'precios/carga-masiva',

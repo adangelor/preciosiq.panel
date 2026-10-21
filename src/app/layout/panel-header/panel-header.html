@@ -56,6 +56,18 @@
             <span class="shell__link-text">Cargar precio</span>
           </a>
         </li>
+        <!-- BP-181 (21-oct-2026) -- formación de precios (Avanzado y Cadena: sin el plan, la pantalla lo explica). -->
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/formacion"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Formación de precios' : null"
+          >
+            <mat-icon>calculate</mat-icon>
+            <span class="shell__link-text">Formación de precios</span>
+          </a>
+        </li>
         <li>
           <a
             class="shell__link"

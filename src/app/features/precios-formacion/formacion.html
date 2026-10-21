@@ -1,0 +1,315 @@
+<div class="gestion formacion card--page">
+  <h1>Formación de precios</h1>
+  <p class="subtitle">
+    El precio sugerido de cada artículo es su costo más el margen (el del artículo, el de su rubro o el de tu cuenta),
+    redondeado. Al lado, lo que cobra la competencia de la zona. Tildá los que quieras mover, corregí el sugerido si
+    hace falta y aplicalos: quedan como una carga más en <a routerLink="/precios/importaciones">Importaciones</a>, desde
+    donde se deshacen.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        La formación de precios viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>: el precio
+        sugerido de cada artículo a partir de su costo, contra lo que cobra la competencia de tu zona.
+        <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    <!-- ---------------------------------------------------------------- destino -->
+    <fieldset class="formacion__destino">
+      <legend>¿Para qué sucursales?</legend>
+      @if (branches().length > 1) {
+        <label class="gestion__check">
+          <input type="radio" name="destino" [checked]="destinoTipo() === 'todas'" (change)="elegirDestino('todas')" />
+          Todas las sucursales
+        </label>
+      }
+      @if (zonas().length > 0) {
+        <label class="gestion__check">
+          <input type="radio" name="destino" [checked]="destinoTipo() === 'zona'" (change)="elegirDestino('zona')" />
+          Una zona de precio
+        </label>
+        @if (destinoTipo() === 'zona') {
+          <select (change)="onZona($event)" aria-label="Zona de precio">
+            @for (z of zonas(); track z.id) {
+              <option [value]="z.id" [selected]="z.id === zonaId()">{{ z.nombre }} ({{ z.sucursales.length }})</option>
+            }
+          </select>
+        }
+      }
+      <label class="gestion__check">
+        <input type="radio" name="destino" [checked]="destinoTipo() === 'sucursal'" (change)="elegirDestino('sucursal')" />
+        Una sucursal
+      </label>
+      @if (destinoTipo() === 'sucursal') {
+        <select (change)="onSucursal($event)" aria-label="Sucursal">
+          @for (b of branches(); track b.branchId) {
+            <option [value]="b.branchId" [selected]="b.branchId === branchId()">{{ b.branchName }}</option>
+          }
+        </select>
+      }
+    </fieldset>
+
+    <div class="gestion__barra">
+      <button type="button" class="btn btn--ghost" (click)="abrirAjuste()" [attr.aria-expanded]="ajusteAbierto()">
+        <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i> Ajustar costos
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="descargarExcel()" [disabled]="exportando() || !datos()">
+        <i class="fa-solid fa-file-excel" aria-hidden="true"></i> {{ exportando() ? 'Armando el Excel…' : 'Descargar Excel' }}
+      </button>
+      <span class="gestion__links">
+        @if (datos(); as d) {
+          Margen por defecto {{ d.configuracion.margenDefaultPct }} %{{ d.configuracion.baseMargen === 'sobre_precio' ? ' sobre el precio' : '' }},
+          de a {{ pesos(d.configuracion.redondeoMultiplo) }}{{ d.configuracion.terminarEn9 ? ', terminado en 9' : '' }} ·
+        }
+        <a routerLink="/precios/formacion/configuracion">Configuración</a> ·
+        <a routerLink="/gestion/rubros">Márgenes por rubro</a>
+      </span>
+    </div>
+
+    <!-- ---------------------------------------------------------------- ajuste de costos -->
+    @if (ajusteAbierto()) {
+      <section class="gestion__seccion formacion__ajuste">
+        <h2>Ajustar costos</h2>
+        <p class="muted gestion__ayuda">
+          "El proveedor aumentó 8 %": carga un costo nuevo a todos los artículos de ese proveedor o rubro que ya tienen
+          costo. Después la tabla muestra qué precios mover. No cambia ningún precio de venta.
+        </p>
+        <div class="gestion__fila-form">
+          <label class="gestion__check"><input type="radio" name="ajustePor" [checked]="ajustePor() === 'proveedor'" (change)="onAjustePor('proveedor')" /> Proveedor</label>
+          <label class="gestion__check"><input type="radio" name="ajustePor" [checked]="ajustePor() === 'rubro'" (change)="onAjustePor('rubro')" /> Rubro</label>
+          <label>
+            {{ ajustePor() === 'proveedor' ? 'Proveedor' : 'Rubro (con sus subrubros)' }}
+            <select (change)="onAjusteId($event)">
+              <option value="">Elegí…</option>
+              @if (ajustePor() === 'proveedor') {
+                @for (p of proveedores(); track p.id) { <option [value]="p.id" [selected]="p.id === ajusteId()">{{ p.nombre }}</option> }
+              } @else {
+                @for (o of opcionesRubro(); track o.id) { <option [value]="o.id" [selected]="o.id === ajusteId()">{{ o.etiqueta }}</option> }
+              }
+            </select>
+          </label>
+          <label>
+            Porcentaje
+            <input type="text" inputmode="decimal" class="formacion__pct" placeholder="8" [value]="ajustePct()" (input)="onAjustePct($event)" />
+          </label>
+          <label>
+            Vigente desde
+            <input type="date" [value]="ajusteDesde()" (input)="onAjusteDesde($event)" />
+          </label>
+          <button type="button" class="btn btn--ghost" (click)="ajustar(true)" [disabled]="ajustando()">Ver vista previa</button>
+        </div>
+        @if (ajusteError()) { <p class="alert alert--danger">{{ ajusteError() }}</p> }
+        @if (ajusteVista(); as v) {
+          <div class="formacion__vista">
+            @if (v.articulos === 0) {
+              <p>Ningún artículo de {{ nombreDelAjuste() }} tiene costo cargado: no hay nada para ajustar.</p>
+            } @else {
+              <p>
+                Se ajusta el costo de <strong>{{ num(v.articulos) }}</strong> {{ v.articulos === 1 ? 'artículo' : 'artículos' }} de {{ nombreDelAjuste() }}.
+                @if (v.sinCosto > 0) { {{ num(v.sinCosto) }} no tienen costo y no se tocan. }
+              </p>
+              <ul>
+                @for (e of v.ejemplos; track e.codigo) {
+                  <li>{{ e.descripcion }}: {{ pesos(e.costoAntes, true) }} → <strong>{{ pesos(e.costoDespues, true) }}</strong></li>
+                }
+              </ul>
+              <button type="button" class="btn" (click)="ajustar(false)" [disabled]="ajustando()">
+                {{ ajustando() ? 'Ajustando…' : 'Ajustar ' + num(v.articulos) + ' costos' }}
+              </button>
+            }
+          </div>
+        }
+        @if (ajusteListo(); as l) {
+          <p class="alert alert--success">
+            <span>Listo: {{ num(l.articulos) }} costos nuevos. Abajo, los precios de {{ nombreDelAjuste() }} que conviene mover.</span>
+          </p>
+        }
+      </section>
+    }
+
+    <!-- ---------------------------------------------------------------- resultado de aplicar -->
+    @if (aplicado(); as r) {
+      <section class="gestion__resultado">
+        <h2>Listo: {{ num(r.aplicados) }} {{ r.aplicados === 1 ? 'precio cambió' : 'precios cambiaron' }}</h2>
+        <ul>
+          <li>Quedó como la carga «{{ r.nombreDeLaCarga }}». Se deshace desde <a routerLink="/precios/importaciones">Importaciones</a>.</li>
+          @if (r.sinCambio > 0) { <li>{{ num(r.sinCambio) }} ya tenían ese precio.</li> }
+          @if (r.sinPrecioEnLaSucursal > 0) { <li>{{ num(r.sinPrecioEnLaSucursal) }} no están cargados en alguna sucursal: ahí no se dieron de alta.</li> }
+          @if (r.errores.length > 0) { <li class="formacion__error">{{ r.errores.length }} no se pudieron guardar (el primero: {{ r.errores[0].ean }}, {{ r.errores[0].motivo }}).</li> }
+        </ul>
+        <div class="gestion__acciones">
+          @if (r.aplicados > 0) {
+            <a class="btn" routerLink="/precios/carteles" [queryParams]="cartelesDeLoAplicado(r)" target="_blank">
+              <i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir carteles de estos {{ num(r.aplicados) }}
+            </a>
+          }
+          <button type="button" class="btn btn--ghost btn--small" (click)="aplicado.set(null)">Cerrar</button>
+        </div>
+      </section>
+    }
+
+    @if (error()) {
+      <p class="alert alert--danger">{{ error() }}</p>
+    }
+
+    <!-- ---------------------------------------------------------------- filtros -->
+    <div class="gestion__filtros">
+      <input type="search" placeholder="Buscar por código, descripción o marca" [value]="q()" (input)="onBuscar($event)" />
+      <select (change)="onRubro($event)" aria-label="Rubro">
+        <option value="">Todos los rubros</option>
+        @for (o of opcionesRubro(); track o.id) {
+          <option [value]="o.id" [selected]="o.id === rubroId()">{{ o.etiqueta }}</option>
+        }
+      </select>
+      <select (change)="onProveedor($event)" aria-label="Proveedor">
+        <option value="">Todos los proveedores</option>
+        @for (p of proveedores(); track p.id) {
+          <option [value]="p.id" [selected]="p.id === proveedorId()">{{ p.nombre }}</option>
+        }
+      </select>
+      <label class="gestion__check">
+        <input type="checkbox" [checked]="soloCambios()" (change)="onSoloCambios($event)" /> Solo los que cambian
+      </label>
+    </div>
+    <div class="gestion__chips" role="group" aria-label="Avisos">
+      @for (a of AVISOS_FILTRO; track a) {
+        <button type="button" class="chip" [class.chip--on]="aviso() === a" (click)="elegirAviso(a)" [title]="AVISOS[a].ayuda">{{ AVISOS[a].texto }}</button>
+      }
+    </div>
+
+    @if (cargando()) {
+      <app-loading-bar label="Calculando contra la competencia… (la primera vez tarda unos segundos)" [slowAfterSeconds]="40" />
+    }
+
+    @if (datos(); as d) {
+      @if (!d.competenciaDisponible && d.sinCompetenciaPorque) {
+        <p class="alert alert--warning"><span>{{ d.sinCompetenciaPorque }} <a routerLink="/sucursales">Ver sucursales →</a></span></p>
+      }
+      <p class="muted gestion__total">
+        {{ d.destino }}: {{ num(d.resumen.articulos) }} artículos, {{ num(d.resumen.conCosto) }} con costo
+        @if (d.resumen.sinCosto > 0) { ({{ num(d.resumen.sinCosto) }} sin costo: <button type="button" class="link-btn" (click)="elegirAviso('sin_costo')">ver cuáles</button>) }
+        · {{ num(d.resumen.cambian) }} cambian ({{ num(d.resumen.suben) }} suben, {{ num(d.resumen.bajan) }} bajan)
+        @if (d.total > d.pageSize) { — página {{ d.page }} de {{ paginas() }} }
+      </p>
+
+      <!-- barra de selección -->
+      <div class="formacion__seleccion">
+        <button type="button" class="btn btn--ghost btn--small" (click)="tildarTodasLasQueCambian()" [disabled]="d.items.length === 0">Tildar todas las que cambian</button>
+        @if (cantidadElegidos() > 0) {
+          <span>{{ num(cantidadElegidos()) }} {{ cantidadElegidos() === 1 ? 'tildado' : 'tildados' }}</span>
+          <button type="button" class="link-btn" (click)="limpiarSeleccion()">Destildar todo</button>
+          <button type="button" class="btn" (click)="pedirConfirmacion()" [disabled]="aplicando()">
+            Aplicar {{ num(cantidadElegidos()) }} {{ cantidadElegidos() === 1 ? 'precio' : 'precios' }}
+          </button>
+        }
+      </div>
+      @if (confirmando()) {
+        <div class="alert alert--warning formacion__confirmar" role="alertdialog" aria-label="Confirmar">
+          <span>
+            Vas a cambiar <strong>{{ num(resumen().total) }}</strong> {{ resumen().total === 1 ? 'precio' : 'precios' }} en
+            <strong>{{ d.destino }}</strong>. {{ resumenTexto(resumen()) }}
+          </span>
+          <span class="gestion__acciones">
+            <button type="button" class="btn" (click)="aplicar()" [disabled]="aplicando()">{{ aplicando() ? 'Aplicando…' : 'Sí, aplicar' }}</button>
+            <button type="button" class="btn btn--ghost" (click)="confirmando.set(false)" [disabled]="aplicando()">Cancelar</button>
+          </span>
+        </div>
+      }
+
+      <div class="table-wrap">
+        <table class="data formacion__tabla">
+          <thead>
+            <tr>
+              <th class="formacion__tilde"><span class="visually-hidden">Tildar</span></th>
+              <th>Artículo</th>
+              <th class="num">Costo s/IVA</th>
+              <th>Margen</th>
+              <th class="num">Actual</th>
+              <th class="num">Sugerido</th>
+              <th class="num">Dif.</th>
+              <th>Competencia (mín – ref – máx)</th>
+              <th>Avisos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of d.items; track i.codigo) {
+              <tr [class.formacion__fila--elegida]="elegido(i)">
+                <td class="formacion__tilde">
+                  <input type="checkbox" [checked]="elegido(i)" [disabled]="!tildable(i)" (change)="alternar(i, $event)" [attr.aria-label]="'Tildar ' + i.descripcion" />
+                </td>
+                <td class="strong">
+                  {{ i.descripcion }}
+                  <div class="muted gestion__sub">
+                    <span class="gestion__codigo">{{ i.codigo }}</span>@if (i.marca) { · {{ i.marca }} }@if (i.rubro) { · {{ i.rubro }} }
+                  </div>
+                </td>
+                <td class="num">
+                  {{ pesos(i.costoNeto, true) }}
+                  @if (i.costoDesde) { <div class="muted gestion__sub">desde {{ i.costoDesde.slice(8, 10) }}/{{ i.costoDesde.slice(5, 7) }}</div> }
+                </td>
+                <td>{{ margenUsado(i) }}</td>
+                <td class="num">
+                  {{ pesos(i.precioActual) }}
+                  @if (i.preciosDistintos) { <div><span class="pill pill--neutral" title="No todas las sucursales del destino tienen el mismo precio: este es el más repetido">difieren</span></div> }
+                </td>
+                <td class="num">
+                  @if (i.sugerido == null && !editado(i)) {
+                    <span class="pill pill--neutral" [title]="AVISOS.sin_costo.ayuda">sin costo</span>
+                  } @else {
+                    <input type="text" inputmode="decimal" class="formacion__precio" [class.formacion__precio--editado]="editado(i)"
+                           [value]="precioDe(i)" (change)="onEditar(i, $event)"
+                           [title]="editado(i) ? 'Corregido a mano (el sugerido era ' + pesos(i.sugerido) + '). Borralo para volver al sugerido.' : 'Podés corregirlo'"
+                           [attr.aria-label]="'Precio a aplicar de ' + i.descripcion" />
+                  }
+                </td>
+                <td class="num" [class.formacion__sube]="(i.diferenciaPct ?? 0) > 0" [class.formacion__baja]="(i.diferenciaPct ?? 0) < 0">{{ diferenciaTexto(i.diferenciaPct) }}</td>
+                <td>
+                  @if (i.competencia && i.competencia.cadenas > 0) {
+                    {{ competenciaTexto(i.competencia) }}
+                    <div class="muted gestion__sub">
+                      {{ i.competencia.cadenas }} {{ i.competencia.cadenas === 1 ? 'cadena' : 'cadenas' }}
+                      @if (i.competencia.promoMasBaja != null) { · promo {{ pesos(i.competencia.promoMasBaja) }} en {{ i.competencia.promoCadena }} }
+                      @if (i.competencia.metaTestigo != null) { · meta testigo {{ pesos(i.competencia.metaTestigo) }} }
+                    </div>
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td>
+                  @for (a of avisosDe(i); track a) {
+                    <span [class]="'pill ' + AVISOS[a].clase" [title]="tituloDeAviso(i, a)">{{ AVISOS[a].texto }}</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="muted">
+                  @if (soloCambios() && !q() && rubroId() == null && proveedorId() == null && !aviso()) {
+                    Ningún precio para mover: todos los artículos con costo ya están en su sugerido.
+                  } @else {
+                    Ningún artículo con estos filtros.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (paginas() > 1) {
+        <div class="gestion__paginas">
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+          <span class="muted">{{ pagina() }} / {{ paginas() }} — lo tildado se mantiene al cambiar de página</span>
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+        </div>
+      }
+    }
+  }
+</div>

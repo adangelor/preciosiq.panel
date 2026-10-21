@@ -1,0 +1,93 @@
+// BP-181 (21-oct-2026) -- formación de precios. La base (barra, filtros, chips, tabla) sale de gestion.scss.
+.formacion__destino {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+
+  legend {
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0 0.35rem;
+  }
+
+  select {
+    max-width: 18rem;
+  }
+}
+
+.formacion__pct {
+  width: 5.5rem;
+}
+
+.formacion__vista {
+  margin-top: 0.9rem;
+}
+
+.formacion__seleccion {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.formacion__confirmar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.formacion__error {
+  color: var(--danger, #b91c1c);
+}
+
+.formacion__tilde {
+  width: 2rem;
+  text-align: center;
+}
+
+.formacion__fila--elegida td {
+  background: color-mix(in srgb, var(--primary, #4f46e5) 7%, transparent);
+}
+
+.formacion__precio {
+  width: 6.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.formacion__precio--editado {
+  border-color: var(--warning, #b45309);
+  background: color-mix(in srgb, var(--warning, #b45309) 8%, transparent);
+}
+
+.formacion__sube {
+  color: var(--danger, #b91c1c);
+}
+
+.formacion__baja {
+  color: var(--success, #15803d);
+}
+
+.formacion__tabla .pill {
+  margin: 0 0.25rem 0.2rem 0;
+  white-space: nowrap;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
