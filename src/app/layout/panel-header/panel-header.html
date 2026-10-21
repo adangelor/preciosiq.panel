@@ -138,6 +138,18 @@
           </a>
         </li>
         <li>
+          <!-- BP-179 bloque 7 (21-oct-2026) -- stock con historial. -->
+          <a
+            class="shell__link"
+            routerLink="/gestion/stock"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Stock' : null"
+          >
+            <mat-icon>warehouse</mat-icon>
+            <span class="shell__link-text">Stock</span>
+          </a>
+        </li>
+        <li>
           <a
             class="shell__link"
             routerLink="/gestion/rubros"

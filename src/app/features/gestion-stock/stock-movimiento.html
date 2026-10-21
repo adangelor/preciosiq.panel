@@ -1,0 +1,166 @@
+<div class="gestion stock card--page">
+  <p><a routerLink="/gestion/stock">← Stock</a></p>
+  <h1>{{ titulo() }}</h1>
+  <p class="subtitle">
+    @if (tipo() === 'ingreso') {
+      Lo que entró sin orden de compra: escaneá o buscá cada artículo, poné cuántos (en unidades, o en bultos si el
+      artículo tiene unidades por bulto) y, si querés, el costo por unidad: queda como su costo desde hoy.
+    } @else {
+      Lo que se fue sin venderse: rotura, vencido, robo o faltante, consumo interno. Queda valorizado a tu costo en el
+      informe de abajo.
+    }
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>El stock con historial viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <section class="gestion__seccion">
+      <div class="gestion__fila-form stock__cabecera">
+        @if (sucursales().length > 1) {
+          <label>
+            Sucursal
+            <select (change)="branchId.set($any($event.target).value)">
+              @for (s of sucursales(); track s.branchId) {
+                <option [value]="s.branchId" [selected]="s.branchId === branchId()">{{ s.nombre }}</option>
+              }
+            </select>
+          </label>
+        }
+        @if (cuenta(); as id) {
+          <app-articulo-buscador [cuenta]="id" (elegido)="agregar($event)" />
+        }
+      </div>
+
+      @if (renglones().length > 0) {
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Artículo</th>
+                <th class="num">Cantidad</th>
+                @if (tipo() === 'ingreso') { <th>En</th><th class="num">Costo por unidad (opcional)</th> } @else { <th>Motivo</th> }
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of renglones(); track r.codigo; let i = $index) {
+                <tr>
+                  <td class="strong">
+                    {{ r.descripcion ?? r.codigo }}
+                    @if (!r.descripcion) { <div class="muted gestion__sub">Se busca al registrar (puede ser un código de bulto).</div> }
+                    @else { <div class="muted gestion__sub">{{ r.codigo }}</div> }
+                  </td>
+                  <td class="num"><input class="stock__lim" type="text" inputmode="decimal" [value]="r.cantidad" (change)="cambiar(i, 'cantidad', $event)" [attr.aria-label]="'Cantidad de ' + (r.descripcion ?? r.codigo)" /></td>
+                  @if (tipo() === 'ingreso') {
+                    <td>
+                      <select (change)="cambiar(i, 'unidad', $event)" aria-label="Unidad">
+                        <option value="unidad" [selected]="r.unidad === 'unidad'">unidades</option>
+                        <option value="bulto" [selected]="r.unidad === 'bulto'">bultos</option>
+                      </select>
+                    </td>
+                    <td class="num"><input class="stock__lim" type="text" inputmode="decimal" placeholder="$" [value]="r.costo" (change)="cambiar(i, 'costo', $event)" aria-label="Costo por unidad sin IVA" /></td>
+                  } @else {
+                    <td>
+                      <select (change)="cambiar(i, 'motivo', $event)" aria-label="Motivo">
+                        @for (m of MOTIVOS; track m.id) { <option [value]="m.id" [selected]="r.motivo === m.id">{{ m.texto }}</option> }
+                      </select>
+                    </td>
+                  }
+                  <td><button type="button" class="btn btn--ghost btn--small" (click)="quitar(i)" aria-label="Sacar">✕</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="gestion__fila-form">
+          <label class="stock__nota-input">
+            Nota (opcional)
+            <input type="text" maxlength="300" [value]="nota()" (input)="nota.set($any($event.target).value)"
+                   [placeholder]="tipo() === 'ingreso' ? 'Remito 0001-00012345, Distribuidora Norte' : 'Heladera cortada el sábado'" />
+          </label>
+          <button type="button" class="btn" (click)="registrar()" [disabled]="guardando()">
+            {{ guardando() ? 'Registrando…' : (tipo() === 'ingreso' ? 'Registrar ingreso' : 'Registrar mermas') + ' (' + renglones().length + ')' }}
+          </button>
+        </div>
+      } @else {
+        <p class="muted">Escaneá o buscá el primer artículo.</p>
+      }
+
+      @if (error()) {
+        <p class="alert alert--danger">
+          <span>
+            {{ error() }}
+            @for (x of erroresRenglon(); track $index) { <br />Renglón {{ x.fila }} ({{ x.codigo }}): {{ x.motivo }} }
+          </span>
+        </p>
+      }
+      @if (resultado(); as r) {
+        <div class="alert alert--success">
+          <span>
+            Listo: {{ r.aplicados }} {{ r.aplicados === 1 ? 'artículo' : 'artículos' }} en {{ nombreSucursal(branchId()) }}.
+            @for (x of r.renglones.slice(0, 10); track $index) {
+              <br />{{ x.descripcion }}: {{ cantidad(x.saldoAntes) }} → <strong>{{ cantidad(x.saldoDespues) }}</strong>
+            }
+          </span>
+        </div>
+      }
+    </section>
+
+    @if (tipo() === 'merma') {
+      <section class="gestion__seccion">
+        <h2>Informe de mermas</h2>
+        <div class="gestion__fila-form">
+          <label>Desde <input type="date" [value]="desde()" (change)="onFiltroInforme('desde', $event)" /></label>
+          <label>Hasta <input type="date" [value]="hasta()" (change)="onFiltroInforme('hasta', $event)" /></label>
+          @if (sucursales().length > 1) {
+            <label>
+              Sucursal
+              <select (change)="onFiltroInforme('sucursal', $event)">
+                <option value="">Todas</option>
+                @for (s of sucursales(); track s.branchId) { <option [value]="s.branchId">{{ s.nombre }}</option> }
+              </select>
+            </label>
+          }
+          <button type="button" class="btn btn--ghost btn--small" (click)="excelMermas()" [disabled]="!informe()">
+            <i class="fa-solid fa-file-excel" aria-hidden="true"></i> Excel
+          </button>
+        </div>
+        @if (cargandoInforme()) { <p class="muted">Cargando…</p> }
+        @if (informe(); as inf) {
+          <p><strong>{{ plata(inf.valor) }}</strong> en {{ cantidad(inf.cantidad) }} unidades, del {{ fecha(inf.desde) }} al {{ fecha(inf.hasta) }}.</p>
+          <div class="gestion__columnas">
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Motivo</th><th class="num">Cantidad</th><th class="num">Valor</th></tr></thead>
+                <tbody>
+                  @for (m of inf.porMotivo; track m.clave) {
+                    <tr>
+                      <td>{{ motivoTexto(m.clave) }}@if (m.sinCosto > 0) { <span class="muted"> ({{ m.sinCosto }} sin costo)</span> }</td>
+                      <td class="num">{{ cantidad(m.cantidad) }}</td><td class="num">{{ plata(m.valor) }}</td>
+                    </tr>
+                  } @empty { <tr><td colspan="3" class="muted">Sin mermas en estas fechas.</td></tr> }
+                </tbody>
+              </table>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Rubro</th><th class="num">Cantidad</th><th class="num">Valor</th></tr></thead>
+                <tbody>
+                  @for (m of inf.porRubro; track m.clave) {
+                    <tr><td>{{ m.clave }}</td><td class="num">{{ cantidad(m.cantidad) }}</td><td class="num">{{ plata(m.valor) }}</td></tr>
+                  } @empty { <tr><td colspan="3" class="muted">—</td></tr> }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

@@ -164,6 +164,35 @@ export const routes: Routes = [
         loadComponent: () => import('./features/gestion/articulo-ficha').then((m) => m.ArticuloFichaComponent),
         title: 'PreciosIQ — Artículo',
       },
+      // BP-179 bloque 7 (21-oct-2026) -- Gestión → Stock: listado valorizado e historial, ingreso, recuento, mermas y
+      // transferencias (Avanzado y Cadena).
+      {
+        path: 'gestion/stock',
+        loadComponent: () => import('./features/gestion-stock/stock').then((m) => m.StockComponent),
+        title: 'PreciosIQ — Stock',
+      },
+      {
+        path: 'gestion/stock/ingreso',
+        loadComponent: () => import('./features/gestion-stock/stock-movimiento').then((m) => m.StockMovimientoComponent),
+        data: { tipo: 'ingreso' },
+        title: 'PreciosIQ — Ingreso de mercadería',
+      },
+      {
+        path: 'gestion/stock/mermas',
+        loadComponent: () => import('./features/gestion-stock/stock-movimiento').then((m) => m.StockMovimientoComponent),
+        data: { tipo: 'merma' },
+        title: 'PreciosIQ — Mermas',
+      },
+      {
+        path: 'gestion/stock/recuento',
+        loadComponent: () => import('./features/gestion-stock/stock-recuento').then((m) => m.StockRecuentoComponent),
+        title: 'PreciosIQ — Recuento',
+      },
+      {
+        path: 'gestion/stock/transferencias',
+        loadComponent: () => import('./features/gestion-stock/stock-transferencias').then((m) => m.StockTransferenciasComponent),
+        title: 'PreciosIQ — Transferencias',
+      },
       {
         path: 'gestion/rubros',
         loadComponent: () => import('./features/gestion/rubros').then((m) => m.RubrosComponent),

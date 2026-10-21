@@ -1,0 +1,155 @@
+// BP-179 bloque 7 (21-oct-2026) -- Gestión → Stock. La base (barra, filtros, chips, tabla) sale de gestion.scss.
+.gestion.stock {
+  max-width: 1440px;
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.stock__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.stock__cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  min-width: 9rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+
+  strong {
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .link-btn {
+    font-size: 0.8rem;
+    align-self: flex-start;
+  }
+}
+
+.stock__cifra--boton {
+  cursor: pointer;
+}
+
+.stock__cifra--aviso strong {
+  color: var(--warning, #b45309);
+}
+
+.stock__cifra--peligro strong {
+  color: var(--danger, #b91c1c);
+}
+
+.stock__rubros {
+  margin-bottom: 1rem;
+  max-width: 44rem;
+}
+
+.stock__limites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+.stock__nota {
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.stock__ok {
+  color: var(--success, #15803d);
+  font-weight: 600;
+}
+
+.stock__tabla td.num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock__neg {
+  color: var(--danger, #b91c1c);
+  font-weight: 700;
+}
+
+.stock__bajo {
+  color: var(--warning, #b45309);
+  font-weight: 700;
+}
+
+.stock__lim {
+  width: 5.5rem;
+  text-align: right;
+}
+
+.stock__fila--abierta td {
+  background: color-mix(in srgb, var(--primary, #4f46e5) 7%, transparent);
+}
+
+.stock__historial-fila > td {
+  background: var(--bg-card);
+  padding: 0.5rem 0.75rem 1rem !important;
+}
+
+.stock__historial-cab {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.stock__mov {
+  font-size: 0.85rem;
+}
+
+.stock__mov--tarde td {
+  color: var(--text-2);
+}
+
+.stock__nota-input {
+  flex: 1 1 20rem;
+
+  input {
+    width: 100%;
+  }
+}
+
+.stock__transf {
+  border-top: 1px solid var(--border);
+  padding: 0.85rem 0;
+
+  &:first-of-type {
+    border-top: 0;
+  }
+
+  table {
+    margin: 0.5rem 0;
+    max-width: 44rem;
+  }
+}
+
+.stock__transf-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}

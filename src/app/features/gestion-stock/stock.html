@@ -1,0 +1,231 @@
+<div class="gestion stock card--page">
+  <h1>Stock</h1>
+  <p class="subtitle">
+    Lo que hay de cada artículo en cada sucursal, valorizado a tu costo. Cada venta de la caja, ingreso, merma, recuento y
+    transferencia queda en el historial del artículo: tocá uno para verlo.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        El stock con historial (ingresos, mermas, recuentos y transferencias entre sucursales) viene con los planes
+        <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <a class="btn" routerLink="/gestion/stock/ingreso"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i> Ingreso de mercadería</a>
+      <a class="btn btn--ghost" routerLink="/gestion/stock/recuento"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Recuento</a>
+      <a class="btn btn--ghost" routerLink="/gestion/stock/mermas"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> Mermas</a>
+      <a class="btn btn--ghost" routerLink="/gestion/stock/transferencias"><i class="fa-solid fa-right-left" aria-hidden="true"></i> Transferencias</a>
+      <button type="button" class="btn btn--ghost" (click)="descargarExcel()" [disabled]="exportando() || !datos()">
+        <i class="fa-solid fa-file-excel" aria-hidden="true"></i> {{ exportando() ? 'Armando el Excel…' : 'Descargar Excel' }}
+      </button>
+    </div>
+
+    @if (datos(); as d) {
+      <div class="stock__resumen">
+        <div class="stock__cifra">
+          <span class="muted">Valorizado</span>
+          <strong>{{ plata(d.valorizado) }}</strong>
+          <button type="button" class="link-btn" (click)="verRubros.set(!verRubros())">{{ verRubros() ? 'Ocultar' : 'Ver' }} por rubro</button>
+        </div>
+        <div class="stock__cifra"><span class="muted">Artículos</span><strong>{{ num(d.total) }}</strong></div>
+        <button type="button" class="stock__cifra stock__cifra--boton" [class.stock__cifra--aviso]="d.bajoMinimo > 0" (click)="elegirRapido('bajoMinimo')">
+          <span class="muted">Bajo el mínimo</span><strong>{{ num(d.bajoMinimo) }}</strong>
+        </button>
+        <button type="button" class="stock__cifra stock__cifra--boton" [class.stock__cifra--peligro]="d.negativos > 0" (click)="elegirRapido('negativo')">
+          <span class="muted">Negativos</span><strong>{{ num(d.negativos) }}</strong>
+        </button>
+        @if (d.sinCosto > 0) {
+          <div class="stock__cifra"><span class="muted">Sin costo (no suman)</span><strong>{{ num(d.sinCosto) }}</strong></div>
+        }
+      </div>
+      @if (verRubros()) {
+        <div class="table-wrap stock__rubros">
+          <table class="data">
+            <thead><tr><th>Rubro</th><th class="num">Artículos</th><th class="num">Cantidad</th><th class="num">Valorizado</th></tr></thead>
+            <tbody>
+              @for (r of d.porRubro; track r.rubro) {
+                <tr><td>{{ r.rubro }}</td><td class="num">{{ num(r.articulos) }}</td><td class="num">{{ cantidad(r.cantidad) }}</td><td class="num">{{ plata(r.valorizado) }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+
+    @if (error()) {
+      <p class="alert alert--danger">{{ error() }}</p>
+    }
+    @if (erroresPlanilla().length > 0) {
+      <div class="alert alert--warning">
+        <span>
+          {{ erroresPlanilla().length }} {{ erroresPlanilla().length === 1 ? 'fila no se pudo leer' : 'filas no se pudieron leer' }}:
+          @for (x of erroresPlanilla().slice(0, 8); track $index) { <br />Fila {{ x.fila }}: {{ x.motivo }} }
+        </span>
+      </div>
+    }
+
+    <div class="gestion__filtros">
+      @if (sucursales().length > 1) {
+        <select (change)="onSucursal($event)" aria-label="Sucursal">
+          <option value="" [selected]="branchId() === ''">Todas las sucursales</option>
+          @for (s of sucursales(); track s.branchId) {
+            <option [value]="s.branchId" [selected]="s.branchId === branchId()">{{ s.nombre }}</option>
+          }
+        </select>
+      }
+      <input type="search" placeholder="Buscar por código, descripción o marca" [value]="q()" (input)="onBuscar($event)" />
+      <select (change)="onRubro($event)" aria-label="Rubro">
+        <option value="">Todos los rubros</option>
+        @for (o of opcionesRubro(); track o.id) {
+          <option [value]="o.id" [selected]="o.id === rubroId()">{{ o.etiqueta }}</option>
+        }
+      </select>
+    </div>
+    <div class="gestion__chips" role="group" aria-label="Filtros rápidos">
+      <button type="button" class="chip" [class.chip--on]="rapido() === 'todos'" (click)="elegirRapido('todos')">Todos</button>
+      <button type="button" class="chip" [class.chip--on]="rapido() === 'bajoMinimo'" (click)="elegirRapido('bajoMinimo')">Bajo el mínimo</button>
+      <button type="button" class="chip" [class.chip--on]="rapido() === 'negativo'" (click)="elegirRapido('negativo')">Negativos</button>
+    </div>
+
+    @if (unaSucursal()) {
+      <div class="stock__limites">
+        <span class="muted">Mínimos y máximos: editalos en la tabla o cargalos por planilla (código, mínimo, máximo).</span>
+        <label class="btn btn--ghost btn--small">
+          <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Por planilla
+          <input type="file" accept=".xlsx,.xls,.csv" hidden (change)="limitesPorPlanilla($event)" />
+        </label>
+        @if (limitesEditados().size > 0) {
+          <button type="button" class="btn btn--small" (click)="guardarLimites()" [disabled]="guardandoLimites()">
+            {{ guardandoLimites() ? 'Guardando…' : 'Guardar ' + limitesEditados().size + (limitesEditados().size === 1 ? ' cambio' : ' cambios') }}
+          </button>
+        }
+        @if (avisoLimites()) { <span class="stock__ok">{{ avisoLimites() }}</span> }
+      </div>
+    } @else if (sucursales().length > 1) {
+      <p class="muted stock__nota">
+        Elegí una sucursal para editar mínimos y máximos. Por planilla, con una columna «sucursal», se cargan todas de una vez:
+        <label class="link-btn">elegir planilla<input type="file" accept=".xlsx,.xls,.csv" hidden (change)="limitesPorPlanilla($event)" /></label>
+      </p>
+    }
+
+    @if (cargando()) {
+      <app-loading-bar label="Cargando el stock…" />
+    }
+
+    @if (datos(); as d) {
+      <p class="muted gestion__total">
+        {{ num(d.total) }} {{ d.total === 1 ? 'artículo' : 'artículos' }}
+        @if (d.total > d.pageSize) { — página {{ d.page }} de {{ paginas() }} }
+      </p>
+      <div class="table-wrap">
+        <table class="data stock__tabla">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              @for (s of d.sucursales; track s.branchId) { <th class="num">{{ d.sucursales.length === 1 ? 'Stock' : s.nombre }}</th> }
+              @if (d.sucursales.length > 1) { <th class="num">Total</th> }
+              @if (unaSucursal()) { <th class="num">Mínimo</th><th class="num">Máximo</th> }
+              <th class="num">Costo</th>
+              <th class="num">Valorizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of d.items; track i.codigo) {
+              <tr class="clickable" [class.stock__fila--abierta]="abierto()?.codigo === i.codigo" (click)="abrir(i)">
+                <td class="strong">
+                  {{ i.descripcion }}
+                  @if (i.sinFicha) { <span class="pill pill--neutral" title="Se vendió en la caja pero no tiene ficha de artículo">sin ficha</span> }
+                  <div class="muted gestion__sub"><span class="gestion__codigo">{{ i.codigo }}</span>@if (i.rubro) { · {{ i.rubro }} }</div>
+                </td>
+                @for (s of d.sucursales; track s.branchId) {
+                  <td class="num" [class.stock__neg]="celda(i, s.branchId) < 0" [class.stock__bajo]="bajo(i, s.branchId)">{{ cantidad(celda(i, s.branchId)) }}</td>
+                }
+                @if (d.sucursales.length > 1) { <td class="num strong">{{ cantidad(i.cantidad) }}</td> }
+                @if (unaSucursal()) {
+                  <td class="num" (click)="$event.stopPropagation()">
+                    <input class="stock__lim" type="text" inputmode="decimal" [value]="limite(i, 'minimo') ?? ''" (change)="onLimite(i, 'minimo', $event)" [attr.aria-label]="'Mínimo de ' + i.descripcion" />
+                  </td>
+                  <td class="num" (click)="$event.stopPropagation()">
+                    <input class="stock__lim" type="text" inputmode="decimal" [value]="limite(i, 'maximo') ?? ''" (change)="onLimite(i, 'maximo', $event)" [attr.aria-label]="'Máximo de ' + i.descripcion" />
+                  </td>
+                }
+                <td class="num">{{ plata(i.costoNeto) }}</td>
+                <td class="num">{{ plata(i.valorizado) }}</td>
+              </tr>
+              @if (abierto()?.codigo === i.codigo) {
+                <tr class="stock__historial-fila">
+                  <td [attr.colspan]="d.sucursales.length + (d.sucursales.length > 1 ? 1 : 0) + (unaSucursal() ? 2 : 0) + 3">
+                    <div class="stock__historial">
+                      <div class="stock__historial-cab">
+                        <strong>Historial</strong>
+                        @if (!unaSucursal() && sucursales().length > 1) {
+                          <select (change)="onHistorialSucursal($event)" aria-label="Sucursal del historial">
+                            @for (s of sucursales(); track s.branchId) {
+                              <option [value]="s.branchId" [selected]="s.branchId === historialSucursal()">{{ s.nombre }}</option>
+                            }
+                          </select>
+                        } @else {
+                          <span class="muted">{{ nombreSucursal(historialSucursal()) }}</span>
+                        }
+                        @if (historial(); as h) { <span class="muted">· hoy hay {{ cantidad(h.saldoActual) }}</span> }
+                      </div>
+                      @if (cargandoHistorial()) { <p class="muted">Cargando…</p> }
+                      @if (errorHistorial()) { <p class="alert alert--danger">{{ errorHistorial() }}</p> }
+                      @if (historial(); as h) {
+                        @if (h.items.length === 0) {
+                          <p class="muted">Todavía no hay movimientos de este artículo en esta sucursal.</p>
+                        } @else {
+                          <table class="data stock__mov">
+                            <thead><tr><th>Cuándo</th><th>Qué</th><th class="num">Cantidad</th><th class="num">Saldo</th></tr></thead>
+                            <tbody>
+                              @for (m of h.items; track m.id) {
+                                <tr [class.stock__mov--tarde]="m.llegoDespuesDeUnRecuento">
+                                  <td>{{ fechaHora(m.ocurridoAtLocal) }}</td>
+                                  <td>
+                                    {{ origenTexto(m) }}
+                                    @if (m.llegoDespuesDeUnRecuento) {
+                                      <div class="muted gestion__sub">Llegó después de un recuento posterior: ya estaba contada, no movió el saldo.</div>
+                                    }
+                                  </td>
+                                  <td class="num">
+                                    @if (m.tipo === 'recuento') { contaron {{ cantidad(m.cantidadContada) }} <span class="muted">({{ cantidad(m.cantidad) }})</span> }
+                                    @else { {{ m.cantidad > 0 ? '+' : '' }}{{ cantidad(m.cantidad) }} }
+                                  </td>
+                                  <td class="num strong">{{ cantidad(m.saldo) }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        }
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            } @empty {
+              <tr><td [attr.colspan]="d.sucursales.length + 4" class="muted">
+                {{ rapido() === 'todos' && !q() && rubroId() == null ? 'Todavía no hay stock: cargá un ingreso o hacé un recuento.' : 'Ningún artículo con estos filtros.' }}
+              </td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (paginas() > 1) {
+        <div class="gestion__paginas">
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+          <span class="muted">{{ pagina() }} / {{ paginas() }}</span>
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+        </div>
+      }
+    }
+  }
+</div>
