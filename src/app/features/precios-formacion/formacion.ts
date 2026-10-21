@@ -95,6 +95,8 @@ export class FormacionPreciosComponent implements OnInit, OnDestroy {
   protected readonly confirmando = signal(false);
   protected readonly aplicando = signal(false);
   protected readonly aplicado = signal<AplicarPreciosResponse | null>(null);
+  /** Cuántos artículos se mandaron a aplicar (con varias sucursales, `aplicados` cuenta un cambio por sucursal). */
+  protected readonly articulosAplicados = signal(0);
   protected readonly resumen = computed(() => resumenDeAplicar(this.preciosElegidos()));
 
   // ---- ajuste de costos
@@ -372,6 +374,7 @@ export class FormacionPreciosComponent implements OnInit, OnDestroy {
         this.aplicando.set(false);
         this.confirmando.set(false);
         this.aplicado.set(r);
+        this.articulosAplicados.set(Math.min(filas.length, r.aplicados));
         this.limpiarSeleccion();
         this.cargar();
       },

@@ -1,4 +1,25 @@
 // BP-181 (21-oct-2026) -- formación de precios. La base (barra, filtros, chips, tabla) sale de gestion.scss.
+// Más ancha que las de Gestión: la tabla tiene nueve columnas (visto en el navegador el 21/10).
+.gestion.formacion {
+  max-width: 1440px;
+}
+
+.formacion__tabla td.num,
+.formacion__margen,
+.formacion__comp {
+  white-space: nowrap;
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
 .formacion__destino {
   display: flex;
   align-items: center;

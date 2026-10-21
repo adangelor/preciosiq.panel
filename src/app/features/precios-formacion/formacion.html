@@ -138,7 +138,10 @@
     <!-- ---------------------------------------------------------------- resultado de aplicar -->
     @if (aplicado(); as r) {
       <section class="gestion__resultado">
-        <h2>Listo: {{ num(r.aplicados) }} {{ r.aplicados === 1 ? 'precio cambió' : 'precios cambiaron' }}</h2>
+        <h2>
+          Listo: {{ num(articulosAplicados()) }} {{ articulosAplicados() === 1 ? 'precio cambió' : 'precios cambiaron' }}
+          @if (r.batchIds.length > 1) { en {{ r.batchIds.length }} sucursales ({{ num(r.aplicados) }} cambios) }
+        </h2>
         <ul>
           <li>Quedó como la carga «{{ r.nombreDeLaCarga }}». Se deshace desde <a routerLink="/precios/importaciones">Importaciones</a>.</li>
           @if (r.sinCambio > 0) { <li>{{ num(r.sinCambio) }} ya tenían ese precio.</li> }
@@ -148,7 +151,7 @@
         <div class="gestion__acciones">
           @if (r.aplicados > 0) {
             <a class="btn" routerLink="/precios/carteles" [queryParams]="cartelesDeLoAplicado(r)" target="_blank">
-              <i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir carteles de estos {{ num(r.aplicados) }}
+              <i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir carteles de estos {{ num(articulosAplicados()) }}
             </a>
           }
           <button type="button" class="btn btn--ghost btn--small" (click)="aplicado.set(null)">Cerrar</button>
@@ -255,7 +258,7 @@
                   {{ pesos(i.costoNeto, true) }}
                   @if (i.costoDesde) { <div class="muted gestion__sub">desde {{ i.costoDesde.slice(8, 10) }}/{{ i.costoDesde.slice(5, 7) }}</div> }
                 </td>
-                <td>{{ margenUsado(i) }}</td>
+                <td class="formacion__margen">{{ margenUsado(i) }}</td>
                 <td class="num">
                   {{ pesos(i.precioActual) }}
                   @if (i.preciosDistintos) { <div><span class="pill pill--neutral" title="No todas las sucursales del destino tienen el mismo precio: este es el más repetido">difieren</span></div> }
@@ -273,7 +276,7 @@
                 <td class="num" [class.formacion__sube]="(i.diferenciaPct ?? 0) > 0" [class.formacion__baja]="(i.diferenciaPct ?? 0) < 0">{{ diferenciaTexto(i.diferenciaPct) }}</td>
                 <td>
                   @if (i.competencia && i.competencia.cadenas > 0) {
-                    {{ competenciaTexto(i.competencia) }}
+                    <span class="formacion__comp">{{ competenciaTexto(i.competencia) }}</span>
                     <div class="muted gestion__sub">
                       {{ i.competencia.cadenas }} {{ i.competencia.cadenas === 1 ? 'cadena' : 'cadenas' }}
                       @if (i.competencia.promoMasBaja != null) { · promo {{ pesos(i.competencia.promoMasBaja) }} en {{ i.competencia.promoCadena }} }
