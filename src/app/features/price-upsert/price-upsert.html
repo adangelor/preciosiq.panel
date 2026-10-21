@@ -54,6 +54,13 @@
          entrado a la pantalla) decir "no encontramos este EAN" no tiene sentido. -->
     @if (!productKnown() && form.controls.ean.value) {
       <p class="hint">No encontramos este EAN en el catálogo — completá los datos para darlo de alta.</p>
+      <!-- BP-178 (21-oct-2026) -- con la ficha de artículo: alta de un artículo sin código de barras (código interno). -->
+      @if (puedeSinCodigoDeBarras()) {
+        <label class="checkbox-row">
+          <input type="checkbox" formControlName="sinCodigoDeBarras" />
+          <span>Es un artículo sin código de barras: lo que escribí es mi código interno (no se compara con otros comercios).</span>
+        </label>
+      }
     }
 
     <!--

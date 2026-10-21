@@ -1,0 +1,233 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/articulos">← Artículos</a></p>
+  <h1>{{ esNuevo() ? 'Nuevo artículo' : (ficha()?.articulo?.descripcion ?? 'Artículo') }}</h1>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>La ficha de artículos viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    @if (cargando()) { <app-loading-bar label="Cargando el artículo…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success">{{ aviso() }}</p> }
+
+    @if (esNuevo() || ficha()) {
+      <!-- ============================================================ datos -->
+      <section class="gestion__seccion">
+        <h2>Datos del artículo</h2>
+        <form [formGroup]="form" (ngSubmit)="guardar()">
+          <div class="gestion__grid">
+            <label>
+              Código {{ form.controls.sinCodigoDeBarras.value ? 'interno' : 'de barras' }}
+              <input type="text" formControlName="codigo" maxlength="20" autocomplete="off"
+                     [readOnly]="!esNuevo()" [placeholder]="form.controls.sinCodigoDeBarras.value ? 'C0001' : '7790001234567'" />
+              @if (avisoCodigo(); as a) { <span class="gestion__ayuda alert--warning">{{ a }}</span> }
+              @if (!esNuevo()) { <span class="gestion__ayuda muted">El código no se cambia.</span> }
+            </label>
+            @if (esNuevo()) {
+              <label class="gestion__check gestion__ancho">
+                <input type="checkbox" formControlName="sinCodigoDeBarras" />
+                Es un artículo sin código de barras (pesable por PLU, fraccionado, de elaboración propia): uso un código interno
+              </label>
+            }
+            <label>
+              Código interno (el de tu sistema)
+              <input type="text" formControlName="codigoInterno" maxlength="20" placeholder="Opcional" />
+            </label>
+            <label class="gestion__ancho">
+              Descripción
+              <input type="text" formControlName="descripcion" maxlength="300" />
+            </label>
+            <label>
+              Marca
+              <input type="text" formControlName="marca" maxlength="100" />
+            </label>
+            <label>
+              Presentación (cantidad)
+              <input type="text" inputmode="decimal" formControlName="presentacionCantidad" placeholder="Ej: 900" />
+            </label>
+            <label>
+              Unidad
+              <select formControlName="presentacionUnidad">
+                <option value="UN">UN (unidad)</option>
+                <option value="KG">KG</option>
+                <option value="GR">GR</option>
+                <option value="LT">LT</option>
+                <option value="ML">ML</option>
+                <option value="CC">CC</option>
+                <option value="M">M</option>
+              </select>
+            </label>
+            <label>
+              Rubro
+              <select formControlName="rubroId">
+                <option value="">(sin rubro)</option>
+                @for (o of opcionesRubro(); track o.id) { <option [value]="o.id">{{ o.etiqueta }}</option> }
+              </select>
+              <span class="gestion__ayuda muted"><a routerLink="/gestion/rubros">Administrar rubros</a></span>
+            </label>
+            <label>
+              Proveedor habitual
+              <select formControlName="proveedorHabitualId">
+                <option value="">(ninguno)</option>
+                @for (p of proveedores(); track p.id) {
+                  @if (p.activo || form.controls.proveedorHabitualId.value === '' + p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+                }
+              </select>
+              <span class="gestion__ayuda muted"><a routerLink="/gestion/proveedores">Administrar proveedores</a></span>
+            </label>
+            <label>
+              IVA
+              <select formControlName="ivaAlicuota">
+                @for (a of alicuotas; track a) { <option [value]="'' + a">{{ porcentaje(a) }}</option> }
+              </select>
+              @if (ficha()?.articulo?.ivaParaRevisar) {
+                <span class="gestion__ayuda alert--warning">Puesto al armar: este rubro suele ir al 10,5 %. Al guardar queda confirmado.</span>
+              }
+            </label>
+            <label>
+              Impuestos internos %
+              <input type="text" inputmode="decimal" formControlName="impuestosInternosPct" placeholder="Opcional" />
+            </label>
+            <label>
+              Unidades por bulto
+              <input type="text" inputmode="decimal" formControlName="unidadesPorBulto" placeholder="Ej: 12" />
+            </label>
+            <label>
+              Margen propio %
+              <input type="text" inputmode="decimal" formControlName="margenObjetivoPct" placeholder="Vacío = el del rubro" />
+              @if (!form.controls.margenObjetivoPct.value && margenDelRubro(); as m) {
+                <span class="gestion__ayuda muted">Del rubro: {{ m }}</span>
+              }
+            </label>
+          </div>
+          <div class="gestion__acciones">
+            <button type="submit" class="btn" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+            <button type="button" class="btn btn--ghost" (click)="volver()" [disabled]="guardando()">Volver</button>
+            @if (ficha(); as f) {
+              <button type="button" class="btn btn--ghost" (click)="alternarActivo()" [disabled]="guardando()">
+                {{ f.articulo.activo ? 'Desactivar' : 'Activar' }}
+              </button>
+            }
+          </div>
+          @if (!esNuevo()) {
+            <p class="muted gestion__ayuda">La descripción, la marca y la presentación se llevan a todas las sucursales donde el artículo tiene precio.</p>
+          }
+        </form>
+      </section>
+
+      @if (ficha(); as f) {
+        <div class="gestion__columnas">
+          <!-- ============================================================ costo -->
+          <section class="gestion__seccion">
+            <h2>Costo</h2>
+            <p>
+              @if (f.articulo.costoNeto != null) {
+                Vigente: <strong>{{ plata(f.articulo.costoNeto) }}</strong> sin IVA, desde {{ f.articulo.costoDesde | date: 'dd/MM/yyyy' }}.
+              } @else {
+                <span class="muted">Todavía no tiene costo.</span>
+              }
+            </p>
+            <div class="gestion__fila-form">
+              <label>Costo sin IVA <input type="text" inputmode="decimal" [value]="costoNeto()" (input)="onCostoNeto($event)" size="10" /></label>
+              <label>Con IVA (opcional) <input type="text" inputmode="decimal" [value]="costoConIva()" (input)="onCostoConIva($event)" size="10" /></label>
+              <label>Desde <input type="date" [value]="costoDesde()" (input)="onCostoDesde($event)" /></label>
+              <button type="button" class="btn" (click)="cargarCosto()">Cargar costo nuevo</button>
+            </div>
+            @if (errorCosto()) { <p class="alert alert--danger">{{ errorCosto() }}</p> }
+            @if (f.costos.length > 0) {
+              <div class="table-wrap">
+                <table class="data">
+                  <thead><tr><th>Desde</th><th class="num">Sin IVA</th><th class="num">Con IVA</th><th>Proveedor</th><th>Origen</th></tr></thead>
+                  <tbody>
+                    @for (c of f.costos; track c.id) {
+                      <tr>
+                        <td>{{ c.vigenteDesde | date: 'dd/MM/yyyy' }}</td>
+                        <td class="num">{{ plata(c.costoNeto) }}</td>
+                        <td class="num">{{ plata(c.costoConIva) }}</td>
+                        <td>{{ c.proveedor ?? '—' }}</td>
+                        <td>{{ origen(c.origen) }}@if (c.zonaId != null) { <span class="pill pill--neutral">zona</span> }</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
+
+          <!-- ============================================================ códigos -->
+          <section class="gestion__seccion">
+            <h2>Otros códigos</h2>
+            <p class="muted gestion__ayuda">
+              Un código <strong>alternativo</strong> es otro código de barras de la misma unidad (la caja lo vende como este
+              artículo). El de <strong>bulto</strong> es el de la caja cerrada, con las unidades que trae.
+            </p>
+            @if (f.codigos.length > 0) {
+              <div class="table-wrap">
+                <table class="data">
+                  <thead><tr><th>Código</th><th>Tipo</th><th class="num">Unidades</th><th></th></tr></thead>
+                  <tbody>
+                    @for (c of f.codigos; track c.id) {
+                      <tr>
+                        <td>{{ c.codigo }}</td>
+                        <td>{{ c.tipo === 'bulto' ? 'Bulto' : 'Alternativo' }}</td>
+                        <td class="num">{{ c.tipo === 'bulto' ? c.factor : '' }}</td>
+                        <td><button type="button" class="btn btn--ghost btn--small" (click)="quitarCodigo(c.id)">Quitar</button></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+            <div class="gestion__fila-form">
+              <label>Código <input type="text" maxlength="20" [value]="nuevoCodigo()" (input)="onNuevoCodigo($event)" size="16" /></label>
+              <label>
+                Tipo
+                <select (change)="onNuevoTipo($event)">
+                  <option value="alternativo" [selected]="nuevoTipo() === 'alternativo'">Alternativo</option>
+                  <option value="bulto" [selected]="nuevoTipo() === 'bulto'">Bulto</option>
+                </select>
+              </label>
+              @if (nuevoTipo() === 'bulto') {
+                <label>Unidades <input type="text" inputmode="decimal" [value]="nuevoFactor()" (input)="onNuevoFactor($event)" size="5"
+                                       [placeholder]="f.unidadesPorBulto ?? ''" /></label>
+              }
+              <button type="button" class="btn btn--ghost" (click)="agregarCodigo()">Agregar</button>
+            </div>
+            @if (errorCodigo()) { <p class="alert alert--danger" role="alert">{{ errorCodigo() }}</p> }
+          </section>
+        </div>
+
+        <!-- ============================================================ precios -->
+        <section class="gestion__seccion">
+          <h2>Precio en cada sucursal</h2>
+          @if (f.precios.length === 0) {
+            <p class="muted">Todavía no tiene precio en ninguna sucursal. <a routerLink="/precios/cargar">Cargar precio →</a></p>
+          } @else {
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Sucursal</th><th class="num">Precio</th><th>Promo</th></tr></thead>
+                <tbody>
+                  @for (p of f.precios; track p.branchId) {
+                    <tr>
+                      <td>{{ p.sucursal ?? p.branchId }}</td>
+                      <td class="num strong">{{ plata(p.listPrice) }}</td>
+                      <td>{{ p.promo1Text ?? (p.promo1UnitPrice != null ? plata(p.promo1UnitPrice) : '—') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="muted gestion__ayuda">El precio se cambia en <a routerLink="/precios/cargar">Cargar precio</a> o por carga masiva.</p>
+          }
+        </section>
+      }
+    }
+  }
+</div>

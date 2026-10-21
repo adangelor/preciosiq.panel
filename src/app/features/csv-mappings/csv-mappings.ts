@@ -15,6 +15,7 @@ type CampoColumna = Extract<
   | 'costPriceColumn' | 'costPriceWithTaxColumn' | 'supplierColumn' | 'costValidFromColumn'
   | 'costZoneColumn'   // BP-77
   | 'promoMecanicaColumn'   // BP-169
+  | 'codigoInternoColumn' | 'ivaColumn' | 'rubroColumn' | 'unidadesPorBultoColumn' | 'eanBultoColumn' | 'margenColumn'   // BP-178
 >;
 
 // 17-sep-2026 -- pedido de Andres: "que el mapeo de columnas se pueda guardar y administrar;
@@ -124,6 +125,13 @@ export class CsvMappingsComponent implements OnInit {
       ['Proveedor', m.supplierColumn],
       ['Vigencia del costo', m.costValidFromColumn],
       ['Zona del costo', m.costZoneColumn ?? null],
+      // BP-178 -- ficha de artículo.
+      ['Código interno', m.codigoInternoColumn ?? null],
+      ['IVA', m.ivaColumn ?? null],
+      ['Rubro', m.rubroColumn ?? null],
+      ['Unidades por bulto', m.unidadesPorBultoColumn ?? null],
+      ['Código del bulto', m.eanBultoColumn ?? null],
+      ['Margen', m.margenColumn ?? null],
     ];
     return todos.filter(([, c]) => !!c?.trim()).map(([campo, columna]) => ({ campo, columna: columna! }));
   }
@@ -214,6 +222,13 @@ export class CsvMappingsComponent implements OnInit {
         promoMaxQtyColumn: m.promoMaxQtyColumn ?? null,
         promoPercentColumn: m.promoPercentColumn ?? null,
         promoMecanicaColumn: m.promoMecanicaColumn ?? null,   // BP-169
+        // BP-178
+        codigoInternoColumn: m.codigoInternoColumn ?? null,
+        ivaColumn: m.ivaColumn ?? null,
+        rubroColumn: m.rubroColumn ?? null,
+        unidadesPorBultoColumn: m.unidadesPorBultoColumn ?? null,
+        eanBultoColumn: m.eanBultoColumn ?? null,
+        margenColumn: m.margenColumn ?? null,
         catalogoCompleto: m.catalogoCompleto ?? false,
         ...cambios,
     };
@@ -265,6 +280,13 @@ export class CsvMappingsComponent implements OnInit {
     { key: 'supplierColumn', campo: 'Proveedor' },
     { key: 'costValidFromColumn', campo: 'Vigencia del costo' },
     { key: 'costZoneColumn', campo: 'Zona del costo' },
+    // BP-178 -- ficha de artículo (el servidor las usa solo con el plan que la trae).
+    { key: 'codigoInternoColumn', campo: 'Código interno' },
+    { key: 'ivaColumn', campo: 'IVA' },
+    { key: 'rubroColumn', campo: 'Rubro' },
+    { key: 'unidadesPorBultoColumn', campo: 'Unidades por bulto' },
+    { key: 'eanBultoColumn', campo: 'Código del bulto' },
+    { key: 'margenColumn', campo: 'Margen' },
   ];
 
   protected readonly editandoId = signal<number | null>(null);

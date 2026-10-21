@@ -1,0 +1,169 @@
+<div class="gestion card--page">
+  <h1>Artículos</h1>
+  <p class="subtitle">
+    La ficha de cada artículo de tu cadena, la misma para todas las sucursales: código interno, rubro, proveedor, IVA,
+    costo y margen. El precio de cada sucursal se sigue cargando en <a routerLink="/precios/cargar">Cargar precio</a>
+    o por <a routerLink="/precios/carga-masiva">carga masiva</a>.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        La ficha de artículos, los rubros y los proveedores vienen con los planes <strong>Avanzado</strong> y
+        <strong>Cadena</strong>: todo lo que necesitás para dejar de usar otro sistema de gestión.
+        <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <a class="btn" routerLink="/gestion/articulos/nuevo"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo artículo</a>
+      <button type="button" class="btn btn--ghost" (click)="armar()" [disabled]="armando()"
+              title="Crea las fichas que faltan con lo que ya tenés cargado en tus sucursales">
+        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> {{ armando() ? 'Armando…' : 'Armar mis artículos' }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="descargarExcel()" [disabled]="exportando() || vacia()">
+        <i class="fa-solid fa-file-excel" aria-hidden="true"></i> {{ exportando() ? 'Armando el Excel…' : 'Descargar Excel' }}
+      </button>
+      <span class="gestion__links">
+        <a routerLink="/gestion/rubros">Rubros</a> · <a routerLink="/gestion/proveedores">Proveedores</a>
+      </span>
+    </div>
+
+    @if (armando()) {
+      <app-loading-bar label="Armando tus artículos con lo que ya tenés cargado… (en una cadena grande tarda unos segundos)" [slowAfterSeconds]="60" />
+    }
+    @if (error()) {
+      <p class="alert alert--danger">{{ error() }}</p>
+    }
+
+    @if (armado(); as r) {
+      <section class="gestion__resultado">
+        <h2>Listo: {{ num(r.creados) }} {{ r.creados === 1 ? 'artículo nuevo' : 'artículos nuevos' }}</h2>
+        <ul>
+          @if (r.yaEstaban > 0) { <li>{{ num(r.yaEstaban) }} ya tenían su ficha: no se tocaron.</li> }
+          <li>{{ num(r.conRubro) }} con rubro (sale de la categoría de la red); {{ num(r.rubrosCreados) }} rubros nuevos.</li>
+          <li>{{ num(r.conProveedor) }} con proveedor (el de su último costo); {{ num(r.proveedoresCreados) }} proveedores nuevos.</li>
+          @if (r.productosSinEanCorregidos > 0) {
+            <li>{{ num(r.productosSinEanCorregidos) }} precios de sucursal tenían un código interno marcado como código de barras: se corrigieron.</li>
+          }
+          @if (r.enConflicto > 0) {
+            <li>{{ num(r.enConflicto) }} códigos ya eran el código interno de otro artículo: no se crearon.</li>
+          }
+        </ul>
+        @if (r.ivaParaRevisar > 0) {
+          <p class="alert alert--warning">
+            <span>
+              Todos quedaron con IVA 21 %. {{ num(r.ivaParaRevisar) }} son de rubros que muchas veces van al 10,5 %
+              (frutas y verduras, carnes, panadería): revisalos antes de facturar.
+              <button type="button" class="btn btn--ghost btn--small" (click)="verParaRevisar()">Ver los que hay que revisar</button>
+            </span>
+          </p>
+        }
+        <button type="button" class="btn btn--ghost btn--small" (click)="armado.set(null)">Cerrar</button>
+      </section>
+    }
+
+    @if (vacia() && !armado()) {
+      <div class="gestion__vacia">
+        <p>Todavía no tenés fichas de artículo.</p>
+        <p class="muted">
+          Con <strong>Armar mis artículos</strong> se crean solas con lo que ya cargaste en tus sucursales: descripción,
+          marca, presentación, rubro (de la categoría de la red) y proveedor (de tus costos). Después las completás acá o
+          con columnas nuevas en tu planilla de carga masiva.
+        </p>
+      </div>
+    } @else {
+      <div class="gestion__filtros">
+        <input type="search" placeholder="Buscar por código, descripción o marca" [value]="q()" (input)="onBuscar($event)" />
+        <select (change)="onRubro($event)" aria-label="Rubro">
+          <option value="">Todos los rubros</option>
+          @for (o of opcionesRubro(); track o.id) {
+            <option [value]="o.id" [selected]="o.id === rubroId()">{{ o.etiqueta }}</option>
+          }
+        </select>
+        <select (change)="onProveedor($event)" aria-label="Proveedor">
+          <option value="">Todos los proveedores</option>
+          @for (p of proveedores(); track p.id) {
+            <option [value]="p.id" [selected]="p.id === proveedorId()">{{ p.nombre }}</option>
+          }
+        </select>
+        <label class="gestion__check">
+          <input type="checkbox" [checked]="inactivos()" (change)="onInactivos($event)" /> Ver desactivados
+        </label>
+      </div>
+      <div class="gestion__chips" role="group" aria-label="Filtros rápidos">
+        <button type="button" class="chip" [class.chip--on]="rapido() === 'todos'" (click)="elegirRapido('todos')">Todos</button>
+        <button type="button" class="chip" [class.chip--on]="rapido() === 'sinRubro'" (click)="elegirRapido('sinRubro')">Sin rubro</button>
+        <button type="button" class="chip" [class.chip--on]="rapido() === 'sinCosto'" (click)="elegirRapido('sinCosto')">Sin costo</button>
+        <button type="button" class="chip" [class.chip--on]="rapido() === 'ivaParaRevisar'" (click)="elegirRapido('ivaParaRevisar')">IVA para revisar</button>
+      </div>
+
+      @if (cargando()) {
+        <app-loading-bar label="Cargando tus artículos…" />
+      }
+
+      @if (datos(); as d) {
+        <p class="muted gestion__total">
+          {{ num(d.total) }} {{ d.total === 1 ? 'artículo' : 'artículos' }}
+          @if (d.total > d.pageSize) { — página {{ d.page }} de {{ paginas() }} }
+        </p>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Rubro</th>
+                <th>Proveedor</th>
+                <th class="num">IVA</th>
+                <th class="num">Costo s/IVA</th>
+                <th>Margen</th>
+                <th class="num">Sucursales</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of d.items; track a.id) {
+                <tr class="clickable" [class.gestion__inactivo]="!a.activo" (click)="abrir(a.id)">
+                  <td>
+                    <span class="gestion__codigo">{{ a.codigo }}</span>
+                    @if (!a.esEan) { <span class="pill pill--neutral" title="Artículo sin código de barras">interno</span> }
+                    @if (a.codigoInterno && a.esEan) { <div class="muted gestion__sub">{{ a.codigoInterno }}</div> }
+                  </td>
+                  <td class="strong">
+                    {{ a.descripcion }}
+                    @if (a.marca) { <div class="muted gestion__sub">{{ a.marca }}</div> }
+                    @if (!a.activo) { <span class="pill pill--neutral">desactivado</span> }
+                  </td>
+                  <td>{{ a.rubro ?? '—' }}</td>
+                  <td>{{ a.proveedor ?? '—' }}</td>
+                  <td class="num">
+                    {{ porcentaje(a.ivaAlicuota) }}
+                    @if (a.ivaParaRevisar) { <span class="pill pill--warning" title="Puesto al armar: este rubro suele ir al 10,5 %">revisar</span> }
+                  </td>
+                  <td class="num">{{ plata(a.costoNeto) }}</td>
+                  <td>{{ margenTexto(a) }}</td>
+                  <td class="num">{{ a.sucursales }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="8" class="muted">Ningún artículo con estos filtros.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (paginas() > 1) {
+          <div class="gestion__paginas">
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+            <span class="muted">{{ pagina() }} / {{ paginas() }}</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+          </div>
+        }
+      }
+    }
+  }
+</div>

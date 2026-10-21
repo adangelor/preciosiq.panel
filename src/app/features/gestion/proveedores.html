@@ -1,0 +1,72 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/articulos">← Artículos</a></p>
+  <h1>Proveedores</h1>
+  <p class="subtitle">
+    Los proveedores de tu cadena. Cada artículo puede tener su proveedor habitual. Los que aparecen en tus costos de
+    carga masiva se agregan solos (en la planilla, la columna de proveedor).
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Los proveedores vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <button type="button" class="btn" (click)="nuevo()" [disabled]="guardando()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Proveedor nuevo
+      </button>
+      @if (hayInactivos()) {
+        <label class="gestion__check"><input type="checkbox" [checked]="verInactivos()" (change)="onVerInactivos($event)" /> Ver desactivados</label>
+      }
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Cargando tus proveedores…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success">{{ aviso() }}</p> }
+
+    @if (editando() !== null) {
+      <section class="gestion__seccion">
+        <h2>{{ editando() === 0 ? 'Proveedor nuevo' : 'Editar proveedor' }}</h2>
+        <div class="gestion__fila-form">
+          <label>Nombre <input type="text" maxlength="200" [value]="nombre()" (input)="onNombre($event)" size="30" /></label>
+          <label>CUIT (opcional) <input type="text" maxlength="13" [value]="cuit()" (input)="onCuit($event)" placeholder="30-12345678-9" size="15" /></label>
+          <button type="button" class="btn" (click)="guardar()" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="btn btn--ghost" (click)="editando.set(null)" [disabled]="guardando()">Cancelar</button>
+        </div>
+      </section>
+    }
+
+    @if (!cargando() && lista().length === 0) {
+      <p class="muted">Todavía no tenés proveedores.</p>
+    } @else {
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Proveedor</th><th>CUIT</th><th class="num">Artículos</th><th></th></tr></thead>
+          <tbody>
+            @for (p of visibles(); track p.id) {
+              <tr [class.gestion__inactivo]="!p.activo">
+                <td class="strong">{{ p.nombre }} @if (!p.activo) { <span class="pill pill--neutral">desactivado</span> }</td>
+                <td>{{ cuitConGuiones(p.cuit) }}</td>
+                <td class="num">{{ p.articulos }}</td>
+                <td>
+                  <div class="rubros__inline">
+                    <button type="button" class="btn btn--ghost btn--small" (click)="editar(p)" [disabled]="guardando()">Editar</button>
+                    <button type="button" class="btn btn--ghost btn--small" (click)="alternarActivo(p)" [disabled]="guardando()">
+                      {{ p.activo ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

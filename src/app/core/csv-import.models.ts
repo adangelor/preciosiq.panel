@@ -42,6 +42,13 @@ export interface CsvMapping {
   // BP-169 (19-oct-2026) -- columna con la mecanica de la promo ("2x1", "3x2", "2da 50"): la regla sale de ahi y gana
   // sobre la leyenda, que queda como texto del cartel.
   promoMecanicaColumn?: string | null;
+  // BP-178 (21-oct-2026) -- columnas de la ficha de artículo (solo con el plan que la trae: hasGestionArticulos).
+  codigoInternoColumn?: string | null;
+  ivaColumn?: string | null;
+  rubroColumn?: string | null;
+  unidadesPorBultoColumn?: string | null;
+  eanBultoColumn?: string | null;
+  margenColumn?: string | null;
 }
 
 // 17-sep-2026 -- "probar este mapeo con un archivo": no carga nada, solo dice que columnas
@@ -115,6 +122,13 @@ export interface SaveCsvMappingRequest {
   costZoneColumn?: string | null;
   // BP-169 -- ver CsvMapping.promoMecanicaColumn.
   promoMecanicaColumn?: string | null;
+  // BP-178 -- ver CsvMapping.codigoInternoColumn.
+  codigoInternoColumn?: string | null;
+  ivaColumn?: string | null;
+  rubroColumn?: string | null;
+  unidadesPorBultoColumn?: string | null;
+  eanBultoColumn?: string | null;
+  margenColumn?: string | null;
 }
 
 export interface CsvImportRowError {
@@ -194,6 +208,11 @@ export interface CsvImportResult {
   promosParaConfirmar?: number;
   promosParaConfirmarDetalle?: PromoParaConfirmar[] | null;
   promosParaConfirmarGuardadas?: boolean;
+  // BP-178 (21-oct-2026) -- fichas de artículo de esta llamada (con el plan que las trae): creadas, completadas con las
+  // columnas nuevas, y los datos que no se entendieron (la fila se cargó igual). El panel las suma.
+  articulosCreados?: number;
+  articulosActualizados?: number;
+  articulosAvisos?: CsvImportRowError[] | null;
 }
 
 // BP-169 -- una promo de la carga "para confirmar". reglaPropuesta: la que se pudo armar (null = ninguna).

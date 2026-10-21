@@ -65,6 +65,8 @@ export interface UpsertBusinessPriceRequest {
   promoRuleTodasLasSucursales?: boolean;
   /** BP-40 -- true = sacar lo propio de esta sucursal y volver a la promo de toda la cuenta. */
   promoRuleUsarLaDeCuenta?: boolean;
+  /** BP-178 -- false = artículo sin código de barras: `ean` es el código interno (queda IsEan = 0). */
+  esEan?: boolean | null;
 }
 
 export interface BusinessPriceResponse {

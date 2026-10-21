@@ -19,6 +19,10 @@ export interface PlanCatalogItem {
   hasAdvisorReport: boolean;
   hasMarginAnalysis: boolean;
   hasProfitAnalysis: boolean;
+  // BP-178/179/181 (21-oct-2026) -- "ERP para cadenas", Avanzado y Cadena. Opcionales: un backend viejo no los manda.
+  hasGestionArticulos?: boolean;
+  hasGestionStock?: boolean;
+  hasFormacionPrecios?: boolean;
 }
 
 export interface SubscriptionStatusResponse {
@@ -45,6 +49,10 @@ export interface SubscriptionStatusResponse {
   hasAdvisorReport: boolean;
   hasMarginAnalysis: boolean;
   hasProfitAnalysis: boolean;
+  // BP-178/179/181 (21-oct-2026) -- "ERP para cadenas", Avanzado y Cadena. Opcionales: un backend viejo no los manda.
+  hasGestionArticulos?: boolean;
+  hasGestionStock?: boolean;
+  hasFormacionPrecios?: boolean;
 }
 
 export interface CreateCheckoutResponse {

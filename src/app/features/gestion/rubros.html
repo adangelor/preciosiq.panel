@@ -1,0 +1,114 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/articulos">← Artículos</a></p>
+  <h1>Rubros</h1>
+  <p class="subtitle">
+    El árbol de rubros de tu cadena, hasta 3 niveles (por ejemplo Almacén › Galletitas › Dulces). El margen objetivo de un
+    rubro vale para todos sus artículos y subrubros que no tengan uno propio: lo usa la formación de precios.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Los rubros vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <button type="button" class="btn" (click)="empezarAlta(null)" [disabled]="guardando()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Rubro nuevo
+      </button>
+      @if (hayInactivos()) {
+        <label class="gestion__check"><input type="checkbox" [checked]="verInactivos()" (change)="onVerInactivos($event)" /> Ver desactivados</label>
+      }
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Cargando tus rubros…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success">{{ aviso() }}</p> }
+
+    @if (nuevoPadre() !== undefined) {
+      <section class="gestion__seccion">
+        <h2>{{ nombrePadreNuevo() ? 'Subrubro de ' + nombrePadreNuevo() : 'Rubro nuevo' }}</h2>
+        <div class="gestion__fila-form">
+          <label>Nombre <input type="text" maxlength="100" [value]="nuevoNombre()" (input)="onNuevoNombre($event)" placeholder="Ej: Galletitas" /></label>
+          <label>Margen % (opcional) <input type="text" inputmode="decimal" [value]="nuevoMargen()" (input)="onNuevoMargen($event)" size="6" placeholder="Hereda" /></label>
+          <button type="button" class="btn" (click)="crear()" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Crear' }}</button>
+          <button type="button" class="btn btn--ghost" (click)="cerrarTodo()" [disabled]="guardando()">Cancelar</button>
+        </div>
+      </section>
+    }
+
+    @if (!cargando() && rubros().length === 0) {
+      <div class="gestion__vacia">
+        <p>Todavía no tenés rubros.</p>
+        <p class="muted">
+          Si ya cargaste precios, en <a routerLink="/gestion/articulos">Artículos</a> → <strong>Armar mis artículos</strong> se crean
+          solos con las categorías de la red. También los podés crear acá o con una columna de rubro en tu planilla
+          ("Almacén &gt; Galletitas").
+        </p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr><th>Rubro</th><th>Margen objetivo</th><th class="num">Artículos</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (r of visibles(); track r.id) {
+              <tr [class]="'rubros__nivel-' + r.nivel" [class.rubros__editando]="editandoId() === r.id" [class.gestion__inactivo]="!r.activo">
+                @if (editandoId() === r.id) {
+                  <td colspan="3">
+                    <div class="rubros__inline">
+                      <input type="text" maxlength="100" [value]="editNombre()" (input)="onEditNombre($event)" aria-label="Nombre" />
+                      <input type="text" inputmode="decimal" [value]="editMargen()" (input)="onEditMargen($event)" placeholder="Hereda" aria-label="Margen %" /> %
+                    </div>
+                  </td>
+                  <td>
+                    <div class="rubros__inline">
+                      <button type="button" class="btn btn--small" (click)="guardar(r)" [disabled]="guardando()">Guardar</button>
+                      <button type="button" class="btn btn--ghost btn--small" (click)="cerrarTodo()">Cancelar</button>
+                    </div>
+                  </td>
+                } @else {
+                  <td class="strong">
+                    @if (r.nivel > 1) { <span class="rubros__marca" aria-hidden="true">↳</span> }
+                    {{ r.nombre }}
+                    @if (!r.activo) { <span class="pill pill--neutral">desactivado</span> }
+                  </td>
+                  <td>{{ margenDeRubro(r) }}</td>
+                  <td class="num">{{ r.articulos }}</td>
+                  <td>
+                    <div class="rubros__inline">
+                      @if (r.activo) {
+                        <button type="button" class="btn btn--ghost btn--small" (click)="editar(r)" [disabled]="guardando()">Editar</button>
+                        @if (r.nivel < 3) {
+                          <button type="button" class="btn btn--ghost btn--small" (click)="empezarAlta(r.id)" [disabled]="guardando()">+ Subrubro</button>
+                        }
+                        @if (moviendoId() === r.id) {
+                          <select (change)="mover(r, $event)" aria-label="Mover a">
+                            <option value="">Mover a…</option>
+                            @if (r.parentId != null) { <option value="raiz">(arriba de todo)</option> }
+                            @for (d of destinos(r); track d.id) { <option [value]="d.id">{{ d.camino }}</option> }
+                          </select>
+                        } @else {
+                          <button type="button" class="btn btn--ghost btn--small" (click)="empezarMover(r)" [disabled]="guardando()">Mover</button>
+                        }
+                        <button type="button" class="btn btn--ghost btn--small" (click)="borrar(r)" [disabled]="guardando()">Borrar</button>
+                      } @else {
+                        <button type="button" class="btn btn--ghost btn--small" (click)="activar(r)" [disabled]="guardando()">Activar</button>
+                      }
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

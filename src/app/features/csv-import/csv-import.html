@@ -357,6 +357,67 @@
             el nombre de la <a routerLink="/zonas">zona de precio</a> de cada fila; vacía, el costo es de toda la cuenta.
           </p>
 
+          <!-- BP-178 (21-oct-2026) -- columnas de la ficha de artículo, solo con el plan que la trae (Avanzado y Cadena). -->
+          @if (conArticulos()) {
+            <h4 class="mapping-section">
+              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Ficha de artículo (opcional)
+            </h4>
+            <div class="signup__row">
+              <label>
+                Columna de Código interno
+                <select formControlName="codigoInternoColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+              <label>
+                Columna de IVA
+                <select formControlName="ivaColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+            </div>
+            <div class="signup__row">
+              <label>
+                Columna de Rubro
+                <select formControlName="rubroColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+              <label>
+                Columna de Margen %
+                <select formControlName="margenColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+            </div>
+            <div class="signup__row">
+              <label>
+                Columna de Unidades por bulto
+                <select formControlName="unidadesPorBultoColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+              <label>
+                Columna de Código del bulto
+                <select formControlName="eanBultoColumn">
+                  <option value="">(ninguna)</option>
+                  @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
+                </select>
+              </label>
+            </div>
+            <p class="hint">
+              Cada fila cargada crea o completa la <a routerLink="/gestion/articulos">ficha del artículo</a>. El IVA va como
+              "21", "10,5" o "21%". El rubro puede traer niveles: "Almacén &gt; Galletitas &gt; Dulces" (se crean los que falten).
+              El proveedor sale de la columna de Proveedor de arriba. La planilla no cambia la descripción de una ficha que ya
+              existe; un dato que no se entiende no frena la fila y te lo mostramos al final.
+            </p>
+          }
+
           <!-- 10-oct-2026 -- catalogo completo (ver catalogo() en el .ts). -->
           <label class="checkbox-row">
             <input type="checkbox" formControlName="catalogoCompleto" />
@@ -427,6 +488,13 @@
           <i class="fa-solid fa-coins" aria-hidden="true"></i>
           {{ r.costsLoaded }} costo{{ r.costsLoaded === 1 ? '' : 's' }} de proveedor
           {{ r.costsLoaded === 1 ? 'nuevo o actualizado' : 'nuevos o actualizados' }} — ya los ve el Asesor de Precios.
+        }
+        <!-- BP-178 -- fichas de artículo. -->
+        @if ((r.articulosCreados ?? 0) + (r.articulosActualizados ?? 0) > 0) {
+          <br />
+          <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+          Fichas de artículo: {{ r.articulosCreados ?? 0 }} nuevas, {{ r.articulosActualizados ?? 0 }} completadas.
+          <a routerLink="/gestion/articulos">Ver artículos →</a>
         }
       </p>
       <!-- BP-132 -- carga a varias sucursales: lo de cada una. -->
@@ -754,6 +822,20 @@
           [iniciales]="r.promosParaConfirmarDetalle ?? null"
           [guardadas]="r.promosParaConfirmarGuardadas ?? true"
         />
+      }
+
+      <!-- BP-178 -- datos de la ficha de artículo que no se entendieron (el precio se cargó igual). -->
+      @if (r.articulosAvisos?.length) {
+        <h3>Fichas de artículo con aviso ({{ r.articulosAvisos!.length }})</h3>
+        <p class="hint">El precio de estas filas se cargó igual; en la ficha quedó lo que tenía en ese dato.</p>
+        <table class="preview-table">
+          <thead><tr><th>Fila</th><th>Aviso</th></tr></thead>
+          <tbody>
+            @for (e of r.articulosAvisos; track $index) {
+              <tr><td>{{ e.rowNumber || '—' }}</td><td>{{ e.reason }}</td></tr>
+            }
+          </tbody>
+        </table>
       }
 
       @if (r.promosConAvisoDetalle?.length) {

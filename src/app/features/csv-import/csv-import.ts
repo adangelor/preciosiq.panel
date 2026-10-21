@@ -21,6 +21,7 @@ import { BusinessPriceService } from '../../core/business-price';
 import { BusinessAccountProductItem, UpsertBusinessPriceRequest } from '../../core/business-price.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
+import { GestionContextoService } from '../../core/gestion-contexto';
 import { BranchListItem } from '../../core/business-account.models';
 import { AdvisorService } from '../../core/advisor';
 import { PriceZoneItem } from '../../core/advisor.models';
@@ -46,6 +47,9 @@ export class CsvImportComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly csvImportService = inject(CsvImportService);
   private readonly context = inject(BusinessContextService);
+  // BP-178 (21-oct-2026) -- las columnas de la ficha de artículo se ofrecen solo con el plan que la trae.
+  private readonly gestion = inject(GestionContextoService);
+  protected readonly conArticulos = signal(false);
 
   protected readonly loadingContext = signal(true);
   protected readonly contextErrorMessage = signal<string | null>(null);
@@ -255,6 +259,7 @@ export class CsvImportComponent implements OnInit {
           return;
         }
         this.branches.set(ctx.branches);
+        this.gestion.load().subscribe({ next: (g) => this.conArticulos.set(!!g?.gestionArticulos), error: () => {} });
         this.uploadForm.patchValue({ businessAccountId: ctx.account.businessAccountId });
         if (ctx.branches.length > 0) {
           this.uploadForm.patchValue({ branchId: ctx.branches[0].branchId });
@@ -303,6 +308,13 @@ export class CsvImportComponent implements OnInit {
     supplierColumn: [''],
     costValidFromColumn: [''],
     costZoneColumn: [''],   // BP-77
+    // BP-178 (21-oct-2026) -- ficha de artículo, opcionales (solo con el plan que la trae).
+    codigoInternoColumn: [''],
+    ivaColumn: [''],
+    rubroColumn: [''],
+    unidadesPorBultoColumn: [''],
+    eanBultoColumn: [''],
+    margenColumn: [''],
   });
 
   protected onFileSelected(event: Event): void {
@@ -370,6 +382,12 @@ export class CsvImportComponent implements OnInit {
       supplierColumn: mapping.supplierColumn ?? '',
       costValidFromColumn: mapping.costValidFromColumn ?? '',
       costZoneColumn: mapping.costZoneColumn ?? '',
+      codigoInternoColumn: mapping.codigoInternoColumn ?? '',
+      ivaColumn: mapping.ivaColumn ?? '',
+      rubroColumn: mapping.rubroColumn ?? '',
+      unidadesPorBultoColumn: mapping.unidadesPorBultoColumn ?? '',
+      eanBultoColumn: mapping.eanBultoColumn ?? '',
+      margenColumn: mapping.margenColumn ?? '',
       catalogoCompleto: mapping.catalogoCompleto ?? false,
     });
   }
@@ -535,6 +553,13 @@ export class CsvImportComponent implements OnInit {
         supplierColumn: nullIfEmpty(value.supplierColumn),
         costValidFromColumn: nullIfEmpty(value.costValidFromColumn),
         costZoneColumn: nullIfEmpty(value.costZoneColumn),
+        // BP-178 -- sin el plan no se muestran, pero si el mapeo ya las tenía se conservan.
+        codigoInternoColumn: nullIfEmpty(value.codigoInternoColumn),
+        ivaColumn: nullIfEmpty(value.ivaColumn),
+        rubroColumn: nullIfEmpty(value.rubroColumn),
+        unidadesPorBultoColumn: nullIfEmpty(value.unidadesPorBultoColumn),
+        eanBultoColumn: nullIfEmpty(value.eanBultoColumn),
+        margenColumn: nullIfEmpty(value.margenColumn),
         catalogoCompleto: value.catalogoCompleto,
       })
       .subscribe({
@@ -592,6 +617,10 @@ export class CsvImportComponent implements OnInit {
     let paraConfirmarGuardadas = true;
     let promoRulesSaved = 0;
     let promoRulesDeactivated = 0;
+    // BP-178 -- fichas de artículo.
+    let articulosCreados = 0;
+    let articulosActualizados = 0;
+    const articulosAvisos: CsvImportRowError[] = [];
 
     this.progress.set({ done: 0, total: 0, created: 0, updated: 0, failed: 0 });
 
@@ -630,6 +659,9 @@ export class CsvImportComponent implements OnInit {
             if (r.promosParaConfirmarGuardadas === false) paraConfirmarGuardadas = false;
             promoRulesSaved += r.promoRulesSaved ?? 0;
             promoRulesDeactivated += r.promoRulesDeactivated ?? 0;
+            articulosCreados += r.articulosCreados ?? 0;
+            articulosActualizados += r.articulosActualizados ?? 0;
+            articulosAvisos.push(...(r.articulosAvisos ?? []));
 
             const finished = r.nextOffset === null;
             this.progress.set({
@@ -666,6 +698,9 @@ export class CsvImportComponent implements OnInit {
               promosParaConfirmarGuardadas: paraConfirmarGuardadas,
               promoRulesSaved,
               promoRulesDeactivated,
+              articulosCreados,
+              articulosActualizados,
+              articulosAvisos,
               errors,
               // Mismo tope que el backend (MaxAnomalyExamples): 6 ejemplos alcanzan como
               // sanity-check, mas es otra tabla para escanear.

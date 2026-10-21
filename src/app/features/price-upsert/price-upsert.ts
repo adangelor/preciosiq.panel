@@ -20,6 +20,7 @@ import { PromoReglaGrupo, reglaDesdeValores, valoresDesdeRegla } from '../../cor
 import { PromoReglaEditorComponent } from '../../shared/promo-regla-editor/promo-regla-editor';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
+import { GestionContextoService } from '../../core/gestion-contexto';
 import { BranchListItem } from '../../core/business-account.models';
 import { BrandLabelPipe } from '../../core/brand-label';
 
@@ -57,6 +58,10 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly priceService = inject(BusinessPriceService);
   private readonly context = inject(BusinessContextService);
+  // BP-178 (21-oct-2026) -- con la ficha de articulo (plan Avanzado o Cadena) se puede dar de alta un articulo sin codigo
+  // de barras: el "EAN" es el codigo interno y el producto queda con IsEan = 0 (no se compara con la red).
+  private readonly gestion = inject(GestionContextoService);
+  protected readonly puedeSinCodigoDeBarras = signal(false);
 
   protected readonly loadingContext = signal(true);
   protected readonly contextErrorMessage = signal<string | null>(null);
@@ -133,6 +138,8 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     }),
     // Promo 2 queda como leyenda adicional: solo se muestra en la red, la caja no la cobra.
     promo2Text: [''],
+    // BP-178 -- "Es un artículo sin código de barras" (solo para un código que no está en el catálogo).
+    sinCodigoDeBarras: [false],
   });
 
   ngOnInit(): void {
@@ -144,6 +151,7 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
           return;
         }
         this.branches.set(ctx.branches);
+        this.gestion.load().subscribe({ next: (g) => this.puedeSinCodigoDeBarras.set(!!g?.gestionArticulos), error: () => {} });
         this.form.patchValue({ businessAccountId: ctx.account.businessAccountId });
         if (ctx.branches.length > 0) {
           this.form.patchValue({ branchId: ctx.branches[0].branchId });
@@ -334,6 +342,8 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
       promo2UnitPrice: null,
       promo2Text: nullIfEmpty(value.promo2Text),
     };
+    // BP-178 -- un artículo sin código de barras: el servidor no deja que el código tenga forma de EAN.
+    if (value.sinCodigoDeBarras && !this.productKnown()) request.esEan = false;
 
     // BP-38 -- promoRule solo si la sección se tocó: ausente = el servidor no toca la regla.
     if (this.usarLaDeCuentaPedido) {
@@ -436,6 +446,7 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
       presentationQuantity: 1,
       presentationUnit: 'UN',
       promo2Text: '',
+      sinCodigoDeBarras: false,
     });
     this.lastOwnLookup = '';
     this.loadedRule.set(null);

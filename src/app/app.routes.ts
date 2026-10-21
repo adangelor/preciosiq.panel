@@ -134,6 +134,28 @@ export const routes: Routes = [
           import('./features/price-history/price-history').then((m) => m.PriceHistoryComponent),
         title: 'PreciosIQ — Historial de precio',
       },
+      // BP-178 (21-oct-2026) -- Gestión: la ficha de artículo de la cuenta, rubros y proveedores (ERP para cadenas).
+      {
+        path: 'gestion/articulos',
+        loadComponent: () => import('./features/gestion/articulos').then((m) => m.ArticulosComponent),
+        title: 'PreciosIQ — Artículos',
+      },
+      {
+        // 'nuevo' = alta; un numero = la ficha de ese articulo.
+        path: 'gestion/articulos/:id',
+        loadComponent: () => import('./features/gestion/articulo-ficha').then((m) => m.ArticuloFichaComponent),
+        title: 'PreciosIQ — Artículo',
+      },
+      {
+        path: 'gestion/rubros',
+        loadComponent: () => import('./features/gestion/rubros').then((m) => m.RubrosComponent),
+        title: 'PreciosIQ — Rubros',
+      },
+      {
+        path: 'gestion/proveedores',
+        loadComponent: () => import('./features/gestion/proveedores').then((m) => m.ProveedoresComponent),
+        title: 'PreciosIQ — Proveedores',
+      },
       {
         path: 'dashboard',
         loadComponent: () =>

@@ -1,0 +1,241 @@
+// BP-178 (21-oct-2026) -- pantallas de Gestión (Artículos, ficha, Rubros, Proveedores). Botones, pills, alertas y la tabla
+// `.data` salen del tema compartido (shared-theme/_theme.scss); acá solo la disposición y los chips de filtro.
+.gestion {
+  max-width: 1200px;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1.25rem;
+  max-width: 56rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}
+
+.btn--small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8125rem;
+}
+
+.gestion__barra {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.gestion__links {
+  margin-left: auto;
+  font-size: 0.875rem;
+}
+
+.gestion__filtros {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  input[type='search'] {
+    flex: 1 1 18rem;
+    min-width: 12rem;
+  }
+
+  select {
+    max-width: 18rem;
+  }
+}
+
+.gestion__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.gestion__chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--primary);
+}
+
+.chip--on,
+.chip--on:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.gestion__total {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.gestion__codigo {
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.35rem;
+}
+
+.gestion__sub {
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.gestion__inactivo td {
+  opacity: 0.6;
+}
+
+.gestion__paginas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.gestion__vacia,
+.gestion__resultado,
+.gestion__seccion {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+
+  ul {
+    margin: 0 0 0.75rem;
+    padding-left: 1.2rem;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ------------------------------------------------------------------ formularios (ficha, rubros, proveedores)
+.gestion__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+  }
+}
+
+.gestion__ancho {
+  grid-column: 1 / -1;
+}
+
+.gestion__ayuda {
+  font-size: 0.8125rem;
+  margin: 0.15rem 0 0;
+}
+
+.gestion__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem 0.75rem;
+  flex-wrap: wrap;
+}
+
+.gestion__fila-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+  }
+}
+
+.gestion__columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: 1.25rem;
+}
+
+// ------------------------------------------------------------------ árbol de rubros
+// Con la especificidad de `.gestion table.data td` (más abajo) para que la sangría no la pise el relleno compacto.
+.gestion table.data tr.rubros__nivel-2 td:first-child {
+  padding-left: 2.25rem;
+  font-weight: 500;
+}
+
+.gestion table.data tr.rubros__nivel-3 td:first-child {
+  padding-left: 3.75rem;
+  font-weight: 400;
+}
+
+.rubros__marca {
+  color: var(--text-3);
+  margin-right: 0.35rem;
+}
+
+.rubros__editando td {
+  background: var(--bg-hover);
+}
+
+.rubros__inline {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  input[type='text'] {
+    min-width: 10rem;
+  }
+
+  input[type='number'] {
+    width: 6rem;
+  }
+}
+
+// Tablas de Gestión: más compactas que las del tablero (son listas largas de artículos).
+.gestion table.data th,
+.gestion table.data td {
+  padding: 0.55rem 0.75rem;
+}
+
+.gestion table.data td.strong {
+  min-width: 14rem;
+}

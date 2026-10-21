@@ -341,3 +341,18 @@ button:disabled {
     animation: none;
   }
 }
+
+// BP-178 (21-oct-2026) -- "Es un articulo sin codigo de barras" (mismo estilo que el de la carga masiva).
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  margin: -0.25rem 0 0.75rem;
+}
+
+.checkbox-row input {
+  margin-top: 0.2rem;
+  width: auto;
+}
