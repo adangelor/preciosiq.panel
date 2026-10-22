@@ -3,8 +3,9 @@
   <h1>{{ titulo() }}</h1>
   <p class="subtitle">
     @if (tipo() === 'ingreso') {
-      Lo que entró sin orden de compra: escaneá o buscá cada artículo, poné cuántos (en unidades, o en bultos si el
-      artículo tiene unidades por bulto) y, si querés, el costo por unidad: queda como su costo desde hoy.
+      Lo que entró sin orden de compra, y se suma al stock en el acto: escaneá o buscá cada artículo, poné cuántos (en
+      unidades, o en bultos si el artículo tiene unidades por bulto) y, si querés, el costo por unidad: queda como su costo
+      desde hoy. Si llegó contra una orden de compra, recibila desde <a routerLink="/gestion/compras/recepciones">Recepciones</a>.
     } @else {
       Lo que se fue sin venderse: rotura, vencido, robo o faltante, consumo interno. Queda valorizado a tu costo en el
       informe de abajo.
@@ -85,7 +86,7 @@
                    [placeholder]="tipo() === 'ingreso' ? 'Remito 0001-00012345, Distribuidora Norte' : 'Heladera cortada el sábado'" />
           </label>
           <button type="button" class="btn" (click)="registrar()" [disabled]="guardando()">
-            {{ guardando() ? 'Registrando…' : (tipo() === 'ingreso' ? 'Registrar ingreso' : 'Registrar mermas') + ' (' + renglones().length + ')' }}
+            {{ guardando() ? 'Registrando…' : (tipo() === 'ingreso' ? 'Registrar la recepción' : 'Registrar mermas') + ' (' + renglones().length + ')' }}
           </button>
         </div>
       } @else {

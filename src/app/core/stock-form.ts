@@ -79,7 +79,8 @@ export function origenTexto(m: Pick<StockMovimiento, 'tipo' | 'origenTipo' | 'oc
     : m.origenTipo === 'planilla' ? ' por planilla' : '';
   if (m.tipo === 'recuento') return `Recuento${donde}${de}`;
   if (m.tipo === 'merma') return `Merma (${motivoTexto(m.mermaMotivo)})${donde}${de}`;
-  if (m.tipo === 'ingreso') return `Ingreso de mercadería${donde}${de}`;
+  // BP-180: el ingreso del panel es la "Recepción sin orden"; el de la caja sigue siendo "Entró mercadería".
+  if (m.tipo === 'ingreso') return m.origenTipo === 'panel' ? `Recepción sin orden${de}` : `Ingreso de mercadería${donde}${de}`;
   return `${tipoTexto(m.tipo)}${donde}${de}`;
 }
 

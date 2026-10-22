@@ -11,8 +11,11 @@ import { LoadingBarComponent } from '../../layout/loading-bar/loading-bar';
 const ORIGENES: Record<string, string> = {
   csv: 'Planilla',
   panel: 'Cargado a mano',
-  ingreso: 'Ingreso de mercadería',
+  ingreso: 'Recepción sin orden',
   ajuste_masivo: 'Ajuste masivo',
+  // BP-180: la recepción o la factura del proveedor, y su lista de costos.
+  compra: 'Compra',
+  lista_proveedor: 'Lista del proveedor',
 };
 
 // BP-178 (21-oct-2026) -- la ficha de un artículo (/gestion/articulos/:id, y /gestion/articulos/nuevo para el alta).

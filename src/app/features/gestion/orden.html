@@ -178,7 +178,7 @@
                     <td class="num"><input type="text" inputmode="decimal" size="4" [value]="f.bonif" (input)="cambiarFila(i, 'bonif', $event)" [attr.aria-label]="'Bonificación de ' + f.descripcion" /></td>
                   } @else {
                     <td class="num gestion__nowrap">{{ cantidadTexto(f) }}</td>
-                    <td class="num">{{ f.costo ? '$' + f.costo : '—' }}</td>
+                    <td class="num">{{ f.costo ? plata(costoPactado(f)) : '—' }}</td>
                     <td class="num">{{ f.bonif || '—' }}</td>
                   }
                   <td class="num gestion__nowrap">

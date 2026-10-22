@@ -18,9 +18,10 @@ interface Renglon {
   motivo: MotivoDeMerma;
 }
 
-// BP-179 bloque 7 (21-oct-2026) -- Gestión → Stock → Ingreso de mercadería / Mermas. Una lista de renglones (escanear o
+// BP-179 bloque 7 (21-oct-2026) -- Gestión → Stock → Recepción sin orden (antes "Ingreso de mercadería") / Mermas. Una lista de renglones (escanear o
 // buscar el artículo, cantidad y, en el ingreso, unidad o bulto y el costo; en la merma, el motivo) que se registra de
-// una vez: todos o ninguno. El ingreso es SIN orden de compra (BP-180 lo reemplaza por la recepción). Mermas también
+// una vez: todos o ninguno. El ingreso es SIN orden de compra: desde BP-180 se llama "Recepción sin orden" (decisión 9 del
+// PROMPT_BP180) y por debajo es una recepción sin orden confirmada en el acto. Mermas también
 // muestra el informe por motivo y por rubro, en cantidad y en plata.
 @Component({
   selector: 'app-stock-movimiento',
@@ -60,7 +61,7 @@ export class StockMovimientoComponent implements OnInit {
   protected readonly plata = plata;
   protected readonly cantidad = cantidad;
   protected readonly motivoTexto = motivoTexto;
-  protected readonly titulo = computed(() => (this.tipo() === 'ingreso' ? 'Ingreso de mercadería' : 'Mermas'));
+  protected readonly titulo = computed(() => (this.tipo() === 'ingreso' ? 'Recepción sin orden' : 'Mermas'));
 
   ngOnInit(): void {
     this.gestion.load().subscribe({

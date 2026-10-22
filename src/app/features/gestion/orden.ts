@@ -428,6 +428,9 @@ export class OrdenComponent implements OnInit {
     return cantidadDeRenglon({ unidades: u, bultos: f.enBultos && f.unidadesPorBulto ? u / f.unidadesPorBulto : null });
   }
 
+  /** El costo pactado tal como se tipeó, para mostrarlo con formato. */
+  protected costoPactado(f: FilaOrden): number | null { return f.costo.trim() ? importeAr(f.costo) : null; }
+
   protected plata(n: number | null): string { return n == null ? '—' : plata.format(n); }
   protected cant(n: number | null): string { return n == null ? '—' : num.format(n); }
 }

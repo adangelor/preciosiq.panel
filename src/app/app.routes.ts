@@ -182,7 +182,7 @@ export const routes: Routes = [
         path: 'gestion/stock/ingreso',
         loadComponent: () => import('./features/gestion-stock/stock-movimiento').then((m) => m.StockMovimientoComponent),
         data: { tipo: 'ingreso' },
-        title: 'PreciosIQ — Ingreso de mercadería',
+        title: 'PreciosIQ — Recepción sin orden',
       },
       {
         path: 'gestion/stock/mermas',

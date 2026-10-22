@@ -35,6 +35,11 @@ describe('stock-form (BP-179)', () => {
     expect(origenTexto(mov({ tipo: 'transferencia_salida', origenTipo: 'transferencia', transferenciaId: 12, nota: 'A Norte' }))).toBe('Transferencia #12: A Norte');
     expect(origenTexto(mov({ tipo: 'merma', origenTipo: 'caja_ajuste', mermaMotivo: 'vencido', dispositivo: 'f3a1c9d2e8b7a6c5' }))).toBe('Merma (Vencido) en la caja …a6c5');
     expect(origenTexto(mov({ tipo: 'recuento', origenTipo: 'migracion' }))).toBe('Stock al pasar al historial');
+    // BP-180: el ingreso del panel es la recepción sin orden; la recepción deja su número en la nota.
+    expect(origenTexto(mov({ tipo: 'ingreso', origenTipo: 'panel', usuario: 'Juan' }))).toBe('Recepción sin orden de Juan');
+    expect(origenTexto(mov({ tipo: 'ingreso', origenTipo: 'caja_ajuste', usuario: null, dispositivo: 'caja-2' }))).toBe('Ingreso de mercadería en la caja caja-2');
+    expect(origenTexto(mov({ tipo: 'ingreso', origenTipo: 'compra', usuario: null, nota: 'Recepción R-000012 (Distri Norte)' }))).toBe('Recepción R-000012 (Distri Norte)');
+    expect(origenTexto(mov({ tipo: 'devolucion_proveedor', origenTipo: 'compra', usuario: null, nota: null }))).toBe('Devolución al proveedor');
   });
 
   it('cantidades y diferencias', () => {
@@ -195,7 +200,7 @@ describe('Gestión → Stock → Ingreso y Recuento (BP-179)', () => {
     (inputs[1] as HTMLInputElement).value = '850,50';
     inputs[1].dispatchEvent(new Event('change'));
     harness.detectChanges();
-    (Array.from(el.querySelectorAll('button')).find((b) => b.textContent!.includes('Registrar ingreso')) as HTMLButtonElement).click();
+    (Array.from(el.querySelectorAll('button')).find((b) => b.textContent!.includes('Registrar la recepción')) as HTMLButtonElement).click();
     const req = http.expectOne(`${API}/ingreso`);
     expect(req.request.body.branchId).toBe('999-13');
     expect(req.request.body.renglones).toEqual([{ codigo: '7790000000417', cantidad: 2, unidad: 'bulto', costoNeto: 850.5 }]);
