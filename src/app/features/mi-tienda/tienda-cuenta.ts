@@ -7,6 +7,7 @@ import { TiendaEstadisticasComponent } from './tienda-estadisticas';
 import { TiendaDestacadosComponent } from './tienda-destacados';
 import { TiendaCarruselComponent } from './tienda-carrusel';
 import { TiendaSucursalesComponent } from './tienda-sucursales';
+import { TiendaEnviosComponent } from './tienda-envios';
 
 type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 'cvu' | 'qr' | 'activa';
 
@@ -20,7 +21,7 @@ type Campo = 'slug' | 'nombreVisible' | 'presentacion' | 'whatsApp' | 'alias' | 
 @Component({
   selector: 'app-tienda-cuenta',
   standalone: true,
-  imports: [RouterLink, TiendaEstadisticasComponent, TiendaDestacadosComponent, TiendaCarruselComponent, TiendaSucursalesComponent],
+  imports: [RouterLink, TiendaEstadisticasComponent, TiendaDestacadosComponent, TiendaCarruselComponent, TiendaSucursalesComponent, TiendaEnviosComponent],
   templateUrl: './tienda-cuenta.html',
   styleUrl: './mi-tienda.scss',
 })

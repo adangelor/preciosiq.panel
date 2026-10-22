@@ -98,3 +98,19 @@
 
 // BP-167 -- la sucursal del pedido, en la linea de la fecha.
 .ped__sucursal { font-weight: 600; color: var(--text-2); }
+
+// BP-193 -- el pedido de alguien mas lejos que el radio de envio (no se bloquea: se coordina por WhatsApp).
+.ped__fuera {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--warning);
+  background: var(--warning-soft, var(--bg-soft));
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+.ped__id { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.2rem; }
+.ped__fuera-texto { color: var(--warning); }
+.ped__envio { margin: 0.2rem 0 0.4rem; }

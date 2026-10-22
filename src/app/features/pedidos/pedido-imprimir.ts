@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { BusinessContextService } from '../../core/business-context';
-import { PedidoTienda, TiendaService } from '../../core/tienda';
+import { PedidoTienda, TiendaService, detalleEnvio } from '../../core/tienda';
 
 const enteros = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
 const conCentavos = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -40,6 +40,9 @@ const cantidad = (n: number) => new Intl.NumberFormat('es-AR', { maximumFraction
               <!-- BP-167: de que sucursal es (una tienda por cuenta: el repositor tiene que saber donde armarlo). -->
               @if (p.sucursalNombre) { · Sucursal {{ p.sucursalNombre }} }
               @if (p.clienteNombre) { · {{ p.clienteNombre }} }
+              <!-- BP-193: costo y distancia del envio, y si quedo fuera del radio (el repartidor lo tiene que saber). -->
+              @if (detalleEnvio(p); as envio) { · {{ envio }} }
+              @if (p.envioFueraDelRadio) { · <strong>FUERA DE LA ZONA</strong> }
             </p>
           </div>
           <div class="hoja__resumen">
@@ -68,7 +71,10 @@ const cantidad = (n: number) => new Intl.NumberFormat('es-AR', { maximumFraction
             }
           </tbody>
           <tfoot>
-            <tr><td colspan="4">Total estimado</td><td class="num">{{ pesos(p.total) }}</td></tr>
+            @if (p.entrega === 'envio' && p.costoEnvio) {
+              <tr><td colspan="4">Envío</td><td class="num">{{ pesos(p.costoEnvio) }}</td></tr>
+            }
+            <tr><td colspan="4">Total estimado</td><td class="num">{{ pesos(p.total + (p.entrega === 'envio' ? (p.costoEnvio ?? 0) : 0)) }}</td></tr>
           </tfoot>
         </table>
 
@@ -132,6 +138,7 @@ export class PedidoImprimirComponent implements OnInit {
   protected readonly tienda = signal('');
   protected readonly error = signal<string | null>(null);
   protected readonly pesos = pesos;
+  protected readonly detalleEnvio = detalleEnvio;
   protected readonly cantidad = cantidad;
 
   /** Alfabetico: el repositor recorre la lista de arriba abajo sin saltar. */

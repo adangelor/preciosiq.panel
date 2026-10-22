@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, input, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AvisosService } from '../../core/avisos';
-import { EstadoPedido, PedidoTienda, TiendaService } from '../../core/tienda';
+import { EstadoPedido, PedidoTienda, TiendaService, detalleEnvio } from '../../core/tienda';
 import { PedidoChatComponent } from './pedido-chat';
 
 const enteros = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
@@ -59,7 +59,13 @@ const ETIQUETA: Record<EstadoPedido, string> = {
             @for (p of lista; track p.codigo) {
               <li class="ped__item" [class.ped__item--nuevo]="p.estado === 'nuevo'">
                 <button type="button" class="ped__fila" (click)="abrir(p)" [attr.aria-expanded]="abierto() === p.codigo">
-                  <span class="ped__codigo">{{ p.codigo }}</span>
+                  <span class="ped__id">
+                    <span class="ped__codigo">{{ p.codigo }}</span>
+                    @if (p.envioFueraDelRadio) {
+                      <!-- BP-193: el cliente midio su ubicacion y quedo mas lejos que el radio. Lo arreglan por WhatsApp. -->
+                      <span class="ped__fuera" title="El cliente está más lejos que tu radio de envío">Fuera de la zona</span>
+                    }
+                  </span>
                   <span class="ped__cuando">
                     {{ cuando(p.creadoAtUtc) }}
                     @if (mostrarSucursal() && p.sucursalNombre) { · <span class="ped__sucursal">{{ p.sucursalNombre }}</span> }
@@ -76,6 +82,12 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                       <!-- BP-167: tambien aca, porque en el celular la linea de la fecha no se ve. -->
                       <p class="hint">Pedido para la sucursal <strong>{{ p.sucursalNombre }}</strong>.</p>
                     }
+                    @if (detalleEnvio(p); as envio) {
+                      <p class="hint ped__envio">
+                        {{ envio }}
+                        @if (p.envioFueraDelRadio) { · <strong class="ped__fuera-texto">fuera de tu zona de envío</strong>: coordinalo con el cliente. }
+                      </p>
+                    }
                     <table class="ped__tabla">
                       <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Total</th></tr></thead>
                       <tbody>
@@ -91,7 +103,12 @@ const ETIQUETA: Record<EstadoPedido, string> = {
                           </tr>
                         }
                       </tbody>
-                      <tfoot><tr><td colspan="2">Total estimado</td><td class="num">{{ pesos(p.total) }}</td></tr></tfoot>
+                      <tfoot>
+                        @if (p.entrega === 'envio' && p.costoEnvio) {
+                          <tr><td colspan="2">Envío</td><td class="num">{{ pesos(p.costoEnvio) }}</td></tr>
+                        }
+                        <tr><td colspan="2">Total estimado</td><td class="num">{{ pesos(p.total + (p.entrega === 'envio' ? (p.costoEnvio ?? 0) : 0)) }}</td></tr>
+                      </tfoot>
                     </table>
                     @if (p.tieneChat) {
                       <app-pedido-chat [tiendaId]="tiendaId()" [codigo]="p.codigo" (marcadoListo)="marcarLocal(p.codigo, 'preparado')" />
@@ -152,6 +169,7 @@ export class TiendaPedidosComponent implements OnInit, OnDestroy {
 
   protected readonly etiqueta = ETIQUETA;
   protected readonly pesos = pesos;
+  protected readonly detalleEnvio = detalleEnvio;
   protected readonly cuando = cuando;
   protected readonly cant = (n: number) => unidades.format(n);
 

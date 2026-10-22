@@ -157,6 +157,9 @@
 
   @if (!editando()) {
     @if (tienda(); as t) {
+      <!-- BP-193: el envio a domicilio de cada sucursal (radio, minimo, costo), el mapa y los numeros. -->
+      <app-tienda-envios [tiendaId]="t.id" />
+
       <!-- BP-146 / BP-145: lo que se ve primero en la tienda. 17-oct-2026 -- Andres no los encontraba: estaban plegados
            al fondo, debajo de las estadisticas. Suben aca, con titulo propio. -->
       <section class="vidriera" [attr.aria-labelledby]="'vidriera-' + t.id">

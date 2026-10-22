@@ -195,6 +195,20 @@ export interface PedidoTienda {
   // BP-167 -- la sucursal en la que se hizo el pedido (null = antes del cambio).
   sucursal?: string | null;
   sucursalNombre?: string | null;
+  // BP-193 -- el envio: costo (0 = gratis, null = a coordinar o retiro), la distancia del cliente a la sucursal (si
+  // midio su ubicacion) y si quedo fuera del radio. undefined con un backend anterior.
+  costoEnvio?: number | null;
+  envioKm?: number | null;
+  envioFueraDelRadio?: boolean | null;
+}
+
+/** BP-193 -- "Envío $1.500 · 3,2 km", "Envío gratis", "Envío a coordinar · 6,3 km". Null con retiro o backend anterior. */
+export function detalleEnvio(p: PedidoTienda): string | null {
+  if (p.entrega !== 'envio' || p.costoEnvio === undefined) return null;
+  const costo = p.costoEnvio == null ? 'Envío a coordinar'
+    : p.costoEnvio === 0 ? 'Envío gratis'
+    : 'Envío $' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(p.costoEnvio);
+  return p.envioKm != null ? `${costo} · ${new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 }).format(p.envioKm)} km` : costo;
 }
 
 export interface MensajeChatPedido {
