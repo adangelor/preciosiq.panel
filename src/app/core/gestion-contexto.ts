@@ -14,6 +14,8 @@ export interface GestionContexto {
   gestionArticulos: boolean;
   gestionStock: boolean;
   formacionPrecios: boolean;
+  /** BP-180 -- compras (ficha completa del proveedor, su lista, órdenes, recepción, comprobantes). */
+  compras: boolean;
   /** "avanzado", "cadena"… (el efectivo no viene; es el contratado, para el texto). */
   tier: string;
 }
@@ -38,10 +40,11 @@ export class GestionContextoService {
               gestionArticulos: s.hasGestionArticulos ?? false,
               gestionStock: s.hasGestionStock ?? false,
               formacionPrecios: s.hasFormacionPrecios ?? false,
+              compras: s.hasCompras ?? false,
               tier: s.tier,
             })),
             catchError(() =>
-              of({ businessAccountId: id, branches: ctx.branches, gestionArticulos: true, gestionStock: true, formacionPrecios: true, tier: '' }),
+              of({ businessAccountId: id, branches: ctx.branches, gestionArticulos: true, gestionStock: true, formacionPrecios: true, compras: true, tier: '' }),
             ),
           );
         }),

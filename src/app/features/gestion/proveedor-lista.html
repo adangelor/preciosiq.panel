@@ -1,0 +1,217 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/proveedores">← Proveedores</a></p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>La lista de cada proveedor viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (proveedor(); as p) {
+    <h1>{{ p.nombre }}</h1>
+    <p class="subtitle proveedor__ficha">
+      @if (p.razonSocial && p.razonSocial !== p.nombre) { <span>{{ p.razonSocial }}</span> }
+      <span>CUIT {{ cuitConGuiones(p.cuit) }}</span>
+      <span>{{ textoCondicion(p.condicionIva) }}</span>
+      @if (p.plazoPagoDias != null) { <span>Paga a {{ p.plazoPagoDias }} días</span> }
+      @if (p.contacto) { <span>{{ p.contacto }}{{ p.telefono ? ' · ' + p.telefono : '' }}</span> }
+      <span>{{ p.articulosEnLista }} en su lista · habitual de {{ p.articulosHabituales }}</span>
+    </p>
+
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success" role="status">{{ aviso() }}</p> }
+
+    <!-- Importar la planilla del proveedor: primero "Ver qué cambia", después "Importar". -->
+    <section class="gestion__seccion" aria-labelledby="titulo-importar">
+      <h2 id="titulo-importar">Importar la lista del proveedor</h2>
+      <p class="muted gestion__ayuda">
+        La planilla que te manda (Excel o CSV), con los títulos en la primera fila. Encontramos cada artículo por el código de
+        barras, el código interno, el código de un bulto o el código del proveedor.
+      </p>
+      @if (!archivo()) {
+        <label class="btn btn--ghost proveedor__archivo">
+          <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Elegir la planilla
+          <input type="file" accept=".xlsx,.xls,.csv" (change)="leerArchivo($event)" hidden />
+        </label>
+      } @else {
+        <p><strong>{{ archivo() }}</strong> · {{ renglones().length }} filas con código
+          <button type="button" class="btn btn--ghost btn--small" (click)="descartarPlanilla()" [disabled]="trabajando()">Elegir otra</button>
+        </p>
+        <div class="gestion__grid proveedor__mapeo">
+          @for (c of columnas; track c.campo) {
+            <label>{{ c.texto }}{{ c.obligatoria ? '' : ' (opcional)' }}
+              <select (change)="elegirColumna(c.campo, $event)" [attr.data-columna]="c.campo">
+                <option value="" [selected]="mapeo()[c.campo] === null">— no está —</option>
+                @for (h of encabezados(); track $index) {
+                  <option [value]="$index" [selected]="mapeo()[c.campo] === $index">{{ h }}</option>
+                }
+              </select>
+            </label>
+          }
+        </div>
+        <div class="gestion__acciones proveedor__opciones">
+          <label class="gestion__check"><input type="checkbox" [checked]="costoPorBulto()" (change)="opcion('costoPorBulto', $event)" /> El costo es por bulto (lo dividimos por sus unidades)</label>
+          <label class="gestion__check"><input type="checkbox" [checked]="aplicarCostos()" (change)="opcion('aplicarCostos', $event)" /> Que los costos que cambian pasen a ser tu costo vigente</label>
+          <label class="gestion__check"><input type="checkbox" [checked]="marcarHabitual()" (change)="opcion('marcarHabitual', $event)" /> Que sea el proveedor habitual de los artículos que todavía no tienen uno</label>
+        </div>
+        @if (errorPlanilla()) { <p class="alert alert--danger" role="alert">{{ errorPlanilla() }}</p> }
+        <div class="gestion__acciones">
+          <button type="button" class="btn btn--ghost" (click)="verQueCambia()" [disabled]="trabajando()">{{ trabajando() && !previa() ? 'Revisando…' : 'Ver qué cambia' }}</button>
+          @if (previa()) {
+            <button type="button" class="btn" (click)="importarDeVerdad()" [disabled]="trabajando()">{{ trabajando() ? 'Importando…' : 'Importar' }}</button>
+          }
+        </div>
+
+        @if (previa(); as r) {
+          <div class="gestion__resultado proveedor__previa" role="status">
+            <p>
+              <strong>{{ r.emparejados }}</strong> de {{ r.renglones }} filas son artículos tuyos:
+              {{ r.nuevos }} nuevos en la lista, {{ r.actualizados }} con cambios, {{ r.sinCambios }} iguales.
+              @if (r.subas + r.bajas > 0) { Contra tu costo vigente: {{ r.subas }} suben y {{ r.bajas }} bajan. }
+            </p>
+            @if (r.cambios.length > 0) {
+              <div class="table-wrap">
+                <table class="data">
+                  <thead><tr><th>Artículo</th><th class="num">Costo vigente</th><th class="num">Nuevo</th><th class="num">Cambio</th></tr></thead>
+                  <tbody>
+                    @for (c of r.cambios.slice(0, 50); track c.articuloId) {
+                      <tr>
+                        <td>{{ c.descripcion }} <small class="gestion__sub">{{ c.codigo }}</small></td>
+                        <td class="num">{{ plata(c.costoVigente) }}</td>
+                        <td class="num">{{ plata(c.costoNuevo) }}</td>
+                        <td class="num gestion__nowrap" [class.proveedor__sube]="(c.variacionPct ?? 0) > 0" [class.proveedor__baja]="(c.variacionPct ?? 0) < 0">
+                          {{ c.variacionPct == null ? 'nuevo' : pct(c.variacionPct) }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              @if (r.cambios.length > 50) { <p class="muted">Y {{ r.cambios.length - 50 }} cambios más (los de mayor variación primero).</p> }
+            }
+            @if (r.noEncontrados.length > 0) {
+              <details class="proveedor__detalle">
+                <summary>{{ r.noEncontrados.length === 1 ? '1 fila no es un artículo tuyo' : r.noEncontrados.length + ' filas no son artículos tuyos' }} (se saltea{{ r.noEncontrados.length === 1 ? '' : 'n' }})</summary>
+                <ul>
+                  @for (n of r.noEncontrados.slice(0, 30); track n.fila) {
+                    <li>Fila {{ n.fila }}: {{ n.codigo ?? n.codigoProveedor }}{{ n.descripcion ? ' · ' + n.descripcion : '' }}</li>
+                  }
+                </ul>
+              </details>
+            }
+            @if (r.errores.length > 0) {
+              <details class="proveedor__detalle" open>
+                <summary>{{ r.errores.length === 1 ? '1 fila con un error' : r.errores.length + ' filas con errores' }} (se saltea{{ r.errores.length === 1 ? '' : 'n' }})</summary>
+                <ul>
+                  @for (x of r.errores.slice(0, 30); track x.fila) { <li>Fila {{ x.fila }}{{ x.codigo ? ' (' + x.codigo + ')' : '' }}: {{ x.motivo }}</li> }
+                </ul>
+              </details>
+            }
+          </div>
+        }
+      }
+    </section>
+
+    <!-- Un artículo suelto. -->
+    <section class="gestion__seccion" aria-labelledby="titulo-suelto">
+      <h2 id="titulo-suelto">Agregar o cambiar un artículo</h2>
+      @if (cuenta(); as id) {
+        <app-articulo-buscador [cuenta]="id" (elegido)="elegido($event)" />
+      }
+      @let s = suelto();
+      @if (s.codigo) {
+        <p><strong>{{ s.descripcion ?? s.codigo }}</strong> <small class="gestion__sub">{{ s.codigo }}</small></p>
+        <div class="gestion__grid">
+          <label>Código del proveedor (opcional)
+            <input type="text" maxlength="40" [value]="s.codigoProveedor" (input)="campoSuelto('codigoProveedor', $event)" />
+          </label>
+          <label>Costo sin IVA
+            <input type="text" inputmode="decimal" [value]="s.costo" (input)="campoSuelto('costo', $event)" placeholder="1.250,50" />
+          </label>
+          <label>Bonificación % (opcional)
+            <input type="text" inputmode="decimal" [value]="s.bonificacion" (input)="campoSuelto('bonificacion', $event)" />
+          </label>
+          <label>Unidades por bulto (opcional)
+            <input type="text" inputmode="decimal" [value]="s.unidadesPorBulto" (input)="campoSuelto('unidadesPorBulto', $event)" />
+          </label>
+        </div>
+        <div class="gestion__acciones">
+          <label class="gestion__check"><input type="checkbox" [checked]="s.porBulto" (change)="campoSuelto('porBulto', $event)" /> El costo es del bulto</label>
+          <label class="gestion__check"><input type="checkbox" [checked]="s.aplicar" (change)="campoSuelto('aplicar', $event)" /> Que sea mi costo vigente</label>
+        </div>
+        @if (errorSuelto()) { <p class="alert alert--danger" role="alert">{{ errorSuelto() }}</p> }
+        <div class="gestion__acciones">
+          <button type="button" class="btn" (click)="guardarSuelto()" [disabled]="trabajando()">{{ trabajando() ? 'Guardando…' : 'Guardar en la lista' }}</button>
+          <button type="button" class="btn btn--ghost" (click)="suelto.set({ codigo: '', descripcion: null, codigoProveedor: '', unidadesPorBulto: '', costo: '', bonificacion: '', porBulto: false, aplicar: true })">Cancelar</button>
+        </div>
+      }
+    </section>
+
+    <!-- La lista. -->
+    <section class="gestion__seccion" aria-labelledby="titulo-lista">
+      <h2 id="titulo-lista">Su lista</h2>
+      <div class="gestion__filtros">
+        <input type="search" placeholder="Buscar por nombre, código o código del proveedor" [value]="q()" (input)="buscar($event)" aria-label="Buscar en la lista" />
+      </div>
+      @if (cargando()) { <app-loading-bar label="Cargando la lista…" /> }
+      @if (lista(); as l) {
+        @if (l.total === 0) {
+          <p class="muted">{{ q() ? 'Nada coincide con la búsqueda.' : 'Todavía no hay artículos en su lista: importá su planilla o agregalos de a uno.' }}</p>
+        } @else {
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th>Artículo</th><th>Cód. proveedor</th><th class="num">Bulto</th><th class="num">Costo</th><th class="num">Bonif.</th>
+                  <th class="num">Costo final</th><th class="num">Tu costo vigente</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of l.items; track a.articuloId) {
+                  @let v = variacion(a);
+                  <tr [attr.data-articulo]="a.codigo">
+                    <td class="strong">{{ a.descripcion }}
+                      <small class="gestion__sub">{{ a.codigo }}{{ a.marca ? ' · ' + a.marca : '' }}</small>
+                      @if (a.esHabitual) { <span class="pill pill--neutral">habitual</span> }
+                    </td>
+                    <td>{{ a.codigoProveedor ?? '—' }}</td>
+                    <td class="num">{{ cant(a.unidadesPorBulto) }}</td>
+                    <td class="num">{{ plata(a.costoNeto) }}</td>
+                    <td class="num">{{ a.bonificacionPct != null ? cant(a.bonificacionPct) + ' %' : '—' }}</td>
+                    <td class="num">{{ plata(a.costoFinal) }}</td>
+                    <td class="num">
+                      {{ plata(a.costoVigente) }}
+                      @if (a.costoVigente != null) {
+                        <small class="gestion__sub">{{ fecha(a.costoVigenteDesde) }} · {{ origen(a.costoVigenteOrigen) }}</small>
+                      }
+                      @if (v != null && v !== 0) {
+                        <small class="gestion__sub" [class.proveedor__sube]="v > 0" [class.proveedor__baja]="v < 0">la lista: {{ pct(v) }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div class="rubros__inline">
+                        <button type="button" class="btn btn--ghost btn--small" (click)="editar(a)" [disabled]="trabajando()">Cambiar</button>
+                        <button type="button" class="btn btn--ghost btn--small" (click)="quitar(a)" [disabled]="trabajando()">Sacar</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (paginas() > 1) {
+            <div class="gestion__paginas">
+              <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1">← Anterior</button>
+              <span>Página {{ pagina() }} de {{ paginas() }} · {{ l.total }} artículos</span>
+              <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas()">Siguiente →</button>
+            </div>
+          }
+        }
+      }
+    </section>
+  }
+</div>

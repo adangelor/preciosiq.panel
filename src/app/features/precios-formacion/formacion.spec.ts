@@ -138,7 +138,7 @@ describe('Carteles de góndola: los textos', () => {
 // ------------------------------------------------------------------ pantallas
 function contexto(conPlan: boolean, branches = [{ branchId: '999-13', branchName: 'Prueba Centro' }, { branchId: '999-14', branchName: 'Prueba Norte' }]): Partial<GestionContextoService> {
   const g = {
-    businessAccountId: 10, branches, gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, tier: 'avanzado',
+    businessAccountId: 10, branches, gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, compras: conPlan, tier: 'avanzado',
   } as unknown as GestionContexto;
   return { load: () => of(g) };
 }

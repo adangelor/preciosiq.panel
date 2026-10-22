@@ -239,3 +239,42 @@ h2 {
 .gestion table.data td.strong {
   min-width: 14rem;
 }
+
+// ------------------------------------------------------------------ BP-180: proveedores (ficha completa) y su lista
+.campo--error input,
+.campo--error select {
+  border-color: var(--danger);
+}
+.proveedor__ficha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+.proveedor__archivo {
+  cursor: pointer;
+}
+.proveedor__opciones {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+.proveedor__previa p {
+  margin: 0 0 0.6rem;
+}
+.proveedor__detalle {
+  margin-top: 0.6rem;
+  font-size: 0.875rem;
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+}
+.proveedor__sube {
+  color: var(--danger);
+}
+.proveedor__baja {
+  color: var(--success);
+}
+.gestion__nowrap {
+  white-space: nowrap;
+}

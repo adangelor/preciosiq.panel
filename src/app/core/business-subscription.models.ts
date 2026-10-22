@@ -23,6 +23,8 @@ export interface PlanCatalogItem {
   hasGestionArticulos?: boolean;
   hasGestionStock?: boolean;
   hasFormacionPrecios?: boolean;
+  // BP-180 (22-oct-2026) -- compras, Avanzado y Cadena.
+  hasCompras?: boolean;
 }
 
 export interface SubscriptionStatusResponse {
@@ -53,6 +55,8 @@ export interface SubscriptionStatusResponse {
   hasGestionArticulos?: boolean;
   hasGestionStock?: boolean;
   hasFormacionPrecios?: boolean;
+  // BP-180 (22-oct-2026) -- compras, Avanzado y Cadena.
+  hasCompras?: boolean;
 }
 
 export interface CreateCheckoutResponse {

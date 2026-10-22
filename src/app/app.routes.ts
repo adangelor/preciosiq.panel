@@ -204,6 +204,12 @@ export const routes: Routes = [
         title: 'PreciosIQ — Proveedores',
       },
       {
+        // BP-180 -- la lista del proveedor: su código, el bulto, el costo y la bonificación de cada artículo.
+        path: 'gestion/proveedores/:id',
+        loadComponent: () => import('./features/gestion/proveedor-lista').then((m) => m.ProveedorListaComponent),
+        title: 'PreciosIQ — Lista del proveedor',
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/benchmark-dashboard/benchmark-dashboard').then((m) => m.BenchmarkDashboardComponent),

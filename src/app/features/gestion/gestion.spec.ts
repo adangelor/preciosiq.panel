@@ -16,7 +16,7 @@ const API = `${environment.apiBaseUrl}business/articles`;
 
 function contexto(conPlan: boolean): Partial<GestionContextoService> {
   const g: GestionContexto = {
-    businessAccountId: 10, branches: [], gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, tier: 'avanzado',
+    businessAccountId: 10, branches: [], gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, compras: conPlan, tier: 'avanzado',
   };
   return { load: () => of(g) };
 }

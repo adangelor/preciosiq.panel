@@ -82,7 +82,7 @@ describe('stock-form (BP-179)', () => {
 function configurar(conPlan: boolean) {
   const g = {
     businessAccountId: 10, branches: [{ branchId: '999-13', branchName: 'Centro' }, { branchId: '999-14', branchName: 'Norte' }],
-    gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, tier: 'avanzado',
+    gestionArticulos: conPlan, gestionStock: conPlan, formacionPrecios: conPlan, compras: conPlan, tier: 'avanzado',
   } as unknown as GestionContexto;
   TestBed.configureTestingModule({
     providers: [
