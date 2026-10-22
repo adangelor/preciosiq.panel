@@ -1,0 +1,110 @@
+<div class="gestion card--page">
+  <h1>Libro IVA compras</h1>
+  <p class="subtitle">
+    Los comprobantes de proveedores registrados en el mes, por alícuota, con percepciones e internos. Las notas de crédito
+    restan. Bajalo en Excel para tu contador o en los archivos para importar en el Libro IVA Digital de ARCA.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>El Libro IVA compras viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <div class="gestion__filtros">
+      <input type="month" [value]="mes()" (change)="elegirMes($event)" aria-label="Mes" />
+      @if (libro(); as l) {
+        @if (l.comprobantes > 0) {
+          <button type="button" class="btn btn--ghost" (click)="excel()"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Excel</button>
+          <button type="button" class="btn btn--ghost" (click)="archivos()" [disabled]="descargando() || l.problemasParaArca.length > 0">
+            <i class="fa-solid fa-file-zipper" aria-hidden="true"></i> {{ descargando() ? 'Armando…' : 'Archivos para ARCA' }}
+          </button>
+        }
+      }
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Armando el libro…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+
+    @if (libro(); as l) {
+      @if (l.problemasParaArca.length > 0) {
+        <div class="alert alert--warning libro__problemas" role="status">
+          <strong>Para los archivos de ARCA falta:</strong>
+          <ul>@for (p of l.problemasParaArca; track $index) { <li>{{ p }}</li> }</ul>
+          <a routerLink="/gestion/proveedores">Ir a Proveedores →</a>
+        </div>
+      }
+
+      @if (l.comprobantes === 0) {
+        <p class="muted gestion__vacia">No hay comprobantes registrados en este mes. En ARCA se presenta "sin movimientos".</p>
+      } @else {
+        <div class="libro__resumen">
+          <div><span>Total</span><strong>{{ plata(l.totales.total) }}</strong></div>
+          <div><span>Neto gravado</span><strong>{{ plata(l.totales.netoGravado) }}</strong></div>
+          <div><span>Crédito fiscal (IVA)</span><strong>{{ plata(l.totales.creditoFiscal) }}</strong></div>
+          <div><span>B y C (sin discriminar)</span><strong>{{ plata(l.totales.sinDiscriminar) }}</strong></div>
+          <div><span>Percepciones</span><strong>{{ plata(l.totales.percepcionIva + l.totales.percepcionIibb + l.totales.percepcionMunicipal + l.totales.percepcionOtras) }}</strong></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data libro__tabla">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Comprobante</th><th>Proveedor</th>
+                @for (a of alicuotas(); track a) { <th class="num">Neto {{ a }} %</th><th class="num">IVA {{ a }} %</th> }
+                <th class="num">B y C</th><th class="num">Exento / no grav.</th><th class="num">Percep. IVA</th><th class="num">Percep. IIBB</th>
+                <th class="num">Otras percep.</th><th class="num">Internos y otros</th><th class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of l.renglones; track r.comprobanteId) {
+                <tr [attr.data-comprobante]="r.comprobanteId" [class.libro__nc]="r.signo < 0">
+                  <td class="gestion__nowrap">{{ fecha(r.fecha) }}</td>
+                  <td class="gestion__nowrap"><a [routerLink]="['/gestion/compras/comprobantes', r.comprobanteId]">{{ textoTipo(r.tipo) }} {{ r.numeroTexto }}</a></td>
+                  <td>{{ r.proveedor }} <small class="gestion__sub">{{ cuit(r.cuit) }}</small></td>
+                  @for (a of alicuotas(); track a) { <td class="num">{{ plata(neto(r, a)) }}</td><td class="num">{{ plata(iva(r, a)) }}</td> }
+                  <td class="num">{{ plata(r.signo * r.sinDiscriminar) }}</td>
+                  <td class="num">{{ plata(r.signo * (r.exento + r.noGravado)) }}</td>
+                  <td class="num">{{ plata(r.signo * r.percepcionIva) }}</td>
+                  <td class="num">{{ plata(r.signo * r.percepcionIibb) }}</td>
+                  <td class="num">{{ plata(r.signo * (r.percepcionMunicipal + r.percepcionOtras)) }}</td>
+                  <td class="num">{{ plata(r.signo * (r.impuestosInternos + r.otrosTributos)) }}</td>
+                  <td class="num strong">{{ plata(r.signo * r.total) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3"><strong>{{ l.comprobantes }} comprobantes</strong></td>
+                @for (a of alicuotas(); track a) { <td class="num">{{ plata(totalAlicuota(a, 'neto')) }}</td><td class="num">{{ plata(totalAlicuota(a, 'iva')) }}</td> }
+                <td class="num">{{ plata(l.totales.sinDiscriminar) }}</td>
+                <td class="num">{{ plata(l.totales.exento + l.totales.noGravado) }}</td>
+                <td class="num">{{ plata(l.totales.percepcionIva) }}</td>
+                <td class="num">{{ plata(l.totales.percepcionIibb) }}</td>
+                <td class="num">{{ plata(l.totales.percepcionMunicipal + l.totales.percepcionOtras) }}</td>
+                <td class="num">{{ plata(l.totales.impuestosInternos + l.totales.otrosTributos) }}</td>
+                <td class="num"><strong>{{ plata(l.totales.total) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        @if (l.iibbPorProvincia.length > 0) {
+          <section class="gestion__seccion libro__iibb" aria-labelledby="titulo-iibb">
+            <h2 id="titulo-iibb">Percepciones de IIBB por provincia</h2>
+            <ul>@for (p of l.iibbPorProvincia; track p.jurisdiccion) { <li>{{ provincia(p.jurisdiccion) }}: <strong>{{ plata(p.importe) }}</strong></li> }</ul>
+          </section>
+        }
+        <p class="muted gestion__ayuda">
+          Los archivos para ARCA van con el crédito fiscal sin prorrateo (igual al IVA de cada comprobante) y en el formato del
+          Libro IVA Digital (compras: comprobantes y alícuotas). Revisalo con tu contador antes de presentar.
+        </p>
+      }
+    }
+  }
+</div>

@@ -414,3 +414,48 @@ h1 .pill {
 .recepcion__factura {
   margin-bottom: 0.75rem;
 }
+
+// BP-180 bloque 7 -- el Libro IVA compras.
+.libro__resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  div {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--text-2);
+  }
+
+  strong {
+    font-size: 1.1rem;
+  }
+}
+
+.libro__tabla {
+  font-size: 0.85rem;
+
+  tfoot td {
+    border-top: 2px solid var(--border);
+    font-weight: 600;
+  }
+}
+
+.libro__nc td {
+  color: var(--danger, #b91c1c);
+}
+
+.libro__problemas ul,
+.libro__iibb ul {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.2rem;
+}

@@ -207,6 +207,18 @@
             <span class="shell__link-text">Comprobantes</span>
           </a>
         </li>
+        <li>
+          <!-- BP-180 bloque 7 (22-oct-2026) -- Libro IVA compras. -->
+          <a
+            class="shell__link"
+            routerLink="/gestion/compras/libro-iva"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Libro IVA compras' : null"
+          >
+            <mat-icon>menu_book</mat-icon>
+            <span class="shell__link-text">Libro IVA compras</span>
+          </a>
+        </li>
 
         <li class="shell__nav-section">Análisis</li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->
@@ -401,6 +413,8 @@
     </div>
 
     <div class="shell__content">
+      <!-- BP-196 (22-oct-2026): carteles fijos de la cuenta (plan sin pagar, mail sin confirmar). -->
+      <app-avisos-cuenta />
       <router-outlet></router-outlet>
     </div>
   </mat-sidenav-content>

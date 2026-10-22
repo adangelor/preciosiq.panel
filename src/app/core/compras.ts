@@ -525,6 +525,66 @@ export interface DesdeRecepciones {
   total: number;
 }
 
+// ------------------------------------------------------------------ Libro IVA compras (bloque 7)
+
+export interface RenglonLibroIva {
+  comprobanteId: number;
+  fecha: string;
+  tipo: TipoComprobante;
+  letra: LetraComprobante;
+  puntoVenta: number;
+  numero: number;
+  numeroTexto: string;
+  codigoArca: number;
+  supplierId: number;
+  proveedor: string;
+  cuit: string | null;
+  condicionIva: CondicionIva;
+  /** -1 = nota de crédito (resta en los totales). Los importes vienen en positivo. */
+  signo: number;
+  alicuotas: AlicuotaComprobante[];
+  sinDiscriminar: number;
+  noGravado: number;
+  exento: number;
+  percepcionIva: number;
+  percepcionIibb: number;
+  percepcionMunicipal: number;
+  percepcionOtras: number;
+  impuestosInternos: number;
+  otrosTributos: number;
+  total: number;
+  creditoFiscal: number;
+}
+
+export interface TotalesLibroIva {
+  alicuotas: AlicuotaComprobante[];
+  netoGravado: number;
+  iva: number;
+  sinDiscriminar: number;
+  noGravado: number;
+  exento: number;
+  percepcionIva: number;
+  percepcionIibb: number;
+  percepcionMunicipal: number;
+  percepcionOtras: number;
+  impuestosInternos: number;
+  otrosTributos: number;
+  total: number;
+  creditoFiscal: number;
+}
+
+export interface LibroIva {
+  mes: string;
+  comercio: string;
+  cuit: string | null;
+  comprobantes: number;
+  renglones: RenglonLibroIva[];
+  totales: TotalesLibroIva;
+  iibbPorProvincia: { jurisdiccion: string; importe: number }[];
+  /** Lo que impide los archivos para ARCA (proveedores sin CUIT). El libro y el Excel salen igual. */
+  problemasParaArca: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
   private readonly http = inject(HttpClient);
@@ -689,6 +749,17 @@ export class ComprasService {
 
   desdeRecepciones(businessAccountId: number, ids: number[]): Observable<DesdeRecepciones> {
     return this.http.get<DesdeRecepciones>(`${this.url}/comprobantes/desde-recepciones`, { params: { businessAccountId, ids: ids.join(',') } });
+  }
+
+  // ---- Libro IVA compras
+
+  libroIva(businessAccountId: number, mes: string): Observable<LibroIva> {
+    return this.http.get<LibroIva>(`${this.url}/libro-iva`, { params: { businessAccountId, mes } });
+  }
+
+  /** El zip para el Libro IVA Digital de ARCA. */
+  archivosLibroIva(businessAccountId: number, mes: string): Observable<Blob> {
+    return this.http.get(`${this.url}/libro-iva/archivos`, { params: { businessAccountId, mes }, responseType: 'blob' });
   }
 }
 
@@ -932,4 +1003,61 @@ export function sumaComprobante(c: Pick<ComprobanteRequest, 'alicuotas' | 'noGra
   const s = c.alicuotas.reduce((t, a) => t + a.neto + a.iva, 0) + c.noGravado + c.exento + c.impuestosInternos + c.otrosTributos
     + c.percepciones.reduce((t, p) => t + p.importe, 0);
   return Math.round(s * 100) / 100;
+}
+
+// ------------------------------------------------------------------ el Libro IVA compras
+
+/** Las alícuotas que aparecen en el mes, de mayor a menor (una columna de neto y una de IVA por cada una). */
+export function alicuotasDelLibro(libro: LibroIva): number[] {
+  const set = new Set<number>();
+  for (const r of libro.renglones) for (const a of r.alicuotas) set.add(a.alicuota);
+  return [...set].sort((a, b) => b - a);
+}
+
+const nombreProvincia = (codigo: string) => PROVINCIAS.find((p) => p.codigo === codigo)?.nombre ?? codigo;
+
+/**
+ * El libro como planilla (para el Excel): encabezado, un renglón por comprobante con las notas de crédito en negativo, y
+ * los totales. Los importes van como números (el Excel los suma); la fecha como texto dd/mm/aaaa.
+ */
+export function filasDelLibro(libro: LibroIva): (string | number)[][] {
+  const alis = alicuotasDelLibro(libro);
+  const enc = ['Fecha', 'Comprobante', 'Número', 'Proveedor', 'CUIT', 'Condición'];
+  for (const a of alis) enc.push(`Neto ${String(a).replace('.', ',')} %`, `IVA ${String(a).replace('.', ',')} %`);
+  enc.push('B y C (sin discriminar)', 'No gravado', 'Exento', 'Percepción IVA', 'Percepción IIBB', 'Percepción municipal',
+    'Otras percepciones', 'Impuestos internos', 'Otros tributos', 'Total', 'Crédito fiscal');
+  const filas: (string | number)[][] = [enc];
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  for (const r of libro.renglones) {
+    const s = r.signo;
+    const fila: (string | number)[] = [fechaCorta(r.fecha), `${textoTipoComprobante(r.tipo)} ${r.letra}`, r.numeroTexto.slice(2), r.proveedor,
+      cuitConGuiones(r.cuit), textoCondicion(r.condicionIva)];
+    for (const a of alis) {
+      const x = r.alicuotas.find((y) => y.alicuota === a);
+      fila.push(x ? r2(s * x.neto) : 0, x ? r2(s * x.iva) : 0);
+    }
+    fila.push(r2(s * r.sinDiscriminar), r2(s * r.noGravado), r2(s * r.exento), r2(s * r.percepcionIva), r2(s * r.percepcionIibb),
+      r2(s * r.percepcionMunicipal), r2(s * r.percepcionOtras), r2(s * r.impuestosInternos), r2(s * r.otrosTributos), r2(s * r.total),
+      r2(s * r.creditoFiscal));
+    filas.push(fila);
+  }
+  const t = libro.totales;
+  const tot: (string | number)[] = ['', 'Totales', '', `${libro.comprobantes} comprobantes`, '', ''];
+  for (const a of alis) {
+    const x = t.alicuotas.find((y) => y.alicuota === a);
+    tot.push(x?.neto ?? 0, x?.iva ?? 0);
+  }
+  tot.push(t.sinDiscriminar, t.noGravado, t.exento, t.percepcionIva, t.percepcionIibb, t.percepcionMunicipal, t.percepcionOtras,
+    t.impuestosInternos, t.otrosTributos, t.total, t.creditoFiscal);
+  filas.push(tot);
+  if (libro.iibbPorProvincia.length > 0) {
+    filas.push([]);
+    filas.push(['Percepciones de IIBB por provincia']);
+    for (const p of libro.iibbPorProvincia) filas.push([nombreProvincia(p.jurisdiccion), p.importe]);
+  }
+  return filas;
+}
+
+export function provinciaDe(codigo: string): string {
+  return nombreProvincia(codigo);
 }

@@ -267,6 +267,12 @@ export const routes: Routes = [
         title: 'PreciosIQ — Comprobante',
       },
       {
+        // BP-180 bloque 7 -- Libro IVA compras del mes, Excel y archivos para ARCA.
+        path: 'gestion/compras/libro-iva',
+        loadComponent: () => import('./features/gestion/libro-iva').then((m) => m.LibroIvaComponent),
+        title: 'PreciosIQ — Libro IVA compras',
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/benchmark-dashboard/benchmark-dashboard').then((m) => m.BenchmarkDashboardComponent),
