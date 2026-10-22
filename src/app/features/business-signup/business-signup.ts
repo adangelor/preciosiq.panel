@@ -300,7 +300,7 @@ export class BusinessSignupComponent implements OnInit {
           } else {
             this.checkoutLoading.set(false);
             this.checkoutError.set(
-              'Mercado Pago no devolvió un link de pago. Tu cuenta ya quedó creada en el plan Gratis -- podés subir de plan más tarde desde "Tu plan".'
+              'No pudimos generar el link de pago. Tu cuenta ya quedó creada en el plan Gratis -- podés contratar el plan más tarde desde "Tu plan".'
             );
             this.createdAccount.set(account);
           }

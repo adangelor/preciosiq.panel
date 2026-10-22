@@ -22,6 +22,7 @@ import { BusinessAccountResponse, resolveLogoUrl } from '../../core/business-acc
 import { AccountMenuComponent } from '../account-menu/account-menu';
 import { AvisosService } from '../../core/avisos';
 import { CampanitaComponent } from '../campanita/campanita';
+import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -36,6 +37,7 @@ import { CampanitaComponent } from '../campanita/campanita';
   standalone: true,
   imports: [
     CampanitaComponent,
+    AvisosCuentaComponent, // BP-196: carteles de cobro (gracia) y de mail sin confirmar
     RouterLink,
     RouterLinkActive,
     RouterOutlet,

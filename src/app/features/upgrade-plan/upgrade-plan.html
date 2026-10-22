@@ -29,6 +29,12 @@
   @if (errorMessage()) {
     <p class="form-error">{{ errorMessage() }}</p>
   }
+  @if (infoMessage()) {
+    <p class="cobro-info" role="status">{{ infoMessage() }}</p>
+  }
+  @if (esperandoPago()) {
+    <p class="cobro-info" role="status">Estamos confirmando tu pago con Nave…</p>
+  }
 
   @if (status(); as s) {
     @if (s.isTrial) {
@@ -63,10 +69,63 @@
           }
         </span>
       }
-      @if (s.tier !== 'free') {
-        <button type="button" class="link-button" (click)="downgrade()">Bajar a plan gratis</button>
+      @if (s.tier !== 'free' && cobro()?.tierProximoPeriodo !== 'free') {
+        <button type="button" class="link-button" [disabled]="accionEnCurso() === 'baja'" (click)="downgrade()">Pasar a plan gratis</button>
       }
     </div>
+
+    <!-- BP-196 (22-oct-2026) -- el cobro con Nave: lo pendiente, lo programado y pagar por adelantado. -->
+    @if (cobro(); as c) {
+      @if (c.cobraPorMercadoPago) {
+        <div class="cobro-caja">Tu plan todavía se cobra por Mercado Pago. Escribinos y lo pasamos al cobro nuevo.</div>
+      } @else {
+        @if (c.cobroPendiente; as p) {
+          <div class="cobro-caja" [class.cobro-caja--alerta]="!!c.enGraciaHasta || !!c.ultimoRechazo">
+            <div>
+              <strong>Tenés un pago pendiente:</strong> {{ nombreTipo(p.tipo) }} ({{ p.tier }} {{ nombreCiclo(p.ciclo) }})
+              por <strong>{{ pesos(p.monto) }}</strong>.
+              @if (p.periodoDesde && p.tipo === 'renovacion') {
+                Período del {{ p.periodoDesde | date: 'dd/MM/yyyy' }} al {{ p.periodoHasta | date: 'dd/MM/yyyy' }}.
+              }
+              @if (c.enGraciaHasta) {
+                Si no se paga, el {{ c.enGraciaHasta | date: 'dd/MM/yyyy' }} la cuenta pasa al plan Gratis.
+              }
+            </div>
+            @if (c.ultimoRechazo) {
+              <div class="cobro-caja__motivo">Último intento: {{ c.ultimoRechazo }}</div>
+            }
+            <button type="button" [disabled]="accionEnCurso() === 'pagar'" (click)="pagarPendiente()">
+              {{ accionEnCurso() === 'pagar' ? 'Abriendo…' : 'Pagar ' + pesos(p.monto) }}
+            </button>
+            <span class="cobro-caja__nota">Pagás con la app de tu banco, MODO o tu billetera.</span>
+          </div>
+        } @else if (s.tier !== 'free' && s.renewsAt && !c.tierProximoPeriodo && s.status === 'active') {
+          <div class="cobro-caja">
+            Tu plan está pago hasta el {{ s.renewsAt | date: 'dd/MM/yyyy' }}. Unos días antes te mandamos el link para el
+            próximo período.
+            <button type="button" class="link-button" [disabled]="accionEnCurso() === 'adelantado'" (click)="pagarAdelantado()">
+              Pagar el próximo período ahora
+            </button>
+          </div>
+        }
+        @if (c.proximoPlanRigeDesde) {
+          <div class="cobro-caja">
+            @if (c.tierProximoPeriodo === 'free') {
+              Desde el {{ c.proximoPlanRigeDesde | date: 'dd/MM/yyyy' }} la cuenta pasa al plan Gratis.
+            } @else {
+              Desde el {{ c.proximoPlanRigeDesde | date: 'dd/MM/yyyy' }} pasás a {{ c.tierProximoPeriodo ?? s.tier }}
+              {{ nombreCiclo(c.cicloProximoPeriodo ?? s.billingCycle) }}.
+            }
+            <button type="button" class="link-button" [disabled]="accionEnCurso() === 'quedarme'" (click)="quedarme()">
+              Quedarme en mi plan
+            </button>
+          </div>
+        }
+        @if (!c.cobroHabilitado) {
+          <div class="cobro-caja">El pago online todavía no está habilitado. Si querés contratar un plan, escribinos.</div>
+        }
+      }
+    }
 
     @if (plans(); as planList) {
       <div class="billing-cycle-toggle">
@@ -118,14 +177,15 @@
             @if (plan.tier === s.tier) {
               <button type="button" disabled>Plan actual</button>
             } @else if (plan.tier === 'free') {
-              <button type="button" (click)="downgrade()">Bajar a este plan</button>
+              <button type="button" (click)="downgrade()">Pasar a este plan</button>
             } @else {
+              <!-- BP-196: alta o subida va a pagar a Nave; bajar o cambiar de ciclo queda para el vencimiento. -->
               <button
                 type="button"
                 [disabled]="checkoutLoadingTier() === plan.tier"
                 (click)="upgrade(plan.tier)"
               >
-                {{ checkoutLoadingTier() === plan.tier ? 'Redirigiendo…' : 'Suscribirme' }}
+                {{ checkoutLoadingTier() === plan.tier ? 'Un momento…' : s.tier === 'free' ? 'Contratar' : 'Cambiar a este plan' }}
               </button>
             }
           </div>

@@ -37,9 +37,20 @@ export class BusinessSubscriptionService {
     });
   }
 
-  downgradeToFree(businessAccountId: number): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/downgrade-to-free`, null, {
+  // BP-196: con Nave, si hay un periodo pago por delante la baja queda programada (programado + mensaje).
+  downgradeToFree(businessAccountId: number): Observable<CreateCheckoutResponse> {
+    return this.http.post<CreateCheckoutResponse>(`${this.baseUrl}/downgrade-to-free`, null, {
       params: { businessAccountId },
     });
+  }
+
+  // BP-196 (22-oct-2026) -- el link del cobro pendiente (si vencio, el backend crea uno nuevo).
+  pagar(businessAccountId: number): Observable<CreateCheckoutResponse> {
+    return this.http.post<CreateCheckoutResponse>(`${this.baseUrl}/pagar`, null, { params: { businessAccountId } });
+  }
+
+  // BP-196 -- pagar el proximo periodo antes de que venza.
+  pagarAdelantado(businessAccountId: number): Observable<CreateCheckoutResponse> {
+    return this.http.post<CreateCheckoutResponse>(`${this.baseUrl}/pagar-adelantado`, null, { params: { businessAccountId } });
   }
 }

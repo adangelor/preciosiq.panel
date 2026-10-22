@@ -57,9 +57,45 @@ export interface SubscriptionStatusResponse {
   hasFormacionPrecios?: boolean;
   // BP-180 (22-oct-2026) -- compras, Avanzado y Cadena.
   hasCompras?: boolean;
+  // BP-196 (22-oct-2026) -- el cobro con Nave. Opcional: un backend viejo no lo manda.
+  cobro?: EstadoCobro | null;
 }
 
-export interface CreateCheckoutResponse {
-  initPoint: string;
+// BP-196 (22-oct-2026) -- espejo de EstadoCobroDto / CobroPendienteDto (Services/Cobro/CobroService.cs).
+export interface CobroPendiente {
   paymentId: number;
+  tipo: 'alta' | 'renovacion' | 'cambio' | 'manual' | string;
+  tier: string;
+  ciclo: BillingCycle | null;
+  monto: number;
+  periodoDesde: string | null;
+  periodoHasta: string | null;
+  linkVenceAt: string | null; // null = el link vencio: hay que pedir uno nuevo (POST /pagar)
+  checkoutUrl: string | null;
+  intentos: number;
+}
+
+export interface EstadoCobro {
+  cobroPendiente: CobroPendiente | null;
+  enGraciaHasta: string | null; // vencio sin pagar: sigue con su plan hasta esta fecha
+  ultimoRechazo: string | null; // el motivo del ultimo rechazo, en criollo
+  tierProximoPeriodo: string | null;
+  cicloProximoPeriodo: BillingCycle | null;
+  proximoPlanRigeDesde: string | null;
+  cobraPorMercadoPago: boolean;
+  cobroHabilitado: boolean;
+}
+
+// BP-196 -- con Nave el checkout puede no tener nada que pagar ahora: un cambio programado para el vencimiento
+// (programado) o uno aplicado en el acto (aplicado). initPoint = checkoutUrl (el backend lo manda igual).
+export interface CreateCheckoutResponse {
+  initPoint: string | null;
+  paymentId: number | null;
+  checkoutUrl?: string | null;
+  monto?: number | null;
+  tipo?: string | null;
+  programado?: boolean;
+  aplicado?: boolean;
+  rigeDesde?: string | null;
+  mensaje?: string | null;
 }

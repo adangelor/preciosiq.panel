@@ -2,7 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { UpdateProfilePictureResponse, UpdateProfileRequest, UserProfileResponse } from './profile.models';
+import {
+  EnviarConfirmacionResponse,
+  UpdateProfilePictureResponse,
+  UpdateProfileRequest,
+  UserProfileResponse,
+} from './profile.models';
 
 // Cliente de IdentityEndpoints.cs -- GET/PUT /api/identity/profile + POST
 // /api/identity/profile/picture. Generico de plataforma (mismo backend que ya usa
@@ -24,5 +29,10 @@ export class ProfileService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<UpdateProfilePictureResponse>(`${this.profileUrl}/picture`, formData);
+  }
+
+  // BP-196 (22-oct-2026) -- manda el mail con el link para confirmar el mail (la marca la decide el backend por el Origin).
+  enviarConfirmacionEmail(): Observable<EnviarConfirmacionResponse> {
+    return this.http.post<EnviarConfirmacionResponse>(`${environment.apiBaseUrl}identity/confirmar-email/enviar`, null);
   }
 }

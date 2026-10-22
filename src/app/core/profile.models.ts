@@ -16,6 +16,14 @@ export interface UserProfileResponse {
   locationId: number | null;
   roles: string[];
   totalPoints: number | null;
+  // BP-196 (22-oct-2026) -- false: el panel pide confirmar el mail. Opcional: un backend viejo no lo manda.
+  emailConfirmado?: boolean;
+}
+
+// BP-196 -- respuesta de POST /api/identity/confirmar-email/enviar.
+export interface EnviarConfirmacionResponse {
+  enviado: boolean;
+  yaConfirmado: boolean;
 }
 
 export interface UpdateProfileRequest {

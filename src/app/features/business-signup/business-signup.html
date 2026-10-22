@@ -134,7 +134,7 @@
                   </button>
                 </div>
                 <p class="field-hint">
-                  Al crear la cuenta te vamos a redirigir a Mercado Pago para completar la suscripción al plan {{ planDisplayName(selectedTier()) }}.
+                  Al crear la cuenta te llevamos a pagar el plan {{ planDisplayName(selectedTier()) }} (con la app de tu banco, MODO o tu billetera).
                   Si algo falla en el pago, la cuenta igual queda creada en el plan Gratis.
                 </p>
               }
@@ -318,7 +318,7 @@
         } @else {
           <button type="submit" [disabled]="submitting() || checkoutLoading()">
             @if (checkoutLoading()) {
-              Redirigiendo a Mercado Pago…
+              Abriendo el pago…
             } @else if (submitting()) {
               Creando cuenta…
             } @else if (selectedTier() === 'free') {

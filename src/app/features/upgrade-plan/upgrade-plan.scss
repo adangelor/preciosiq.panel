@@ -196,3 +196,38 @@ button:disabled {
   content: '\f00d';
   color: var(--text-3);
 }
+
+// BP-196 (22-oct-2026) -- el cobro con Nave.
+.cobro-info {
+  background: var(--info-soft);
+  border: 1px solid var(--info);
+  color: var(--info);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin: 0 0 1rem 0;
+}
+
+.cobro-caja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+
+  > div { flex: 1 1 100%; }
+}
+
+.cobro-caja--alerta {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.cobro-caja__motivo { color: var(--danger); font-weight: 600; }
+.cobro-caja__nota { color: var(--text-3); font-size: 0.85rem; }
