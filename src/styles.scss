@@ -55,80 +55,94 @@ html {
     margin: 14mm;
   }
 
-  /* Se imprime SOLO el overlay (el diálogo). El resto de la app desaparece. */
-  body > *:not(.cdk-overlay-container) {
+  /* BP-181 bloque 10 (21-oct-2026) -- todo esto vale SOLO mientras se imprime el informe (el dialogo pone la clase en el
+     body y la saca al terminar). Antes era global y dejaba en blanco cualquier otra impresion del panel: el cartel de
+     la tienda (BP-71), la hoja de pedido (BP-150) y los carteles de gondola (BP-181). */
+  body.imprimiendo-informe {
+
+    /* Se imprime SOLO el overlay (el diálogo). El resto de la app desaparece. */
+    > *:not(.cdk-overlay-container) {
+      display: none !important;
+    }
+
+    & {
+      background: #fff !important;
+    }
+
+    /* El overlay deja de estar posicionado y pasa a fluir como contenido normal:
+       de otro modo se imprime una sola página con el alto del viewport. */
+    .cdk-overlay-container,
+    .cdk-global-overlay-wrapper,
+    .cdk-overlay-pane {
+      position: static !important;
+      display: block !important;
+      width: auto !important;
+      max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      transform: none !important;
+    }
+
+    .cdk-overlay-backdrop {
+      display: none !important;
+    }
+
+    .mat-mdc-dialog-container,
+    .mat-mdc-dialog-surface,
+    .mat-mdc-dialog-content {
+      position: static !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      overflow: visible !important;
+      max-height: none !important;
+      height: auto !important;
+      background: #fff !important;
+    }
+
+    /* Controles que no tienen sentido en papel (cerrar, feedback, regenerar). */
+    .no-print,
+    .dialog-close,
+    .dialog-header-actions {
+      display: none !important;
+    }
+
+    /* Cabecera y pie que solo existen en la versión impresa. */
+    .print-only {
+      display: block !important;
+    }
+
+    /* Tablas: encabezado repetido en cada página y filas que no se parten al medio. */
+    table {
+      page-break-inside: auto;
+      border-collapse: collapse !important;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tr,
+    img {
+      page-break-inside: avoid;
+    }
+
+    h2,
+    h3,
+    h4 {
+      page-break-after: avoid;
+    }
+
+    /* Tinta: gris claro sobre papel no se lee. */
+    .hint {
+      color: #555 !important;
+    }
+  }
+}
+
+// BP-181 bloque 10 (21-oct-2026) -- el globo del chat de Omnivox (fixed, abajo a la derecha) salía en los carteles de
+// góndola, el cartel de la tienda y la hoja de pedidos al imprimir.
+@media print {
+  #omnivox-widget-root {
     display: none !important;
-  }
-
-  body {
-    background: #fff !important;
-  }
-
-  /* El overlay deja de estar posicionado y pasa a fluir como contenido normal:
-     de otro modo se imprime una sola página con el alto del viewport. */
-  .cdk-overlay-container,
-  .cdk-global-overlay-wrapper,
-  .cdk-overlay-pane {
-    position: static !important;
-    display: block !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    transform: none !important;
-  }
-
-  .cdk-overlay-backdrop {
-    display: none !important;
-  }
-
-  .mat-mdc-dialog-container,
-  .mat-mdc-dialog-surface,
-  .mat-mdc-dialog-content {
-    position: static !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    overflow: visible !important;
-    max-height: none !important;
-    height: auto !important;
-    background: #fff !important;
-  }
-
-  /* Controles que no tienen sentido en papel (cerrar, feedback, regenerar). */
-  .no-print,
-  .dialog-close,
-  .dialog-header-actions {
-    display: none !important;
-  }
-
-  /* Cabecera y pie que solo existen en la versión impresa. */
-  .print-only {
-    display: block !important;
-  }
-
-  /* Tablas: encabezado repetido en cada página y filas que no se parten al medio. */
-  table {
-    page-break-inside: auto;
-    border-collapse: collapse !important;
-  }
-
-  thead {
-    display: table-header-group;
-  }
-
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
-
-  h2,
-  h3,
-  h4 {
-    page-break-after: avoid;
-  }
-
-  /* Tinta: gris claro sobre papel no se lee. */
-  .hint {
-    color: #555 !important;
   }
 }

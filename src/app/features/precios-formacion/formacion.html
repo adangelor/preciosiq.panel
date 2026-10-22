@@ -189,7 +189,7 @@
     </div>
 
     @if (cargando()) {
-      <app-loading-bar label="Calculando contra la competencia… (la primera vez tarda unos segundos)" [slowAfterSeconds]="40" />
+      <app-loading-bar label="Calculando contra la competencia… (la primera vez puede tardar hasta medio minuto en una cadena grande)" [slowAfterSeconds]="60" />
     }
 
     @if (datos(); as d) {

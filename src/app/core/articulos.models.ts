@@ -139,6 +139,8 @@ export interface ArmarArticulosResponse {
   productosSinEanCorregidos: number;
   milisegundos: number;
   soloMedido: boolean;
+  /** BP-178 bloque 10 -- fichas que ya existían a las que se les completó el rubro o el proveedor. */
+  completados?: number;
 }
 
 export interface ArticuloExportItem {

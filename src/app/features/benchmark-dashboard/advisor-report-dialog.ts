@@ -129,7 +129,15 @@ export class AdvisorReportDialogComponent implements OnInit {
   // Las reglas @media print viven en styles.scss porque tienen que alcanzar al
   // <body> y al overlay del CDK, que estan FUERA del encapsulamiento de este
   // componente.
+  // BP-181 bloque 10 -- las reglas de styles.scss solo valen con body.imprimiendo-informe: sin eso, el resto de las
+  // impresiones del panel (carteles, hoja de pedido) salian en blanco.
   protected print(): void {
+    document.body.classList.add('imprimiendo-informe');
+    const sacar = () => {
+      document.body.classList.remove('imprimiendo-informe');
+      window.removeEventListener('afterprint', sacar);
+    };
+    window.addEventListener('afterprint', sacar);
     window.print();
   }
 

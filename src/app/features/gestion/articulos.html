@@ -46,7 +46,11 @@
       <section class="gestion__resultado">
         <h2>Listo: {{ num(r.creados) }} {{ r.creados === 1 ? 'artículo nuevo' : 'artículos nuevos' }}</h2>
         <ul>
-          @if (r.yaEstaban > 0) { <li>{{ num(r.yaEstaban) }} ya tenían su ficha: no se tocaron.</li> }
+          @if (r.yaEstaban > 0) {
+            <li>
+              {{ num(r.yaEstaban) }} ya tenían su ficha@if ((r.completados ?? 0) > 0) {: a {{ num(r.completados!) }} se les completó el rubro o el proveedor (lo cargado no se pisa)} @else {: no se tocaron}.
+            </li>
+          }
           <li>{{ num(r.conRubro) }} con rubro (sale de la categoría de la red); {{ num(r.rubrosCreados) }} rubros nuevos.</li>
           <li>{{ num(r.conProveedor) }} con proveedor (el de su último costo); {{ num(r.proveedoresCreados) }} proveedores nuevos.</li>
           @if (r.productosSinEanCorregidos > 0) {
