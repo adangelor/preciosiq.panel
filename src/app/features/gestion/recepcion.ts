@@ -286,7 +286,8 @@ export class RecepcionComponent implements OnInit {
           const orden = x.estadoOrden && x.recepcion.ordenNumeroTexto
             ? ` La orden ${x.recepcion.ordenNumeroTexto} quedó ${textoEstadoOrden(x.estadoOrden).toLowerCase()}.` : '';
           this.aviso.set(`${x.recepcion.numeroTexto} confirmada: ${x.movimientos} ${x.movimientos === 1 ? 'artículo' : 'artículos'} `
-            + `${x.recepcion.esDevolucion ? 'salieron' : 'entraron'} al stock`
+            + (x.recepcion.esDevolucion ? (x.movimientos === 1 ? 'salió del' : 'salieron del') : (x.movimientos === 1 ? 'entró al' : 'entraron al'))
+            + ' stock'
             + (x.costosCargados > 0 ? ` y ${x.costosCargados} ${x.costosCargados === 1 ? 'costo cambió' : 'costos cambiaron'}` : '') + `.${orden}`);
         },
         error: (err) => { this.trabajando.set(false); this.error.set(mensajeDeError(err, 'No pudimos confirmar la recepción.')); },
