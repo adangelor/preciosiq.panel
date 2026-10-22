@@ -23,6 +23,7 @@
         <span>Orden <a [routerLink]="['/gestion/compras/ordenes', r.ordenId]">{{ r.ordenNumeroTexto }}</a>
           @if (r.ordenEstado) { ({{ textoEstadoOrden(r.ordenEstado).toLowerCase() }}) }</span>
       } @else if (!r.esDevolucion) { <span>Sin orden</span> }
+      @if (r.origen === 'caja') { <span>Cargada desde la caja{{ r.estado === 'borrador' ? ': revisala y confirmala' : '' }}</span> }
       @if (r.confirmadaAtUtc) { <span>Confirmada el {{ fechaUtc(r.confirmadaAtUtc) }}</span> }
       @if (r.anuladaAtUtc) { <span>Anulada el {{ fechaUtc(r.anuladaAtUtc) }}</span> }
     </p>

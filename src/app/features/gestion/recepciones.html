@@ -112,6 +112,7 @@
                   <td class="strong gestion__nowrap">
                     <a [routerLink]="['/gestion/compras/recepciones', r.id]">{{ r.numeroTexto }}</a>
                     @if (r.esDevolucion) { <span class="pill pill--danger">devolución</span> }
+                    @if (r.origen === 'caja') { <span class="pill pill--info">desde la caja</span> }
                     @if (r.conDiferencias) { <span class="pill pill--warning">con diferencias</span> }
                   </td>
                   <td class="gestion__nowrap">{{ fechaHora(r.recibidaAtLocal) }}</td>
