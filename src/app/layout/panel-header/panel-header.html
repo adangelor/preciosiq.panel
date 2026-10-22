@@ -183,6 +183,18 @@
             <span class="shell__link-text">Órdenes de compra</span>
           </a>
         </li>
+        <li>
+          <!-- BP-180 bloque 4 (22-oct-2026) -- recepción de mercadería y devoluciones al proveedor. -->
+          <a
+            class="shell__link"
+            routerLink="/gestion/compras/recepciones"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Recepciones' : null"
+          >
+            <mat-icon>move_to_inbox</mat-icon>
+            <span class="shell__link-text">Recepciones</span>
+          </a>
+        </li>
 
         <li class="shell__nav-section">Análisis</li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->

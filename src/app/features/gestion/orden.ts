@@ -9,7 +9,6 @@ import {
   mensajeDeOrden, textoEstadoOrden,
 } from '../../core/compras';
 import { GestionContextoService } from '../../core/gestion-contexto';
-import { LoadingBarComponent } from '../../layout/loading-bar/loading-bar';
 import { ArticuloBuscadorComponent, ArticuloElegido } from '../gestion-stock/articulo-buscador';
 import { PILL_DE_ESTADO } from './ordenes';
 
@@ -73,7 +72,7 @@ export function costoDeFila(f: FilaOrden): number | null {
 @Component({
   selector: 'app-orden',
   standalone: true,
-  imports: [RouterLink, LoadingBarComponent, ArticuloBuscadorComponent],
+  imports: [RouterLink, ArticuloBuscadorComponent],
   templateUrl: './orden.html',
   styleUrl: './gestion.scss',
 })

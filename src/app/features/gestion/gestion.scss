@@ -323,3 +323,59 @@ h1 .pill {
   display: flex;
   flex: 1 1 22rem;
 }
+
+// BP-180 bloque 4 -- la recepción.
+.recepcion__lector {
+  align-items: flex-end;
+}
+
+.recepcion__lector-campo {
+  flex: 1 1 22rem;
+
+  input {
+    width: 100%;
+    font-size: 1.05rem;
+  }
+}
+
+.recepcion__lectura {
+  margin: 0.4rem 0 0.75rem;
+  font-weight: 600;
+  color: var(--success, #15803d);
+}
+
+.recepcion__lectura--mal {
+  color: var(--danger, #b91c1c);
+}
+
+.recepcion__renglones input {
+  text-align: right;
+}
+
+.recepcion__con-diferencia td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning, #d97706);
+}
+
+.recepcion__resumen ul {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.recepciones__otras,
+.orden__recibir {
+  margin-top: 0.75rem;
+}
+
+.recepciones__nueva {
+  margin-top: 0.75rem;
+}
+
+.recepcion__falta {
+  color: var(--danger, #b91c1c);
+  font-weight: 600;
+}
+
+.recepcion__sobra {
+  color: var(--warning, #b45309);
+  font-weight: 600;
+}

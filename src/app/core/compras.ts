@@ -234,6 +234,130 @@ export interface Sugerida {
   items: SugeridaRenglon[];
 }
 
+// ------------------------------------------------------------------ recepción (bloque 4)
+
+export type EstadoRecepcion = 'borrador' | 'confirmada' | 'anulada';
+export type MotivoDiferencia = 'faltante' | 'sobrante' | 'roto' | 'vencido' | 'cambio' | 'otro';
+
+export const MOTIVOS_DIFERENCIA: { valor: MotivoDiferencia; texto: string }[] = [
+  { valor: 'faltante', texto: 'Faltante' },
+  { valor: 'sobrante', texto: 'Sobrante' },
+  { valor: 'roto', texto: 'Roto' },
+  { valor: 'vencido', texto: 'Vencido' },
+  { valor: 'cambio', texto: 'Cambio de artículo' },
+  { valor: 'otro', texto: 'Otro' },
+];
+
+export interface RenglonRecepcion {
+  articuloId: number;
+  codigo: string;
+  descripcion: string;
+  marca: string | null;
+  codigoProveedor: string | null;
+  unidadesPorBulto: number | null;
+  /** Lo que faltaba recibir de la orden (null = no estaba en la orden, o es sin orden). */
+  unidadesPedidas: number | null;
+  unidadesRecibidas: number;
+  diferencia: number | null;
+  /** Por unidad, sin IVA, ya bonificado. */
+  costoNeto: number | null;
+  motivoDiferencia: MotivoDiferencia | null;
+  subtotal: number | null;
+}
+
+export interface RecepcionResumen {
+  id: number;
+  numeroTexto: string;
+  supplierId: number | null;
+  proveedor: string | null;
+  branchId: string;
+  sucursal: string;
+  ordenId: number | null;
+  ordenNumeroTexto: string | null;
+  esDevolucion: boolean;
+  remitoNumero: string | null;
+  recibidaAtLocal: string;
+  estado: EstadoRecepcion;
+  origen: 'panel' | 'caja';
+  renglones: number;
+  unidades: number;
+  total: number;
+  conDiferencias: boolean;
+}
+
+export interface RecepcionLista {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: RecepcionResumen[];
+}
+
+export interface Recepcion {
+  id: number;
+  numeroTexto: string;
+  supplierId: number | null;
+  proveedor: string | null;
+  branchId: string;
+  sucursal: string;
+  ordenId: number | null;
+  ordenNumeroTexto: string | null;
+  ordenEstado: EstadoOrden | null;
+  esDevolucion: boolean;
+  remitoNumero: string | null;
+  recibidaAtLocal: string;
+  estado: EstadoRecepcion;
+  origen: 'panel' | 'caja';
+  nota: string | null;
+  createdAtUtc: string;
+  confirmadaAtUtc: string | null;
+  anuladaAtUtc: string | null;
+  items: RenglonRecepcion[];
+  total: number;
+  faltantes: number;
+  sobrantes: number;
+}
+
+export interface RenglonRecepcionRequest {
+  articuloId: number | null;
+  codigo: string | null;
+  unidades: number | null;
+  bultos: number | null;
+  costoNeto: number | null;
+  motivo: MotivoDiferencia | null;
+}
+
+export interface RecepcionRequest {
+  businessAccountId: number;
+  supplierId: number | null;
+  branchId: string | null;
+  ordenId: number | null;
+  esDevolucion: boolean;
+  remitoNumero: string | null;
+  recibidaAtLocal: string | null;
+  nota: string | null;
+  renglones: RenglonRecepcionRequest[] | null;
+}
+
+export interface ConfirmarRecepcionResponse {
+  recepcion: Recepcion;
+  movimientos: number;
+  costosCargados: number;
+  estadoOrden: EstadoOrden | null;
+}
+
+/** Lo que leyó el lector: el artículo y cuántas unidades suma (un código de bulto suma sus unidades). */
+export interface CodigoLeido {
+  articuloId: number;
+  codigo: string;
+  descripcion: string;
+  factor: number;
+  por: string;
+  unidadesPorBulto: number | null;
+  codigoProveedor: string | null;
+  costoFinal: number | null;
+  activo: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
   private readonly http = inject(HttpClient);
@@ -320,6 +444,46 @@ export class ComprasService {
     const params: Record<string, string | number | boolean> = { businessAccountId, proveedorId, sucursal, dias, cubrir };
     if (todos) params['todos'] = true;
     return this.http.get<Sugerida>(`${this.url}/sugerida`, { params });
+  }
+
+  // ---- recepción
+
+  recepciones(
+    businessAccountId: number,
+    filtro: { estado?: string; sucursal?: string; proveedorId?: number; ordenId?: number; page?: number; pageSize?: number },
+  ): Observable<RecepcionLista> {
+    const params: Record<string, string | number> = { businessAccountId, page: filtro.page ?? 1, pageSize: filtro.pageSize ?? 30 };
+    if (filtro.estado) params['estado'] = filtro.estado;
+    if (filtro.sucursal) params['sucursal'] = filtro.sucursal;
+    if (filtro.proveedorId) params['proveedorId'] = filtro.proveedorId;
+    if (filtro.ordenId) params['ordenId'] = filtro.ordenId;
+    return this.http.get<RecepcionLista>(`${this.url}/recepciones`, { params });
+  }
+
+  recepcion(businessAccountId: number, id: number): Observable<Recepcion> {
+    return this.http.get<Recepcion>(`${this.url}/recepciones/${id}`, { params: { businessAccountId } });
+  }
+
+  crearRecepcion(req: RecepcionRequest): Observable<Recepcion> {
+    return this.http.post<Recepcion>(`${this.url}/recepciones`, req);
+  }
+
+  editarRecepcion(id: number, req: RecepcionRequest): Observable<Recepcion> {
+    return this.http.put<Recepcion>(`${this.url}/recepciones/${id}`, req);
+  }
+
+  confirmarRecepcion(businessAccountId: number, id: number): Observable<ConfirmarRecepcionResponse> {
+    return this.http.post<ConfirmarRecepcionResponse>(`${this.url}/recepciones/${id}/confirmar`, { businessAccountId });
+  }
+
+  anularRecepcion(businessAccountId: number, id: number): Observable<Recepcion> {
+    return this.http.post<Recepcion>(`${this.url}/recepciones/${id}/anular`, { businessAccountId });
+  }
+
+  leerCodigo(businessAccountId: number, codigo: string, proveedorId: number | null): Observable<CodigoLeido> {
+    const params: Record<string, string | number> = { businessAccountId, codigo };
+    if (proveedorId) params['proveedorId'] = proveedorId;
+    return this.http.get<CodigoLeido>(`${this.url}/codigo`, { params });
   }
 }
 
@@ -508,4 +672,32 @@ export function linkWhatsApp(tel: string | null, texto: string): string {
 export function linkMail(email: string | null, o: Orden, texto: string): string {
   const asunto = `Orden de compra ${o.numeroTexto}${o.comercio ? ` — ${o.comercio}` : ''}`;
   return `mailto:${email ?? ''}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
+}
+
+// ------------------------------------------------------------------ la recepción
+
+export function textoMotivo(m: MotivoDiferencia | null): string {
+  return MOTIVOS_DIFERENCIA.find((x) => x.valor === m)?.texto ?? '';
+}
+
+/** El motivo que pone el servidor si el comprador no elige uno (ComprasRecepciones.MotivoDe). */
+export function motivoAutomatico(pedidas: number | null, recibidas: number, conOrden: boolean): MotivoDiferencia | null {
+  if (pedidas != null) return recibidas < pedidas ? 'faltante' : recibidas > pedidas ? 'sobrante' : null;
+  return conOrden && recibidas > 0 ? 'sobrante' : null;
+}
+
+export const ESTADOS_RECEPCION: { valor: EstadoRecepcion; texto: string }[] = [
+  { valor: 'borrador', texto: 'Borrador' },
+  { valor: 'confirmada', texto: 'Confirmada' },
+  { valor: 'anulada', texto: 'Anulada' },
+];
+
+export function textoEstadoRecepcion(e: EstadoRecepcion): string {
+  return ESTADOS_RECEPCION.find((x) => x.valor === e)?.texto ?? e;
+}
+
+/** "2026-10-22T14:30:00" (hora local del comercio) -> "22/10/2026 14:30". */
+export function fechaHoraLocal(local: string | null): string {
+  if (!local || local.length < 16) return local ?? '';
+  return `${local.slice(8, 10)}/${local.slice(5, 7)}/${local.slice(0, 4)} ${local.slice(11, 16)}`;
 }

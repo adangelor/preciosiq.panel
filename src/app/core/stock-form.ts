@@ -26,6 +26,7 @@ const TIPOS: Record<TipoDeMovimiento, string> = {
   transferencia_salida: 'Transferencia (sale)',
   transferencia_entrada: 'Transferencia (entra)',
   ajuste: 'Ajuste',
+  devolucion_proveedor: 'Devolución al proveedor',
 };
 
 export function tipoTexto(t: TipoDeMovimiento): string {
@@ -69,6 +70,8 @@ export function origenTexto(m: Pick<StockMovimiento, 'tipo' | 'origenTipo' | 'oc
   const de = m.usuario ? ` de ${m.usuario}` : '';
   const caja = cajaCorta(m.dispositivo);
   if (m.origenTipo === 'migracion') return 'Stock al pasar al historial';
+  // BP-180: la recepción deja su número (y el proveedor) en la nota: "Recepción R-000012 (Distri Norte)".
+  if (m.origenTipo === 'compra') return `${m.nota ?? (m.tipo === 'devolucion_proveedor' ? 'Devolución al proveedor' : 'Recepción de mercadería')}${de}`;
   if (m.origenTipo === 'transferencia' || m.tipo === 'transferencia_salida' || m.tipo === 'transferencia_entrada')
     return `Transferencia #${m.transferenciaId ?? '?'}${m.nota ? `: ${m.nota}` : ''}`;
   if (m.tipo === 'venta') return `Venta${caja ? `, caja ${caja}` : ''}, ticket ${hora(m.ocurridoAtLocal)}`;

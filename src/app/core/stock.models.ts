@@ -1,8 +1,9 @@
 // BP-179 (21-oct-2026) -- stock con historial: los DTOs de /api/business/stock (Data/DTOs/StockDtos.cs). Cantidades en
 // unidades de venta.
 
-export type TipoDeMovimiento = 'venta' | 'devolucion' | 'recuento' | 'ingreso' | 'merma' | 'transferencia_salida' | 'transferencia_entrada' | 'ajuste';
-export type OrigenDeMovimiento = 'caja_ticket' | 'caja_ajuste' | 'panel' | 'planilla' | 'migracion' | 'transferencia';
+export type TipoDeMovimiento = 'venta' | 'devolucion' | 'recuento' | 'ingreso' | 'merma' | 'transferencia_salida' | 'transferencia_entrada' | 'ajuste'
+  | 'devolucion_proveedor'; // BP-180
+export type OrigenDeMovimiento = 'caja_ticket' | 'caja_ajuste' | 'panel' | 'planilla' | 'migracion' | 'transferencia' | 'compra'; // compra: BP-180
 export type MotivoDeMerma = 'rotura' | 'vencido' | 'robo' | 'consumo' | 'otro';
 export type EstadoDeTransferencia = 'en_transito' | 'recibida' | 'cancelada';
 

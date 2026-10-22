@@ -235,6 +235,20 @@
       </section>
     }
 
+    <!-- ===================================================== recibir (bloque 4) -->
+    @if (o && (o.estado === 'enviada' || o.estado === 'recibida_parcial' || o.estado === 'recibida')) {
+      <div class="gestion__acciones orden__recibir">
+        @if (o.estado !== 'recibida') {
+          <a class="btn" routerLink="/gestion/compras/recepciones/nueva" [queryParams]="{ orden: o.id }">
+            <i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i> {{ o.estado === 'enviada' ? 'Recibir mercadería' : 'Recibir lo que falta' }}
+          </a>
+        }
+        @if (o.estado !== 'enviada') {
+          <a class="btn btn--ghost" routerLink="/gestion/compras/recepciones" [queryParams]="{ orden: o.id }">Ver sus recepciones</a>
+        }
+      </div>
+    }
+
     <!-- ===================================================== estado -->
     @if (o && (o.estado === 'borrador' || o.estado === 'enviada')) {
       <div class="gestion__acciones orden__estado">

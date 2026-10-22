@@ -233,6 +233,23 @@ export const routes: Routes = [
         title: 'PreciosIQ — Orden de compra',
       },
       {
+        // BP-180 bloque 4 -- recepción de mercadería (contra una orden o sin orden) y devolución al proveedor.
+        path: 'gestion/compras/recepciones',
+        loadComponent: () => import('./features/gestion/recepciones').then((m) => m.RecepcionesComponent),
+        title: 'PreciosIQ — Recepciones',
+      },
+      {
+        // ?orden= (contra una orden) o ?tipo=sin_orden|devolucion&sucursal=&proveedor=: crea el borrador y pasa a /:id.
+        path: 'gestion/compras/recepciones/nueva',
+        loadComponent: () => import('./features/gestion/recepcion').then((m) => m.RecepcionComponent),
+        title: 'PreciosIQ — Recepción',
+      },
+      {
+        path: 'gestion/compras/recepciones/:id',
+        loadComponent: () => import('./features/gestion/recepcion').then((m) => m.RecepcionComponent),
+        title: 'PreciosIQ — Recepción',
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/benchmark-dashboard/benchmark-dashboard').then((m) => m.BenchmarkDashboardComponent),

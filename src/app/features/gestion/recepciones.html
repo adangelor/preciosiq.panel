@@ -1,0 +1,141 @@
+<div class="gestion card--page">
+  <h1>Recepciones</h1>
+  <p class="subtitle">
+    La mercadería que llega a cada sucursal: contra una orden de compra (lo pedido contra lo recibido) o sin orden, y las
+    devoluciones al proveedor. Al confirmar se suma el stock y se actualiza el costo.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Las recepciones vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <!-- ===================================================== órdenes por recibir -->
+    <section class="gestion__seccion" aria-labelledby="titulo-por-recibir">
+      <h2 id="titulo-por-recibir">Órdenes por recibir</h2>
+      @if (porRecibir().length === 0) {
+        <p class="muted">No hay órdenes enviadas esperando mercadería. <a routerLink="/gestion/compras/ordenes">Órdenes de compra →</a></p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Orden</th><th>Proveedor</th><th>Sucursal</th><th>Estado</th><th>Entrega</th><th></th></tr></thead>
+            <tbody>
+              @for (o of porRecibir(); track o.id) {
+                <tr [attr.data-por-recibir]="o.id">
+                  <td class="strong gestion__nowrap"><a [routerLink]="['/gestion/compras/ordenes', o.id]">{{ o.numeroTexto }}</a></td>
+                  <td>{{ o.proveedor }}</td>
+                  <td>{{ o.sucursal }}</td>
+                  <td><span [class]="'pill ' + pillOrden[o.estado]">{{ textoEstadoOrden(o.estado) }}</span></td>
+                  <td class="gestion__nowrap">{{ o.entregaEsperada ? fecha(o.entregaEsperada) : '—' }}</td>
+                  <td><a class="btn btn--small" routerLink="/gestion/compras/recepciones/nueva" [queryParams]="{ orden: o.id }">Recibir</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="gestion__acciones recepciones__otras">
+        <button type="button" class="btn btn--ghost" (click)="empezar('sin_orden')">Recepción sin orden</button>
+        <button type="button" class="btn btn--ghost" (click)="empezar('devolucion')">Devolución al proveedor</button>
+      </div>
+      @if (empezando(); as tipo) {
+        <div class="gestion__fila-form recepciones__nueva">
+          <label>Sucursal
+            <select (change)="elegirNueva('nuevaSucursal', $event)" data-campo="sucursal">
+              <option value="" [selected]="!nuevaSucursal()">— elegí —</option>
+              @for (s of sucursales(); track s.branchId) {
+                <option [value]="s.branchId" [selected]="s.branchId === nuevaSucursal()">{{ s.branchName }}</option>
+              }
+            </select>
+          </label>
+          <label>{{ tipo === 'devolucion' ? 'Proveedor' : 'Proveedor (opcional)' }}
+            <select (change)="elegirNueva('nuevoProveedor', $event)" data-campo="proveedor">
+              <option value="0" [selected]="!nuevoProveedor()">{{ tipo === 'devolucion' ? '— elegí —' : '— sin proveedor —' }}</option>
+              @for (p of activos(); track p.id) {
+                <option [value]="p.id" [selected]="p.id === nuevoProveedor()">{{ p.nombre }}</option>
+              }
+            </select>
+          </label>
+          <button type="button" class="btn" (click)="seguir()">{{ tipo === 'devolucion' ? 'Empezar la devolución' : 'Empezar la recepción' }}</button>
+          <button type="button" class="btn btn--ghost" (click)="empezando.set(null)">Cancelar</button>
+        </div>
+        @if (errorNueva()) { <p class="alert alert--danger" role="alert">{{ errorNueva() }}</p> }
+      }
+    </section>
+
+    <!-- ===================================================== las recepciones -->
+    <h2>Recepciones hechas</h2>
+    @if (ordenId()) {
+      <p class="muted">Solo las de una orden. <a routerLink="/gestion/compras/recepciones" (click)="ordenId.set(null); cargar()">Ver todas →</a></p>
+    }
+    <div class="gestion__filtros">
+      <select (change)="filtrar('estado', $event)" aria-label="Estado">
+        <option value="" [selected]="estado() === ''">Todas</option>
+        @for (e of estados; track e.valor) {
+          <option [value]="e.valor" [selected]="estado() === e.valor">{{ e.texto }}</option>
+        }
+      </select>
+      @if (sucursales().length > 1) {
+        <select (change)="filtrar('sucursal', $event)" aria-label="Sucursal">
+          <option value="" [selected]="sucursal() === ''">Todas las sucursales</option>
+          @for (s of sucursales(); track s.branchId) {
+            <option [value]="s.branchId" [selected]="sucursal() === s.branchId">{{ s.branchName }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Cargando las recepciones…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+
+    @if (lista(); as l) {
+      @if (l.items.length === 0) {
+        <p class="muted gestion__vacia">Todavía no hay recepciones{{ estado() || sucursal() ? ' con ese filtro' : '' }}.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Recepción</th><th>Fecha</th><th>Proveedor</th><th>Sucursal</th><th>Orden</th><th>Estado</th>
+                <th class="num">Unidades</th><th class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of l.items; track r.id) {
+                <tr [attr.data-recepcion]="r.id">
+                  <td class="strong gestion__nowrap">
+                    <a [routerLink]="['/gestion/compras/recepciones', r.id]">{{ r.numeroTexto }}</a>
+                    @if (r.esDevolucion) { <span class="pill pill--danger">devolución</span> }
+                    @if (r.conDiferencias) { <span class="pill pill--warning">con diferencias</span> }
+                  </td>
+                  <td class="gestion__nowrap">{{ fechaHora(r.recibidaAtLocal) }}</td>
+                  <td>{{ r.proveedor ?? '—' }}</td>
+                  <td>{{ r.sucursal }}</td>
+                  <td class="gestion__nowrap">
+                    @if (r.ordenId) { <a [routerLink]="['/gestion/compras/ordenes', r.ordenId]">{{ r.ordenNumeroTexto }}</a> } @else { — }
+                  </td>
+                  <td><span [class]="'pill ' + pill[r.estado]">{{ textoEstado(r.estado) }}</span></td>
+                  <td class="num">{{ cant(r.unidades) }}</td>
+                  <td class="num">{{ plata(r.total) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (paginas() > 1) {
+          <div class="gestion__paginas">
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+            <span class="muted">Página {{ pagina() }} de {{ paginas() }} · {{ l.total }} recepciones</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+          </div>
+        }
+      }
+    }
+  }
+</div>

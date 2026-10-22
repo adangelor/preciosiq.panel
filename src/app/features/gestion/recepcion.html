@@ -1,0 +1,213 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/compras/recepciones">← Recepciones</a></p>
+
+  @if (cargando()) {
+    <p class="muted">Cargando…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Las recepciones vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (recepcion(); as r) {
+    <h1>
+      {{ r.esDevolucion ? 'Devolución' : 'Recepción' }} {{ r.numeroTexto }}
+      <span [class]="'pill ' + pill[r.estado]">{{ textoEstado(r.estado) }}</span>
+    </h1>
+    <p class="proveedor__ficha">
+      <span>{{ r.esDevolucion ? 'Sale de' : 'Llega a' }} <strong>{{ r.sucursal }}</strong></span>
+      <span>{{ r.proveedor ?? 'Sin proveedor' }}</span>
+      @if (r.ordenId) {
+        <span>Orden <a [routerLink]="['/gestion/compras/ordenes', r.ordenId]">{{ r.ordenNumeroTexto }}</a>
+          @if (r.ordenEstado) { ({{ textoEstadoOrden(r.ordenEstado).toLowerCase() }}) }</span>
+      } @else if (!r.esDevolucion) { <span>Sin orden</span> }
+      @if (r.confirmadaAtUtc) { <span>Confirmada el {{ fechaUtc(r.confirmadaAtUtc) }}</span> }
+      @if (r.anuladaAtUtc) { <span>Anulada el {{ fechaUtc(r.anuladaAtUtc) }}</span> }
+    </p>
+
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success" role="status">{{ aviso() }}</p> }
+
+    <section class="gestion__seccion" aria-labelledby="titulo-datos">
+      <h2 id="titulo-datos">{{ r.esDevolucion ? 'La devolución' : 'El remito' }}</h2>
+      @if (editable()) {
+        <div class="gestion__grid">
+          <label>{{ r.esDevolucion ? 'Número de remito o nota (opcional)' : 'Número de remito (opcional)' }}
+            <input type="text" maxlength="40" [value]="remito()" (input)="campo('remito', $event)" placeholder="0001-00004567" />
+          </label>
+          <label>{{ r.esDevolucion ? 'Cuándo salió' : 'Cuándo llegó' }}
+            <input type="datetime-local" [value]="fechaLocal()" (change)="campo('fechaLocal', $event)" />
+          </label>
+          <label class="gestion__ancho">Nota (opcional)
+            <input type="text" maxlength="500" [value]="nota()" (input)="campo('nota', $event)" />
+          </label>
+        </div>
+      } @else {
+        <p class="proveedor__ficha">
+          <span>{{ fechaHora(r.recibidaAtLocal) }}</span>
+          @if (r.remitoNumero) { <span>Remito {{ r.remitoNumero }}</span> }
+          @if (r.nota) { <span>{{ r.nota }}</span> }
+        </p>
+      }
+    </section>
+
+    <section class="gestion__seccion" aria-labelledby="titulo-renglones">
+      <h2 id="titulo-renglones">{{ r.esDevolucion ? 'Qué se devuelve' : conOrden() ? 'Lo pedido contra lo recibido' : 'Qué llegó' }}</h2>
+      @if (editable()) {
+        <div class="gestion__fila-form recepcion__lector">
+          <label class="recepcion__lector-campo">Escaneá o tipeá el código y Enter
+            <input #lector type="text" autocomplete="off" (keydown.enter)="leer($event)"
+              placeholder="Código de barras, del bulto, interno o del proveedor" aria-label="Código leído" />
+          </label>
+          @if (conOrden()) {
+            <button type="button" class="btn btn--ghost" (click)="recibirTodo()">Llegó todo lo pedido</button>
+          }
+        </div>
+        @if (lectura(); as l) {
+          <p [class]="l.ok ? 'recepcion__lectura' : 'recepcion__lectura recepcion__lectura--mal'" role="status">{{ l.texto }}</p>
+        }
+      }
+
+      @if (filas().length === 0) {
+        <p class="muted">Todavía no hay renglones: escaneá lo que {{ r.esDevolucion ? 'devolvés' : 'llegó' }}.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data recepcion__renglones">
+            <thead>
+              <tr>
+                <th>Artículo</th>
+                @if (conOrden()) { <th class="num">Pedido</th> }
+                <th class="num">{{ r.esDevolucion ? 'Devuelve' : 'Recibido' }}</th>
+                @if (conOrden()) { <th class="num">Diferencia</th> }
+                @if (!r.esDevolucion) { <th class="num">Costo s/IVA</th> }
+                <th>Motivo</th>
+                @if (!r.esDevolucion) { <th class="num">Subtotal</th> }
+                @if (editable()) { <th></th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of filas(); track f.articuloId; let i = $index) {
+                @let m = motivoDe(f);
+                <tr [attr.data-renglon]="f.codigo" [class.recepcion__con-diferencia]="m === 'faltante' || m === 'sobrante'">
+                  <td>
+                    {{ f.descripcion }}
+                    <small class="gestion__sub">{{ f.codigo }}{{ f.codigoProveedor ? ' · prov. ' + f.codigoProveedor : '' }}{{ f.unidadesPorBulto ? ' · bulto de ' + cant(f.unidadesPorBulto) : '' }}</small>
+                  </td>
+                  @if (conOrden()) { <td class="num">{{ f.pedidas != null ? cant(f.pedidas) : 'no se pidió' }}</td> }
+                  <td class="num">
+                    @if (editable()) {
+                      <input type="text" inputmode="decimal" size="6" [value]="f.recibidas" (input)="cambiar(i, 'recibidas', $event)" [attr.aria-label]="'Recibido de ' + f.descripcion" />
+                    } @else { {{ cant(recibidasDe(f)) }} }
+                  </td>
+                  @if (conOrden()) {
+                    <td class="num gestion__nowrap" [class.recepcion__falta]="f.pedidas != null && recibidasDe(f) < f.pedidas" [class.recepcion__sobra]="f.pedidas != null && recibidasDe(f) > f.pedidas">
+                      {{ f.pedidas != null ? dif(recibidasDe(f) - f.pedidas) : '' }}
+                    </td>
+                  }
+                  @if (!r.esDevolucion) {
+                    <td class="num">
+                      @if (editable()) {
+                        <input type="text" inputmode="decimal" size="8" [value]="f.costo" (input)="cambiar(i, 'costo', $event)" [attr.aria-label]="'Costo de ' + f.descripcion" />
+                      } @else { {{ plata(costoDe(f)) }} }
+                    </td>
+                  }
+                  <td>
+                    @if (editable()) {
+                      <select (change)="elegirMotivo(i, $event)" [attr.aria-label]="'Motivo de ' + f.descripcion">
+                        <option value="" [selected]="!f.motivo">{{ m && !f.motivo ? textoMotivo(m) + ' (solo)' : '—' }}</option>
+                        @for (x of motivos; track x.valor) { <option [value]="x.valor" [selected]="f.motivo === x.valor">{{ x.texto }}</option> }
+                      </select>
+                    } @else { {{ m ? textoMotivo(m) : '' }} }
+                  </td>
+                  @if (!r.esDevolucion) { <td class="num gestion__nowrap">{{ plata(subtotal(f)) }}</td> }
+                  @if (editable()) {
+                    <td>
+                      @if (f.pedidas == null) {
+                        <button type="button" class="btn btn--ghost btn--small" (click)="quitar(i)" [attr.aria-label]="'Quitar ' + f.descripcion">Quitar</button>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>{{ cant(unidades()) }} unidades</strong></td>
+                @if (conOrden()) { <td></td> }
+                <td></td>
+                @if (conOrden()) { <td></td> }
+                @if (!r.esDevolucion) { <td></td> }
+                <td></td>
+                @if (!r.esDevolucion) { <td class="num"><strong>{{ plata(total()) }}</strong></td> }
+                @if (editable()) { <td></td> }
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        @if (!r.esDevolucion && editable()) {
+          <p class="muted gestion__ayuda">El costo es por unidad, sin IVA y ya bonificado (viene de la orden o de la lista del proveedor). Al confirmar pasa a ser tu costo si cambió.</p>
+        }
+      }
+
+      @if (editable()) {
+        <div class="gestion__acciones">
+          <button type="button" class="btn btn--ghost" (click)="guardar()" [disabled]="trabajando() || !sucio()">{{ trabajando() ? 'Guardando…' : 'Guardar' }}</button>
+          @if (sucio()) { <span class="muted">Hay cambios sin guardar.</span> }
+        </div>
+      }
+    </section>
+
+    <!-- ===================================================== confirmar / anular -->
+    @if (r.estado !== 'anulada') {
+      <section class="gestion__seccion recepcion__cierre" aria-labelledby="titulo-cierre">
+        @if (editable()) {
+          <h2 id="titulo-cierre">{{ r.esDevolucion ? 'Confirmar la devolución' : 'Confirmar la recepción' }}</h2>
+          @if (diferencias().length > 0) {
+            <div class="recepcion__resumen">
+              <p><strong>Diferencias:</strong></p>
+              <ul>
+                @for (d of diferencias(); track d.fila.articuloId) {
+                  <li>{{ textoMotivo(d.motivo) }}: {{ d.fila.descripcion }}{{ d.diferencia != null && d.diferencia !== 0 ? ' (' + dif(d.diferencia) + ')' : '' }}</li>
+                }
+              </ul>
+            </div>
+          } @else if (conOrden()) {
+            <p class="muted">Llegó exactamente lo pedido.</p>
+          }
+          @if (confirmando() === 'confirmar') {
+            <div class="gestion__acciones">
+              <span>{{ r.esDevolucion ? 'Se resta del stock de ' : 'Se suma al stock de ' }}{{ r.sucursal }}{{ r.esDevolucion ? '' : ' y se actualizan los costos que cambiaron' }}. ¿Confirmás?</span>
+              <button type="button" class="btn" (click)="confirmar()" [disabled]="trabajando()">Sí, confirmar</button>
+              <button type="button" class="btn btn--ghost" (click)="confirmando.set(null)">Todavía no</button>
+            </div>
+          } @else if (confirmando() === 'anular') {
+            <div class="gestion__acciones">
+              <span>¿Anular este borrador?</span>
+              <button type="button" class="btn btn--danger" (click)="anular()" [disabled]="trabajando()">Sí, anularlo</button>
+              <button type="button" class="btn btn--ghost" (click)="confirmando.set(null)">No</button>
+            </div>
+          } @else {
+            <div class="gestion__acciones">
+              <button type="button" class="btn" (click)="confirmando.set('confirmar')" [disabled]="trabajando() || unidades() === 0">{{ r.esDevolucion ? 'Confirmar la devolución' : 'Confirmar la recepción' }}</button>
+              <button type="button" class="btn btn--ghost" (click)="confirmando.set('anular')" [disabled]="trabajando()">Anular</button>
+            </div>
+          }
+        } @else if (r.estado === 'confirmada') {
+          @if (confirmando() === 'anular') {
+            <div class="gestion__acciones">
+              <span>Se registran los movimientos al revés (el stock vuelve atrás); los costos cargados quedan en el historial. ¿Anular?</span>
+              <button type="button" class="btn btn--danger" (click)="anular()" [disabled]="trabajando()">Sí, anularla</button>
+              <button type="button" class="btn btn--ghost" (click)="confirmando.set(null)">No</button>
+            </div>
+          } @else {
+            <div class="gestion__acciones">
+              <button type="button" class="btn btn--ghost" (click)="confirmando.set('anular')" [disabled]="trabajando()">Anular la {{ r.esDevolucion ? 'devolución' : 'recepción' }}</button>
+            </div>
+          }
+        }
+      </section>
+    }
+  }
+</div>
