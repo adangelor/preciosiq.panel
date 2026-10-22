@@ -195,6 +195,18 @@
             <span class="shell__link-text">Recepciones</span>
           </a>
         </li>
+        <li>
+          <!-- BP-180 bloque 5 (22-oct-2026) -- facturas y notas de los proveedores. -->
+          <a
+            class="shell__link"
+            routerLink="/gestion/compras/comprobantes"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Comprobantes' : null"
+          >
+            <mat-icon>receipt</mat-icon>
+            <span class="shell__link-text">Comprobantes</span>
+          </a>
+        </li>
 
         <li class="shell__nav-section">Análisis</li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->

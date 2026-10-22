@@ -250,6 +250,23 @@ export const routes: Routes = [
         title: 'PreciosIQ — Recepción',
       },
       {
+        // BP-180 bloque 5 -- facturas y notas de los proveedores.
+        path: 'gestion/compras/comprobantes',
+        loadComponent: () => import('./features/gestion/comprobantes').then((m) => m.ComprobantesComponent),
+        title: 'PreciosIQ — Comprobantes de proveedores',
+      },
+      {
+        // ?proveedor=&recepcion=&tipo= (desde una recepción o una devolución).
+        path: 'gestion/compras/comprobantes/nueva',
+        loadComponent: () => import('./features/gestion/comprobante').then((m) => m.ComprobanteComponent),
+        title: 'PreciosIQ — Cargar comprobante',
+      },
+      {
+        path: 'gestion/compras/comprobantes/:id',
+        loadComponent: () => import('./features/gestion/comprobante').then((m) => m.ComprobanteComponent),
+        title: 'PreciosIQ — Comprobante',
+      },
+      {
         path: 'dashboard',
         loadComponent: () =>
           import('./features/benchmark-dashboard/benchmark-dashboard').then((m) => m.BenchmarkDashboardComponent),

@@ -1,0 +1,81 @@
+<div class="gestion card--page">
+  <h1>Comprobantes de proveedores</h1>
+  <p class="subtitle">
+    Las facturas y notas de crédito o débito que te mandan los proveedores. Se cargan con los totales por alícuota (o con
+    los renglones, si querés que el costo de la factura mande) y se atan a las recepciones que cubren.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Los comprobantes de proveedores vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <a class="btn" routerLink="/gestion/compras/comprobantes/nueva"><i class="fa-solid fa-plus" aria-hidden="true"></i> Cargar comprobante</a>
+    </div>
+
+    <div class="gestion__filtros">
+      <input type="month" [value]="mes()" (change)="filtrar('mes', $event)" aria-label="Mes" />
+      <select (change)="filtrar('proveedorId', $event)" aria-label="Proveedor">
+        <option value="0" [selected]="!proveedorId()">Todos los proveedores</option>
+        @for (p of proveedores(); track p.id) { <option [value]="p.id" [selected]="p.id === proveedorId()">{{ p.nombre }}</option> }
+      </select>
+      <select (change)="filtrar('tipo', $event)" aria-label="Tipo">
+        <option value="" [selected]="tipo() === ''">Todos los tipos</option>
+        @for (t of tipos; track t.valor) { <option [value]="t.valor" [selected]="tipo() === t.valor">{{ t.texto }}</option> }
+      </select>
+      <select (change)="filtrar('estado', $event)" aria-label="Estado">
+        <option value="" [selected]="estado() === ''">Registrados y anulados</option>
+        <option value="registrada" [selected]="estado() === 'registrada'">Registrados</option>
+        <option value="anulada" [selected]="estado() === 'anulada'">Anulados</option>
+      </select>
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Cargando los comprobantes…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+
+    @if (lista(); as l) {
+      @if (l.items.length === 0) {
+        <p class="muted gestion__vacia">No hay comprobantes con ese filtro.</p>
+      } @else {
+        <p class="gestion__total">{{ l.total }} {{ l.total === 1 ? 'comprobante' : 'comprobantes' }} · neto <strong>{{ plata(l.importeNeto) }}</strong></p>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="num">Total</th><th>Vence</th><th>Recepciones</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              @for (c of l.items; track c.id) {
+                <tr [attr.data-comprobante]="c.id" [class.gestion__inactivo]="c.estado === 'anulada'">
+                  <td class="gestion__nowrap">{{ fecha(c.fecha) }}</td>
+                  <td>{{ c.proveedor }}</td>
+                  <td class="gestion__nowrap"><a [routerLink]="['/gestion/compras/comprobantes', c.id]">{{ textoTipo(c.tipo) }} {{ c.numeroTexto }}</a></td>
+                  <td class="num">{{ importe(c.tipo, c.total) }}</td>
+                  <td class="gestion__nowrap">{{ c.vencimiento ? fecha(c.vencimiento) : '—' }}</td>
+                  <td class="num">{{ c.recepciones || '—' }}</td>
+                  <td>
+                    @if (c.estado === 'anulada') { <span class="pill pill--neutral">anulado</span> }
+                    @else { <span class="pill pill--warning">{{ c.estadoPago === 'pagada' ? 'pagado' : c.estadoPago === 'parcial' ? 'pago parcial' : 'impago' }}</span> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (paginas() > 1) {
+          <div class="gestion__paginas">
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+            <span class="muted">Página {{ pagina() }} de {{ paginas() }}</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+          </div>
+        }
+      }
+    }
+  }
+</div>

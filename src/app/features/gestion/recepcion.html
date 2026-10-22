@@ -195,6 +195,14 @@
             </div>
           }
         } @else if (r.estado === 'confirmada') {
+          @if (r.supplierId) {
+            <div class="gestion__acciones recepcion__factura">
+              <a class="btn" routerLink="/gestion/compras/comprobantes/nueva"
+                [queryParams]="{ proveedor: r.supplierId, recepcion: r.id, tipo: r.esDevolucion ? 'nota_credito' : null }">
+                {{ r.esDevolucion ? 'Cargar la nota de crédito' : 'Cargar la factura' }}
+              </a>
+            </div>
+          }
           @if (confirmando() === 'anular') {
             <div class="gestion__acciones">
               <span>Se registran los movimientos al revés (el stock vuelve atrás); los costos cargados quedan en el historial. ¿Anular?</span>

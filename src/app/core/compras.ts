@@ -358,6 +358,173 @@ export interface CodigoLeido {
   activo: boolean;
 }
 
+// ------------------------------------------------------------------ comprobantes del proveedor (bloque 5)
+
+export type TipoComprobante = 'factura' | 'nota_credito' | 'nota_debito';
+export type LetraComprobante = 'A' | 'B' | 'C' | 'M';
+export type TipoPercepcion = 'iva' | 'iibb' | 'municipal' | 'otra';
+
+export const TIPOS_COMPROBANTE: { valor: TipoComprobante; texto: string }[] = [
+  { valor: 'factura', texto: 'Factura' },
+  { valor: 'nota_credito', texto: 'Nota de crédito' },
+  { valor: 'nota_debito', texto: 'Nota de débito' },
+];
+export const LETRAS: LetraComprobante[] = ['A', 'B', 'C', 'M'];
+export const ALICUOTAS_IVA = [21, 10.5, 27, 5, 2.5, 0];
+export const TIPOS_PERCEPCION: { valor: TipoPercepcion; texto: string }[] = [
+  { valor: 'iva', texto: 'IVA' },
+  { valor: 'iibb', texto: 'Ingresos brutos' },
+  { valor: 'municipal', texto: 'Municipal' },
+  { valor: 'otra', texto: 'Otra' },
+];
+/** ISO 3166-2:AR, como Branches.ProvinceCode y la percepción de IIBB. */
+export const PROVINCIAS: { codigo: string; nombre: string }[] = [
+  { codigo: 'AR-B', nombre: 'Buenos Aires' }, { codigo: 'AR-C', nombre: 'CABA' }, { codigo: 'AR-K', nombre: 'Catamarca' },
+  { codigo: 'AR-H', nombre: 'Chaco' }, { codigo: 'AR-U', nombre: 'Chubut' }, { codigo: 'AR-X', nombre: 'Córdoba' },
+  { codigo: 'AR-W', nombre: 'Corrientes' }, { codigo: 'AR-E', nombre: 'Entre Ríos' }, { codigo: 'AR-P', nombre: 'Formosa' },
+  { codigo: 'AR-Y', nombre: 'Jujuy' }, { codigo: 'AR-L', nombre: 'La Pampa' }, { codigo: 'AR-F', nombre: 'La Rioja' },
+  { codigo: 'AR-M', nombre: 'Mendoza' }, { codigo: 'AR-N', nombre: 'Misiones' }, { codigo: 'AR-Q', nombre: 'Neuquén' },
+  { codigo: 'AR-R', nombre: 'Río Negro' }, { codigo: 'AR-A', nombre: 'Salta' }, { codigo: 'AR-J', nombre: 'San Juan' },
+  { codigo: 'AR-D', nombre: 'San Luis' }, { codigo: 'AR-Z', nombre: 'Santa Cruz' }, { codigo: 'AR-S', nombre: 'Santa Fe' },
+  { codigo: 'AR-G', nombre: 'Santiago del Estero' }, { codigo: 'AR-V', nombre: 'Tierra del Fuego' }, { codigo: 'AR-T', nombre: 'Tucumán' },
+];
+
+export interface AlicuotaComprobante { alicuota: number; neto: number; iva: number }
+export interface Percepcion { tipo: TipoPercepcion; jurisdiccion: string | null; importe: number }
+export interface AvisoComprobante { tipo: string; texto: string }
+export interface ProblemaComprobante { campo: string; mensaje: string }
+
+export interface RenglonComprobante {
+  articuloId: number | null;
+  codigo: string | null;
+  descripcion: string;
+  unidades: number;
+  /** Por unidad, antes de la bonificación (en una B o C, con IVA). */
+  costoNeto: number;
+  bonificacionPct: number | null;
+  alicuota: number;
+  costoFinal: number;
+  subtotal: number;
+}
+
+export interface RecepcionDeComprobante {
+  id: number;
+  numeroTexto: string;
+  sucursal: string;
+  recibidaAtLocal: string;
+  esDevolucion: boolean;
+  remitoNumero: string | null;
+  unidades: number;
+  total: number;
+  ordenNumeroTexto: string | null;
+}
+
+export interface ComprobanteResumen {
+  id: number;
+  supplierId: number;
+  proveedor: string;
+  tipo: TipoComprobante;
+  letra: LetraComprobante;
+  puntoVenta: number;
+  numero: number;
+  numeroTexto: string;
+  fecha: string;
+  total: number;
+  vencimiento: string | null;
+  estado: 'registrada' | 'anulada';
+  estadoPago: 'impaga' | 'parcial' | 'pagada';
+  recepciones: number;
+}
+
+export interface ComprobanteLista {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: ComprobanteResumen[];
+  /** Del filtro entero: facturas + notas de débito − notas de crédito, registradas. */
+  importeNeto: number;
+}
+
+export interface Comprobante {
+  id: number;
+  supplierId: number;
+  proveedor: string;
+  proveedorCuit: string | null;
+  proveedorCondicionIva: CondicionIva | null;
+  tipo: TipoComprobante;
+  letra: LetraComprobante;
+  puntoVenta: number;
+  numero: number;
+  numeroTexto: string;
+  fecha: string;
+  cae: string | null;
+  caeVencimiento: string | null;
+  noGravado: number;
+  exento: number;
+  impuestosInternos: number;
+  otrosTributos: number;
+  total: number;
+  vencimiento: string | null;
+  estado: 'registrada' | 'anulada';
+  estadoPago: 'impaga' | 'parcial' | 'pagada';
+  nota: string | null;
+  createdAtUtc: string;
+  anuladaAtUtc: string | null;
+  alicuotas: AlicuotaComprobante[];
+  percepciones: Percepcion[];
+  recepciones: RecepcionDeComprobante[];
+  renglones: RenglonComprobante[];
+  avisos: AvisoComprobante[];
+}
+
+export interface RenglonComprobanteRequest {
+  articuloId: number | null;
+  codigo: string | null;
+  descripcion: string | null;
+  unidades: number;
+  costoNeto: number;
+  bonificacionPct: number | null;
+  alicuota: number | null;
+}
+
+export interface ComprobanteRequest {
+  businessAccountId: number;
+  supplierId: number;
+  tipo: TipoComprobante;
+  letra: LetraComprobante;
+  puntoVenta: number;
+  numero: number;
+  fecha: string | null;
+  cae: string | null;
+  caeVencimiento: string | null;
+  noGravado: number;
+  exento: number;
+  impuestosInternos: number;
+  otrosTributos: number;
+  total: number;
+  alicuotas: AlicuotaComprobante[];
+  percepciones: Percepcion[];
+  recepcionIds: number[];
+  renglones: RenglonComprobanteRequest[];
+  nota: string | null;
+  aplicarCostos: boolean;
+  vistaPrevia: boolean;
+}
+
+export interface ComprobanteGuardarResponse {
+  vistaPrevia: boolean;
+  comprobante: Comprobante | null;
+  problemas: ProblemaComprobante[];
+  avisos: AvisoComprobante[];
+  costosCargados: number;
+}
+
+export interface DesdeRecepciones {
+  renglones: RenglonComprobante[];
+  alicuotas: AlicuotaComprobante[];
+  total: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
   private readonly http = inject(HttpClient);
@@ -484,6 +651,44 @@ export class ComprasService {
     const params: Record<string, string | number> = { businessAccountId, codigo };
     if (proveedorId) params['proveedorId'] = proveedorId;
     return this.http.get<CodigoLeido>(`${this.url}/codigo`, { params });
+  }
+
+  // ---- comprobantes del proveedor
+
+  comprobantes(
+    businessAccountId: number,
+    filtro: { proveedorId?: number; mes?: string; estado?: string; tipo?: string; page?: number; pageSize?: number },
+  ): Observable<ComprobanteLista> {
+    const params: Record<string, string | number> = { businessAccountId, page: filtro.page ?? 1, pageSize: filtro.pageSize ?? 30 };
+    if (filtro.proveedorId) params['proveedorId'] = filtro.proveedorId;
+    if (filtro.mes) params['mes'] = filtro.mes;
+    if (filtro.estado) params['estado'] = filtro.estado;
+    if (filtro.tipo) params['tipo'] = filtro.tipo;
+    return this.http.get<ComprobanteLista>(`${this.url}/comprobantes`, { params });
+  }
+
+  comprobante(businessAccountId: number, id: number): Observable<Comprobante> {
+    return this.http.get<Comprobante>(`${this.url}/comprobantes/${id}`, { params: { businessAccountId } });
+  }
+
+  guardarComprobante(id: number | null, req: ComprobanteRequest): Observable<ComprobanteGuardarResponse> {
+    return id
+      ? this.http.put<ComprobanteGuardarResponse>(`${this.url}/comprobantes/${id}`, req)
+      : this.http.post<ComprobanteGuardarResponse>(`${this.url}/comprobantes`, req);
+  }
+
+  anularComprobante(businessAccountId: number, id: number): Observable<Comprobante> {
+    return this.http.post<Comprobante>(`${this.url}/comprobantes/${id}/anular`, { businessAccountId });
+  }
+
+  recepcionesParaComprobante(businessAccountId: number, proveedorId: number, tipo: TipoComprobante, comprobanteId: number | null): Observable<RecepcionDeComprobante[]> {
+    const params: Record<string, string | number> = { businessAccountId, proveedorId, tipo };
+    if (comprobanteId) params['comprobanteId'] = comprobanteId;
+    return this.http.get<RecepcionDeComprobante[]>(`${this.url}/comprobantes/recepciones`, { params });
+  }
+
+  desdeRecepciones(businessAccountId: number, ids: number[]): Observable<DesdeRecepciones> {
+    return this.http.get<DesdeRecepciones>(`${this.url}/comprobantes/desde-recepciones`, { params: { businessAccountId, ids: ids.join(',') } });
   }
 }
 
@@ -700,4 +905,31 @@ export function textoEstadoRecepcion(e: EstadoRecepcion): string {
 export function fechaHoraLocal(local: string | null): string {
   if (!local || local.length < 16) return local ?? '';
   return `${local.slice(8, 10)}/${local.slice(5, 7)}/${local.slice(0, 4)} ${local.slice(11, 16)}`;
+}
+
+// ------------------------------------------------------------------ el comprobante
+
+export function textoTipoComprobante(t: TipoComprobante): string {
+  return TIPOS_COMPROBANTE.find((x) => x.valor === t)?.texto ?? t;
+}
+
+/** A y M discriminan IVA; B y C traen el IVA adentro del importe. */
+export function discriminaIva(letra: LetraComprobante): boolean {
+  return letra === 'A' || letra === 'M';
+}
+
+/** La letra que se espera de un proveedor (para una cuenta inscripta): inscripto A, monotributista o exento C. */
+export function letraSugerida(condicion: CondicionIva | null | undefined): LetraComprobante {
+  return condicion === 'mono' || condicion === 'exento' ? 'C' : 'A';
+}
+
+export function ivaDe(neto: number, alicuota: number): number {
+  return Math.round(neto * alicuota) / 100;
+}
+
+/** La suma del comprobante, como la del servidor (ComprasReglas.Cuadre): netos + IVA + no gravado + exento + internos + otros + percepciones. */
+export function sumaComprobante(c: Pick<ComprobanteRequest, 'alicuotas' | 'noGravado' | 'exento' | 'impuestosInternos' | 'otrosTributos' | 'percepciones'>): number {
+  const s = c.alicuotas.reduce((t, a) => t + a.neto + a.iva, 0) + c.noGravado + c.exento + c.impuestosInternos + c.otrosTributos
+    + c.percepciones.reduce((t, p) => t + p.importe, 0);
+  return Math.round(s * 100) / 100;
 }

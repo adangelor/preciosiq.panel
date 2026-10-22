@@ -379,3 +379,38 @@ h1 .pill {
   color: var(--warning, #b45309);
   font-weight: 600;
 }
+
+// BP-180 bloque 5 -- el comprobante del proveedor.
+.comprobante__recepciones {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+
+  li {
+    padding: 0.2rem 0;
+  }
+}
+
+.comprobante__importes input,
+.comprobante__renglones input[inputmode='decimal'] {
+  text-align: right;
+}
+
+.comprobante__otros,
+.comprobante__total {
+  margin-top: 0.75rem;
+}
+
+.comprobante__percepcion {
+  margin-bottom: 0.4rem;
+}
+
+.comprobante__problemas ul,
+.comprobante__avisos ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.recepcion__factura {
+  margin-bottom: 0.75rem;
+}

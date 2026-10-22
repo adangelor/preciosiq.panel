@@ -1,0 +1,247 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/compras/comprobantes">← Comprobantes</a></p>
+
+  @if (cargando()) {
+    <p class="muted">Cargando…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Los comprobantes de proveedores vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else {
+    @let c = comprobante();
+    <h1>
+      @if (c) { {{ textoTipo(c.tipo) }} {{ c.numeroTexto }} } @else { Cargar comprobante }
+      @if (c?.estado === 'anulada') { <span class="pill pill--neutral">Anulado</span> }
+    </h1>
+    @if (c) {
+      <p class="proveedor__ficha">
+        <span>{{ c.proveedor }}</span>
+        @if (c.vencimiento && c.estado === 'registrada') { <span>Vence el {{ fechaCorta(c.vencimiento) }}</span> }
+        @if (c.estado === 'registrada') { <span>{{ c.estadoPago === 'impaga' ? 'Impago' : c.estadoPago }}</span> }
+        @if (c.estado === 'anulada') { <span>Corregilo y guardalo para volver a registrarlo.</span> }
+      </p>
+    }
+
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success" role="status">{{ aviso() }}</p> }
+
+    <!-- ===================================================== el comprobante -->
+    <section class="gestion__seccion" aria-labelledby="titulo-cabecera">
+      <h2 id="titulo-cabecera">El comprobante</h2>
+      <div class="gestion__grid">
+        <label [class.campo--error]="!proveedorId() && problemas().length > 0">Proveedor
+          <select (change)="elegirProveedor($event)" data-campo="proveedor">
+            <option value="0" [selected]="!proveedorId()">— elegí —</option>
+            @for (p of activos(); track p.id) { <option [value]="p.id" [selected]="p.id === proveedorId()">{{ p.nombre }}</option> }
+          </select>
+        </label>
+        <label>Tipo
+          <select (change)="elegirTipo($event)" data-campo="tipo">
+            @for (t of tipos; track t.valor) { <option [value]="t.valor" [selected]="t.valor === tipo()">{{ t.texto }}</option> }
+          </select>
+        </label>
+        <label>Letra
+          <select (change)="elegirLetra($event)" data-campo="letra">
+            @for (l of letras; track l) { <option [value]="l" [selected]="l === letra()">{{ l }}</option> }
+          </select>
+        </label>
+        <label>Punto de venta
+          <input type="number" min="1" max="99999" [value]="puntoVenta()" (input)="campo('puntoVenta', $event)" data-campo="puntoVenta" placeholder="12" />
+        </label>
+        <label>Número
+          <input type="number" min="1" max="99999999" [value]="numero()" (input)="campo('numero', $event)" data-campo="numero" placeholder="1234" />
+        </label>
+        <label>Fecha
+          <input type="date" [value]="fecha()" (change)="campo('fecha', $event)" />
+        </label>
+        <label>CAE (opcional)
+          <input type="text" maxlength="14" inputmode="numeric" [value]="cae()" (input)="campo('cae', $event)" />
+        </label>
+        <label>Vencimiento del CAE (opcional)
+          <input type="date" [value]="caeVencimiento()" (change)="campo('caeVencimiento', $event)" />
+        </label>
+      </div>
+      @if (proveedor(); as p) {
+        <p class="muted gestion__ayuda">
+          {{ p.nombre }}: {{ textoCondicion(p.condicionIva) }}{{ p.cuit ? ', CUIT ' + cuit(p.cuit) : '' }}{{ p.plazoPagoDias != null ? ', paga a ' + p.plazoPagoDias + ' días' : '' }}.
+        </p>
+      }
+    </section>
+
+    <!-- ===================================================== recepciones -->
+    @if (proveedorId()) {
+      <section class="gestion__seccion" aria-labelledby="titulo-recepciones">
+        <h2 id="titulo-recepciones">{{ tipo() === 'nota_credito' ? 'Las devoluciones que cubre' : 'Las recepciones que cubre' }}</h2>
+        @if (disponibles().length === 0) {
+          <p class="muted">{{ tipo() === 'nota_credito' ? 'No hay devoluciones de este proveedor sin nota de crédito.' : 'No hay recepciones de este proveedor sin facturar.' }} Se puede cargar igual.</p>
+        } @else {
+          <ul class="comprobante__recepciones">
+            @for (r of disponibles(); track r.id) {
+              <li>
+                <label class="gestion__check">
+                  <input type="checkbox" [checked]="elegidas().includes(r.id)" (change)="alternarRecepcion(r.id, $event)" [attr.data-recepcion]="r.id" />
+                  <a [routerLink]="['/gestion/compras/recepciones', r.id]">{{ r.numeroTexto }}</a>
+                  · {{ r.sucursal }} · {{ fechaHora(r.recibidaAtLocal) }}{{ r.ordenNumeroTexto ? ' · ' + r.ordenNumeroTexto : '' }}{{ r.remitoNumero ? ' · remito ' + r.remitoNumero : '' }}
+                  · {{ plata(r.total) }}
+                </label>
+              </li>
+            }
+          </ul>
+          <button type="button" class="btn btn--ghost" (click)="desdeRecepciones()" [disabled]="elegidas().length === 0 || trabajando()">Armar desde las recepciones</button>
+        }
+      </section>
+    }
+
+    <!-- ===================================================== importes -->
+    <section class="gestion__seccion" aria-labelledby="titulo-importes">
+      <h2 id="titulo-importes">Importes</h2>
+      @if (!discrimina()) {
+        <p class="muted gestion__ayuda">Una {{ letra() }} no discrimina IVA: cargá el importe con IVA de cada alícuota.</p>
+      }
+      <div class="table-wrap">
+        <table class="data comprobante__importes">
+          <thead><tr><th>Alícuota</th><th class="num">{{ discrimina() ? 'Neto gravado' : 'Importe' }}</th>@if (discrimina()) { <th class="num">IVA</th> }<th></th></tr></thead>
+          <tbody>
+            @for (a of alicuotas(); track $index; let i = $index) {
+              <tr [attr.data-alicuota]="a.alicuota">
+                <td>
+                  <select (change)="cambiarAlicuota(i, 'alicuota', $event)" aria-label="Alícuota">
+                    @for (x of alicuotasIva; track x) { <option [value]="x" [selected]="x === a.alicuota">{{ x }} %</option> }
+                  </select>
+                </td>
+                <td class="num"><input type="text" inputmode="decimal" size="12" [value]="a.neto" (input)="cambiarAlicuota(i, 'neto', $event)" [attr.aria-label]="'Neto al ' + a.alicuota + ' %'" /></td>
+                @if (discrimina()) {
+                  <td class="num"><input type="text" inputmode="decimal" size="10" [value]="a.iva" (input)="cambiarAlicuota(i, 'iva', $event)" [attr.aria-label]="'IVA al ' + a.alicuota + ' %'" /></td>
+                }
+                <td><button type="button" class="btn btn--ghost btn--small" (click)="quitarAlicuota(i)">Quitar</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn--ghost btn--small" (click)="agregarAlicuota()">+ Otra alícuota</button>
+
+      <div class="gestion__grid comprobante__otros">
+        <label>No gravado <input type="text" inputmode="decimal" [value]="noGravado()" (input)="campo('noGravado', $event)" /></label>
+        <label>Exento <input type="text" inputmode="decimal" [value]="exento()" (input)="campo('exento', $event)" /></label>
+        <label>Impuestos internos <input type="text" inputmode="decimal" [value]="internos()" (input)="campo('internos', $event)" /></label>
+        <label>Otros tributos <input type="text" inputmode="decimal" [value]="otros()" (input)="campo('otros', $event)" /></label>
+      </div>
+
+      <h3>Percepciones</h3>
+      @for (p of percepciones(); track $index; let i = $index) {
+        <div class="gestion__fila-form comprobante__percepcion">
+          <label>Tipo
+            <select (change)="cambiarPercepcion(i, 'tipo', $event)">
+              @for (t of tiposPercepcion; track t.valor) { <option [value]="t.valor" [selected]="t.valor === p.tipo">{{ t.texto }}</option> }
+            </select>
+          </label>
+          @if (p.tipo === 'iibb') {
+            <label>Provincia
+              <select (change)="cambiarPercepcion(i, 'jurisdiccion', $event)">
+                @for (x of provincias; track x.codigo) { <option [value]="x.codigo" [selected]="x.codigo === p.jurisdiccion">{{ x.nombre }}</option> }
+              </select>
+            </label>
+          }
+          <label>Importe <input type="text" inputmode="decimal" size="10" [value]="p.importe" (input)="cambiarPercepcion(i, 'importe', $event)" /></label>
+          <button type="button" class="btn btn--ghost btn--small" (click)="quitarPercepcion(i)">Quitar</button>
+        </div>
+      }
+      <button type="button" class="btn btn--ghost btn--small" (click)="agregarPercepcion()">+ Percepción</button>
+
+      <div class="gestion__fila-form comprobante__total">
+        <label>Total del comprobante
+          <input type="text" inputmode="decimal" size="14" [value]="total()" (input)="campo('total', $event)" data-campo="total" />
+        </label>
+        <span class="muted">Suma: <strong>{{ plata(suma()) }}</strong>
+          @if (diferencia(); as d) {
+            @if (d !== 0) { · <span class="recepcion__falta">diferencia {{ plata(d) }}</span> }
+          } @else if (diferencia() === 0) { · <span class="proveedor__baja">cuadra</span> }
+        </span>
+        @if (!total().trim() && suma()) { <button type="button" class="btn btn--ghost btn--small" (click)="usarSuma()">Usar la suma</button> }
+      </div>
+    </section>
+
+    <!-- ===================================================== renglones (opcionales) -->
+    <section class="gestion__seccion" aria-labelledby="titulo-renglones">
+      <h2 id="titulo-renglones">Renglones</h2>
+      <label class="gestion__check"><input type="checkbox" [checked]="conRenglones()" (change)="alternarRenglones($event)" /> Cargar los renglones (el costo de la factura pasa a ser tu costo)</label>
+      @if (conRenglones()) {
+        <div class="gestion__fila-form">
+          @if (cuenta(); as cu) { <app-articulo-buscador [cuenta]="cu" placeholder="Agregar un artículo" (elegido)="agregarArticulo($event)" /> }
+          <button type="button" class="btn btn--ghost btn--small" (click)="agregarSinArticulo()">+ Flete u otro</button>
+        </div>
+        @if (renglones().length > 0) {
+          <div class="table-wrap">
+            <table class="data comprobante__renglones">
+              <thead><tr><th>Artículo</th><th class="num">Cantidad</th><th class="num">Precio{{ discrimina() ? ' s/IVA' : ' c/IVA' }}</th><th class="num">Bonif. %</th><th>IVA</th><th class="num">Subtotal</th><th></th></tr></thead>
+              <tbody>
+                @for (r of renglones(); track $index; let i = $index) {
+                  <tr [attr.data-renglon]="r.codigo ?? r.descripcion">
+                    <td>
+                      @if (r.codigo) { {{ r.descripcion }} <small class="gestion__sub">{{ r.codigo }}</small> }
+                      @else { <input type="text" maxlength="300" [value]="r.descripcion" (input)="cambiarRenglon(i, 'descripcion', $event)" aria-label="Descripción" /> }
+                    </td>
+                    <td class="num"><input type="text" inputmode="decimal" size="6" [value]="r.unidades" (input)="cambiarRenglon(i, 'unidades', $event)" aria-label="Cantidad" /></td>
+                    <td class="num"><input type="text" inputmode="decimal" size="9" [value]="r.costo" (input)="cambiarRenglon(i, 'costo', $event)" aria-label="Precio" /></td>
+                    <td class="num"><input type="text" inputmode="decimal" size="4" [value]="r.bonif" (input)="cambiarRenglon(i, 'bonif', $event)" aria-label="Bonificación" /></td>
+                    <td>
+                      <select (change)="cambiarRenglon(i, 'alicuota', $event)" aria-label="Alícuota del renglón">
+                        @for (x of alicuotasIva; track x) { <option [value]="x" [selected]="x === r.alicuota">{{ x }} %</option> }
+                      </select>
+                    </td>
+                    <td class="num gestion__nowrap">{{ plata(subtotal(r)) }}</td>
+                    <td><button type="button" class="btn btn--ghost btn--small" (click)="quitarRenglon(i)">Quitar</button></td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot><tr><td colspan="5"><strong>Suma de los renglones</strong></td><td class="num"><strong>{{ plata(sumaRenglones()) }}</strong></td><td></td></tr></tfoot>
+            </table>
+          </div>
+          @if (tipo() === 'factura') {
+            <label class="gestion__check"><input type="checkbox" [checked]="aplicarCostos()" (change)="aplicarCostos.set($any($event.target).checked)" /> Que el precio de la factura pase a ser el costo de los artículos que cambiaron</label>
+          }
+        }
+      }
+    </section>
+
+    <section class="gestion__seccion">
+      <label class="gestion__ancho">Nota (opcional)
+        <input type="text" maxlength="500" [value]="nota()" (input)="campo('nota', $event)" />
+      </label>
+    </section>
+
+    <!-- ===================================================== revisar y guardar -->
+    @if (problemas().length > 0) {
+      <div class="alert alert--danger comprobante__problemas" role="alert">
+        <strong>No se puede guardar:</strong>
+        <ul>@for (p of problemas(); track $index) { <li>{{ p.mensaje }}</li> }</ul>
+      </div>
+    }
+    @if (avisos().length > 0) {
+      <div class="alert alert--warning comprobante__avisos" role="status">
+        <strong>Revisá:</strong>
+        <ul>@for (a of avisos(); track $index) { <li>{{ a.texto }}</li> }</ul>
+      </div>
+    }
+    @if (revisado() && avisos().length === 0) { <p class="alert alert--success" role="status">Cuadra y no hay nada para revisar.</p> }
+
+    <div class="gestion__acciones">
+      <button type="button" class="btn btn--ghost" (click)="revisar()" [disabled]="trabajando()">Revisar</button>
+      <button type="button" class="btn" (click)="guardar()" [disabled]="trabajando()">{{ trabajando() ? 'Guardando…' : c ? 'Guardar los cambios' : 'Guardar' }}</button>
+      @if (c?.estado === 'registrada') {
+        @if (confirmandoAnular()) {
+          <span>¿Anular {{ c!.numeroTexto }}? Sus recepciones quedan libres.</span>
+          <button type="button" class="btn btn--danger" (click)="anular()" [disabled]="trabajando()">Sí, anular</button>
+          <button type="button" class="btn btn--ghost" (click)="confirmandoAnular.set(false)">No</button>
+        } @else {
+          <button type="button" class="btn btn--ghost" (click)="confirmandoAnular.set(true)">Anular</button>
+        }
+      }
+    </div>
+  }
+</div>
