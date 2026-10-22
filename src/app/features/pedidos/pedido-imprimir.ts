@@ -101,7 +101,7 @@ const cantidad = (n: number) => new Intl.NumberFormat('es-AR', { maximumFraction
     .hoja__cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
       border-bottom: 3px solid #111; padding-bottom: 0.75rem; }
     .hoja__tienda { margin: 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #555; }
-    h1 { margin: 0.15rem 0; font-size: 1.8rem; letter-spacing: 0.02em; }
+    h1 { margin: 0.15rem 0; font-size: 1.8rem; letter-spacing: 0.02em; color: #111; } /* el tema oscuro lo pintaba de blanco */
     .hoja__datos { margin: 0; color: #333; }
     .hoja__resumen { text-align: center; border: 2px solid #111; border-radius: 8px; padding: 0.35rem 0.9rem; }
     .hoja__resumen strong { display: block; font-size: 1.6rem; line-height: 1.1; }

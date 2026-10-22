@@ -278,3 +278,48 @@ h2 {
 .gestion__nowrap {
   white-space: nowrap;
 }
+
+// BP-180 bloque 3 -- la orden de compra.
+.orden__renglones input,
+.orden__sugerida input[type='text'] {
+  text-align: right;
+}
+
+.orden__renglones select {
+  margin-left: 0.25rem;
+}
+
+.orden__renglones tfoot td {
+  border-top: 2px solid var(--border);
+}
+
+.orden__texto {
+  margin-top: 0.75rem;
+
+  pre {
+    white-space: pre-wrap;
+    font-size: 0.8125rem;
+    background: var(--bg-muted, rgba(0, 0, 0, 0.04));
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+}
+
+.orden__estado {
+  margin-top: 1rem;
+}
+
+h1 .pill {
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+.orden__dias {
+  width: 6rem;
+}
+
+// El buscador de artículos ocupa el ancho de la fila (si no, queda del ancho del placeholder).
+.gestion__fila-form app-articulo-buscador {
+  display: flex;
+  flex: 1 1 22rem;
+}

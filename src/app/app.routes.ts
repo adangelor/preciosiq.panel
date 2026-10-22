@@ -70,6 +70,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    // BP-180 bloque 3 (22-oct-2026) -- la orden de compra para imprimir o PDF, FUERA del shell (como la hoja del pedido).
+    path: 'compras/ordenes/imprimir/:id',
+    loadComponent: () => import('./features/gestion/orden-imprimir').then((m) => m.OrdenImprimirComponent),
+    title: 'PreciosIQ — Orden de compra',
+    canActivate: [authGuard],
+  },
+  {
     // E1.6 (16-ago-2026) -- shell con logo/nombre del comercio + nav, envolviendo TODAS
     // las pantallas que ya asumen una cuenta creada (a diferencia de 'alta', que arriba
     // queda afuera del shell a proposito). Patron identico al app-shell de
@@ -208,6 +215,22 @@ export const routes: Routes = [
         path: 'gestion/proveedores/:id',
         loadComponent: () => import('./features/gestion/proveedor-lista').then((m) => m.ProveedorListaComponent),
         title: 'PreciosIQ — Lista del proveedor',
+      },
+      {
+        // BP-180 bloque 3 -- órdenes de compra: el listado, una nueva y una existente.
+        path: 'gestion/compras/ordenes',
+        loadComponent: () => import('./features/gestion/ordenes').then((m) => m.OrdenesComponent),
+        title: 'PreciosIQ — Órdenes de compra',
+      },
+      {
+        path: 'gestion/compras/ordenes/nueva',
+        loadComponent: () => import('./features/gestion/orden').then((m) => m.OrdenComponent),
+        title: 'PreciosIQ — Orden de compra nueva',
+      },
+      {
+        path: 'gestion/compras/ordenes/:id',
+        loadComponent: () => import('./features/gestion/orden').then((m) => m.OrdenComponent),
+        title: 'PreciosIQ — Orden de compra',
       },
       {
         path: 'dashboard',

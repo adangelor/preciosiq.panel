@@ -116,6 +116,9 @@
                   <div class="rubros__inline">
                     @if (completa()) {
                       <a class="btn btn--ghost btn--small" [routerLink]="['/gestion/proveedores', p.id]">Lista y costos</a>
+                      @if (p.activo) {
+                        <a class="btn btn--ghost btn--small" routerLink="/gestion/compras/ordenes/nueva" [queryParams]="{ proveedor: p.id }">Pedirle</a>
+                      }
                     }
                     <button type="button" class="btn btn--ghost btn--small" (click)="editar(p)" [disabled]="guardando()">Editar</button>
                     <button type="button" class="btn btn--ghost btn--small" (click)="alternarActivo(p)" [disabled]="guardando()">

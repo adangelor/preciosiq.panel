@@ -1,0 +1,258 @@
+<div class="gestion card--page">
+  <p class="muted"><a routerLink="/gestion/compras/ordenes">← Órdenes de compra</a></p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Las órdenes de compra vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else {
+    @let o = orden();
+    <h1>
+      {{ o ? 'Orden ' + o.numeroTexto : 'Orden de compra nueva' }}
+      @if (o) { <span [class]="'pill ' + pill[o.estado]">{{ textoEstado(o.estado) }}</span> }
+    </h1>
+    @if (o && o.enviadaAtUtc) { <p class="subtitle">Enviada el {{ fechaUtc(o.enviadaAtUtc) }}.</p> }
+
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success" role="status">{{ aviso() }}</p> }
+
+    <!-- ===================================================== cabecera -->
+    <section class="gestion__seccion" aria-labelledby="titulo-cabecera">
+      <h2 id="titulo-cabecera">Proveedor y entrega</h2>
+      @if (editable()) {
+        <div class="gestion__grid">
+          <label>Proveedor
+            <select (change)="elegirProveedor($event)" data-campo="proveedor">
+              <option value="0" [selected]="!proveedorId()">— elegí —</option>
+              @for (p of proveedoresActivos(); track p.id) {
+                <option [value]="p.id" [selected]="p.id === proveedorId()">{{ p.nombre }}</option>
+              }
+            </select>
+          </label>
+          <label>Sucursal donde llega
+            <select (change)="campo('sucursal', $event)" data-campo="sucursal">
+              <option value="" [selected]="!sucursal()">— elegí —</option>
+              @for (s of sucursales(); track s.branchId) {
+                <option [value]="s.branchId" [selected]="s.branchId === sucursal()">{{ s.branchName }}</option>
+              }
+            </select>
+          </label>
+          <label>Entrega esperada (opcional)
+            <input type="date" [value]="entrega()" (change)="campo('entrega', $event)" />
+          </label>
+          <label class="gestion__ancho">Nota para el proveedor (opcional)
+            <input type="text" maxlength="500" [value]="nota()" (input)="campo('nota', $event)" placeholder="Entregar por la mañana; traer factura A…" />
+          </label>
+        </div>
+        @if (proveedores().length === 0) {
+          <p class="muted gestion__ayuda">Todavía no tenés proveedores. <a routerLink="/gestion/proveedores">Cargá uno →</a></p>
+        }
+      } @else if (o) {
+        <p class="proveedor__ficha">
+          <span><strong>{{ o.proveedor }}</strong></span>
+          @if (o.proveedorContacto) { <span>{{ o.proveedorContacto }}</span> }
+          @if (o.proveedorTelefono) { <span>{{ o.proveedorTelefono }}</span> }
+          @if (o.proveedorEmail) { <span>{{ o.proveedorEmail }}</span> }
+        </p>
+        <p class="proveedor__ficha">
+          <span>Llega a <strong>{{ o.sucursal }}</strong>{{ o.sucursalDomicilio ? ' (' + o.sucursalDomicilio + ')' : '' }}</span>
+          @if (o.entregaEsperada) { <span>Para el {{ fecha(o.entregaEsperada) }}</span> }
+        </p>
+        @if (o.nota) { <p class="muted">{{ o.nota }}</p> }
+      }
+    </section>
+
+    <!-- ===================================================== compra sugerida -->
+    @if (editable()) {
+      <section class="gestion__seccion" aria-labelledby="titulo-sugerida">
+        <h2 id="titulo-sugerida">Sugerir compra</h2>
+        <p class="muted gestion__ayuda">
+          Mira los artículos de la lista del proveedor y de los que es el habitual: lo que se vendió en la sucursal, llevado a
+          los días que querés cubrir, menos el stock, respetando el mínimo y el máximo, en bultos enteros.
+        </p>
+        <div class="gestion__fila-form">
+          <label>Ventas de los últimos (días)
+            <input type="number" min="1" max="365" step="1" [value]="dias()" (input)="campoSugerida('dias', $event)" class="orden__dias" />
+          </label>
+          <label>Días a cubrir
+            <input type="number" min="1" max="180" step="1" [value]="cubrir()" (input)="campoSugerida('cubrir', $event)" class="orden__dias" />
+          </label>
+          <button type="button" class="btn btn--ghost" (click)="sugerir()" [disabled]="sugiriendo() || !proveedorId() || !sucursal()">
+            {{ sugiriendo() ? 'Calculando…' : 'Sugerir compra' }}
+          </button>
+        </div>
+        @if (errorSugerida()) { <p class="alert alert--danger" role="alert">{{ errorSugerida() }}</p> }
+        @if (sugerida(); as s) {
+          @if (filasSugeridas().length === 0) {
+            <p class="muted">De {{ s.articulos }} {{ s.articulos === 1 ? 'artículo' : 'artículos' }} de este proveedor, ninguno hace falta pedir: alcanza con el stock.</p>
+          } @else {
+            <p>
+              Hay que pedir <strong>{{ s.conSugerido }}</strong> de {{ s.articulos }} artículos{{ s.totalEstimado > 0 ? ' (unos ' + plata(s.totalEstimado) + ' sin IVA)' : '' }}.
+              Cambiá lo que quieras y agregalo a la orden.
+            </p>
+            <div class="table-wrap">
+              <table class="data orden__sugerida">
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" [checked]="incluidas() === filasSugeridas().length" (change)="incluirTodas($any($event.target).checked)" aria-label="Todos" /></th>
+                    <th>Artículo</th><th class="num">Vendido</th><th class="num">Stock</th><th class="num">Mín.</th><th class="num">Máx.</th>
+                    <th class="num">Bulto</th><th class="num">Pedir</th><th>Por qué</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (f of filasSugeridas(); track f.articuloId; let i = $index) {
+                    <tr [attr.data-sugerida]="f.codigo">
+                      <td><input type="checkbox" [checked]="f.incluir" (change)="cambiarSugerida(i, 'incluir', $event)" [attr.aria-label]="'Incluir ' + f.descripcion" /></td>
+                      <td>{{ f.descripcion }} <small class="gestion__sub">{{ f.codigo }}{{ f.codigoProveedor ? ' · ' + f.codigoProveedor : '' }}</small></td>
+                      <td class="num">{{ cant(f.vendido) }}</td>
+                      <td class="num">{{ cant(f.stock) }}</td>
+                      <td class="num">{{ cant(f.minimo) }}</td>
+                      <td class="num">{{ cant(f.maximo) }}</td>
+                      <td class="num">{{ f.unidadesPorBulto ? cant(f.unidadesPorBulto) : '—' }}</td>
+                      <td class="num gestion__nowrap">
+                        <input type="text" inputmode="decimal" size="5" [value]="f.cantidad" (input)="cambiarSugerida(i, 'cantidad', $event)" [attr.aria-label]="'Cantidad de ' + f.descripcion" />
+                        {{ f.unidadesPorBulto ? 'bultos' : 'u.' }}
+                      </td>
+                      <td class="muted">{{ f.motivo }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="gestion__acciones">
+              <button type="button" class="btn" (click)="agregarSugeridas()" [disabled]="incluidas() === 0">Agregar a la orden ({{ incluidas() }})</button>
+              <button type="button" class="btn btn--ghost" (click)="sugerida.set(null); filasSugeridas.set([])">Descartar</button>
+            </div>
+          }
+        }
+      </section>
+    }
+
+    <!-- ===================================================== renglones -->
+    <section class="gestion__seccion" aria-labelledby="titulo-renglones">
+      <h2 id="titulo-renglones">Qué se pide</h2>
+      @if (editable()) {
+        <div class="gestion__fila-form">
+          @if (cuenta(); as c) {
+            <app-articulo-buscador [cuenta]="c" placeholder="Agregar un artículo: código o nombre (o escaneá)" (elegido)="agregar($event)" />
+          }
+        </div>
+        <p class="muted gestion__ayuda">Con el costo vacío va el de la lista del proveedor. Los artículos con bulto se piden en bultos (o cambialo a unidades).</p>
+      }
+
+      @if (filas().length === 0) {
+        <p class="muted">Todavía no hay renglones.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data orden__renglones">
+            <thead>
+              <tr>
+                <th>Artículo</th><th class="num">Cantidad</th><th class="num">Costo s/IVA</th><th class="num">Bonif. %</th>
+                <th class="num">Subtotal</th>@if (editable()) { <th></th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of filas(); track f.codigo; let i = $index) {
+                <tr [attr.data-renglon]="f.codigo">
+                  <td>
+                    {{ f.descripcion }}
+                    <small class="gestion__sub">{{ f.codigo }}{{ f.codigoProveedor ? ' · prov. ' + f.codigoProveedor : '' }}{{ f.unidadesPorBulto ? ' · bulto de ' + cant(f.unidadesPorBulto) : '' }}</small>
+                  </td>
+                  @if (editable()) {
+                    <td class="num gestion__nowrap">
+                      <input type="text" inputmode="decimal" size="5" [value]="f.cantidad" (input)="cambiarFila(i, 'cantidad', $event)" [attr.aria-label]="'Cantidad de ' + f.descripcion" />
+                      @if (f.unidadesPorBulto) {
+                        <select (change)="cambiarUnidad(i, $event)" [attr.aria-label]="'Unidad de ' + f.descripcion">
+                          <option value="bultos" [selected]="f.enBultos">bultos</option>
+                          <option value="unidades" [selected]="!f.enBultos">u.</option>
+                        </select>
+                      } @else { u. }
+                    </td>
+                    <td class="num"><input type="text" inputmode="decimal" size="8" [value]="f.costo" (input)="cambiarFila(i, 'costo', $event)" [placeholder]="f.costoLista != null ? 'de la lista' : '—'" [attr.aria-label]="'Costo de ' + f.descripcion" /></td>
+                    <td class="num"><input type="text" inputmode="decimal" size="4" [value]="f.bonif" (input)="cambiarFila(i, 'bonif', $event)" [attr.aria-label]="'Bonificación de ' + f.descripcion" /></td>
+                  } @else {
+                    <td class="num gestion__nowrap">{{ cantidadTexto(f) }}</td>
+                    <td class="num">{{ f.costo ? '$' + f.costo : '—' }}</td>
+                    <td class="num">{{ f.bonif || '—' }}</td>
+                  }
+                  <td class="num gestion__nowrap">
+                    @if (costoDeFila(f) != null && unidadesDeFila(f) != null) { {{ plata(costoDeFila(f)! * unidadesDeFila(f)!) }} } @else { — }
+                  </td>
+                  @if (editable()) {
+                    <td><button type="button" class="btn btn--ghost btn--small" (click)="quitarFila(i)" [attr.aria-label]="'Quitar ' + f.descripcion">Quitar</button></td>
+                  }
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4"><strong>Total estimado sin IVA</strong>@if (sinCosto() > 0) { <small class="gestion__sub">{{ sinCosto() }} sin costo</small> }</td>
+                <td class="num"><strong>{{ plata(total()) }}</strong></td>
+                @if (editable()) { <td></td> }
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      }
+
+      @if (editable()) {
+        <div class="gestion__acciones">
+          <button type="button" class="btn" (click)="guardar()" [disabled]="trabajando()">{{ trabajando() ? 'Guardando…' : (o ? 'Guardar cambios' : 'Guardar borrador') }}</button>
+          @if (o && sucio()) { <span class="muted">Hay cambios sin guardar.</span> }
+        </div>
+      }
+    </section>
+
+    <!-- ===================================================== mandarla -->
+    @if (o && o.items.length > 0 && o.estado !== 'cancelada') {
+      <section class="gestion__seccion" aria-labelledby="titulo-mandar">
+        <h2 id="titulo-mandar">Mandarla al proveedor</h2>
+        @if (sucio()) {
+          <p class="muted">Guardá los cambios para imprimirla o mandarla.</p>
+        } @else {
+          <p class="muted gestion__ayuda">La mandás vos: se abre WhatsApp o tu mail con la orden escrita. Nosotros no mandamos nada.</p>
+          <div class="gestion__acciones">
+            <a class="btn btn--ghost" [href]="whatsapp()" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+            <a class="btn btn--ghost" [href]="mail()"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Mail</a>
+            <button type="button" class="btn btn--ghost" (click)="copiar()">{{ copiado() ? 'Copiado ✓' : 'Copiar el texto' }}</button>
+            <a class="btn btn--ghost" [routerLink]="['/compras/ordenes/imprimir', o.id]" [queryParams]="{ costos: conCostos() ? null : 'no' }" target="_blank">
+              <i class="fa-solid fa-print" aria-hidden="true"></i> Imprimir o PDF
+            </a>
+            <label class="gestion__check"><input type="checkbox" [checked]="conCostos()" (change)="opcionCostos($event)" /> Con los costos</label>
+          </div>
+          @if (!o.proveedorTelefono) { <p class="muted gestion__ayuda">El proveedor no tiene teléfono cargado: WhatsApp te va a pedir el chat.</p> }
+          <details class="orden__texto">
+            <summary>Ver el texto</summary>
+            <pre>{{ texto() }}</pre>
+          </details>
+        }
+      </section>
+    }
+
+    <!-- ===================================================== estado -->
+    @if (o && (o.estado === 'borrador' || o.estado === 'enviada')) {
+      <div class="gestion__acciones orden__estado">
+        @if (confirmando() === 'enviar') {
+          <span>¿Ya se la mandaste? Después no se puede cambiar.</span>
+          <button type="button" class="btn" (click)="enviar()" [disabled]="trabajando()">Sí, enviada</button>
+          <button type="button" class="btn btn--ghost" (click)="confirmando.set(null)">Todavía no</button>
+        } @else if (confirmando() === 'cancelar') {
+          <span>¿Cancelar {{ o.numeroTexto }}?</span>
+          <button type="button" class="btn btn--danger" (click)="cancelar()" [disabled]="trabajando()">Sí, cancelarla</button>
+          <button type="button" class="btn btn--ghost" (click)="confirmando.set(null)">No</button>
+        } @else {
+          @if (o.estado === 'borrador') {
+            <button type="button" class="btn" (click)="confirmando.set('enviar')" [disabled]="trabajando() || filas().length === 0">Marcar como enviada</button>
+          }
+          <button type="button" class="btn btn--ghost" (click)="confirmando.set('cancelar')" [disabled]="trabajando()">Cancelar la orden</button>
+        }
+      </div>
+    }
+  }
+</div>

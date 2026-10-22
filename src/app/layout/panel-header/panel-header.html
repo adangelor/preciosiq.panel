@@ -171,6 +171,18 @@
             <span class="shell__link-text">Proveedores</span>
           </a>
         </li>
+        <li>
+          <!-- BP-180 bloque 3 (22-oct-2026) -- órdenes de compra y compra sugerida. -->
+          <a
+            class="shell__link"
+            routerLink="/gestion/compras/ordenes"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Órdenes de compra' : null"
+          >
+            <mat-icon>request_quote</mat-icon>
+            <span class="shell__link-text">Órdenes de compra</span>
+          </a>
+        </li>
 
         <li class="shell__nav-section">Análisis</li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->

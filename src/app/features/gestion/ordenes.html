@@ -1,0 +1,86 @@
+<div class="gestion card--page">
+  <h1>Órdenes de compra</h1>
+  <p class="subtitle">
+    Lo que le pedís a cada proveedor, por sucursal. Armala a mano o con la compra sugerida (lo que se vendió, el stock, el
+    mínimo y el máximo), imprimila o mandala por WhatsApp o mail. Cuando llega la mercadería, la recibís contra la orden.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (errorCuenta()) {
+    <p class="alert alert--danger">{{ errorCuenta() }}</p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>Las órdenes de compra vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <div class="gestion__barra">
+      <a class="btn" routerLink="/gestion/compras/ordenes/nueva"><i class="fa-solid fa-plus" aria-hidden="true"></i> Orden nueva</a>
+      <a class="btn btn--ghost" routerLink="/gestion/proveedores">Proveedores</a>
+    </div>
+
+    <div class="gestion__filtros">
+      <select (change)="filtrar('estado', $event)" aria-label="Estado">
+        <option value="abiertas" [selected]="estado() === 'abiertas'">Abiertas (borrador, enviadas, recibidas en parte)</option>
+        <option value="" [selected]="estado() === ''">Todas</option>
+        @for (e of estados; track e.valor) {
+          <option [value]="e.valor" [selected]="estado() === e.valor">{{ e.texto }}</option>
+        }
+      </select>
+      @if (sucursales().length > 1) {
+        <select (change)="filtrar('sucursal', $event)" aria-label="Sucursal">
+          <option value="" [selected]="sucursal() === ''">Todas las sucursales</option>
+          @for (s of sucursales(); track s.branchId) {
+            <option [value]="s.branchId" [selected]="sucursal() === s.branchId">{{ s.branchName }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    @if (cargando()) { <app-loading-bar label="Cargando las órdenes…" /> }
+    @if (error()) { <p class="alert alert--danger" role="alert">{{ error() }}</p> }
+
+    @if (lista(); as l) {
+      @if (l.items.length === 0) {
+        <p class="muted gestion__vacia">
+          @if (estado() === 'abiertas') { No tenés órdenes abiertas. } @else { No hay órdenes con ese filtro. }
+          <a routerLink="/gestion/compras/ordenes/nueva">Armar una →</a>
+        </p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Orden</th><th>Proveedor</th><th>Sucursal</th><th>Estado</th><th>Entrega</th>
+                <th class="num">Renglones</th><th class="num">Total estimado</th><th>Creada</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of l.items; track o.id) {
+                <tr [attr.data-orden]="o.id">
+                  <td class="strong gestion__nowrap"><a [routerLink]="['/gestion/compras/ordenes', o.id]">{{ o.numeroTexto }}</a></td>
+                  <td>{{ o.proveedor }}</td>
+                  <td>{{ o.sucursal }}</td>
+                  <td><span [class]="'pill ' + pill[o.estado]">{{ textoEstado(o.estado) }}</span></td>
+                  <td class="gestion__nowrap">{{ o.entregaEsperada ? fecha(o.entregaEsperada) : '—' }}</td>
+                  <td class="num">{{ o.renglones }}</td>
+                  <td class="num">{{ plata(o.totalEstimado) }}</td>
+                  <td class="gestion__nowrap">{{ cuando(o.createdAtUtc) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (paginas() > 1) {
+          <div class="gestion__paginas">
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() - 1)" [disabled]="pagina() <= 1 || cargando()">← Anterior</button>
+            <span class="muted">Página {{ pagina() }} de {{ paginas() }} · {{ l.total }} órdenes</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(pagina() + 1)" [disabled]="pagina() >= paginas() || cargando()">Siguiente →</button>
+          </div>
+        }
+      }
+    }
+  }
+</div>

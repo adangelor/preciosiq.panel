@@ -110,6 +110,130 @@ export interface ImportarListaResponse {
   errores: { fila: number; codigo: string | null; motivo: string }[];
 }
 
+// ------------------------------------------------------------------ órdenes de compra (bloque 3)
+
+export type EstadoOrden = 'borrador' | 'enviada' | 'recibida_parcial' | 'recibida' | 'cancelada';
+
+export const ESTADOS_ORDEN: { valor: EstadoOrden; texto: string }[] = [
+  { valor: 'borrador', texto: 'Borrador' },
+  { valor: 'enviada', texto: 'Enviada' },
+  { valor: 'recibida_parcial', texto: 'Recibida en parte' },
+  { valor: 'recibida', texto: 'Recibida' },
+  { valor: 'cancelada', texto: 'Cancelada' },
+];
+
+export interface OrdenResumen {
+  id: number;
+  numero: number;
+  numeroTexto: string;
+  supplierId: number;
+  proveedor: string;
+  branchId: string;
+  sucursal: string;
+  estado: EstadoOrden;
+  entregaEsperada: string | null;
+  renglones: number;
+  totalEstimado: number;
+  createdAtUtc: string;
+  enviadaAtUtc: string | null;
+}
+
+export interface OrdenLista {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: OrdenResumen[];
+}
+
+export interface RenglonOrden {
+  articuloId: number;
+  codigo: string;
+  descripcion: string;
+  marca: string | null;
+  codigoProveedor: string | null;
+  /** Siempre en unidades de venta. */
+  unidades: number;
+  /** Si se pidió por bulto. */
+  bultos: number | null;
+  unidadesPorBulto: number | null;
+  /** Por unidad, sin IVA, antes de la bonificación. */
+  costoNetoPactado: number | null;
+  bonificacionPct: number | null;
+  /** Por unidad, bonificado. */
+  costoFinal: number | null;
+  subtotal: number | null;
+}
+
+export interface Orden {
+  id: number;
+  numero: number;
+  numeroTexto: string;
+  estado: EstadoOrden;
+  entregaEsperada: string | null;
+  nota: string | null;
+  createdAtUtc: string;
+  enviadaAtUtc: string | null;
+  supplierId: number;
+  proveedor: string;
+  proveedorCuit: string | null;
+  proveedorTelefono: string | null;
+  proveedorEmail: string | null;
+  proveedorContacto: string | null;
+  branchId: string;
+  sucursal: string;
+  sucursalDomicilio: string | null;
+  comercio: string;
+  items: RenglonOrden[];
+  totalEstimado: number;
+}
+
+export interface RenglonOrdenRequest {
+  articuloId: number | null;
+  codigo: string | null;
+  unidades: number | null;
+  bultos: number | null;
+  costoNetoPactado: number | null;
+  bonificacionPct: number | null;
+}
+
+export interface OrdenRequest {
+  businessAccountId: number;
+  supplierId: number;
+  branchId: string;
+  entregaEsperada: string | null;
+  nota: string | null;
+  renglones: RenglonOrdenRequest[];
+}
+
+export interface SugeridaRenglon {
+  articuloId: number;
+  codigo: string;
+  descripcion: string;
+  codigoProveedor: string | null;
+  vendido: number;
+  stock: number;
+  minimo: number | null;
+  maximo: number | null;
+  unidadesPorBulto: number | null;
+  sugerido: number;
+  bultos: number | null;
+  motivo: string;
+  costoFinal: number | null;
+}
+
+export interface Sugerida {
+  supplierId: number;
+  branchId: string;
+  dias: number;
+  diasACubrir: number;
+  /** Cuántos artículos miró (los de la lista del proveedor y de los que es el habitual). */
+  articulos: number;
+  conSugerido: number;
+  totalEstimado: number;
+  milisegundos: number;
+  items: SugeridaRenglon[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
   private readonly http = inject(HttpClient);
@@ -155,6 +279,47 @@ export class ComprasService {
       aplicarCostos: boolean; marcarHabitual: boolean },
   ): Observable<ImportarListaResponse> {
     return this.http.post<ImportarListaResponse>(`${this.url}/proveedores/${id}/lista`, { vigenteDesde: null, ...req });
+  }
+
+  // ---- órdenes de compra
+
+  /** estado: uno de los estados, o 'abiertas' (borrador, enviada o recibida en parte); vacío = todas. */
+  ordenes(
+    businessAccountId: number,
+    filtro: { estado?: string; sucursal?: string; proveedorId?: number; page?: number; pageSize?: number },
+  ): Observable<OrdenLista> {
+    const params: Record<string, string | number> = { businessAccountId, page: filtro.page ?? 1, pageSize: filtro.pageSize ?? 30 };
+    if (filtro.estado) params['estado'] = filtro.estado;
+    if (filtro.sucursal) params['sucursal'] = filtro.sucursal;
+    if (filtro.proveedorId) params['proveedorId'] = filtro.proveedorId;
+    return this.http.get<OrdenLista>(`${this.url}/ordenes`, { params });
+  }
+
+  orden(businessAccountId: number, id: number): Observable<Orden> {
+    return this.http.get<Orden>(`${this.url}/ordenes/${id}`, { params: { businessAccountId } });
+  }
+
+  crearOrden(req: OrdenRequest): Observable<Orden> {
+    return this.http.post<Orden>(`${this.url}/ordenes`, req);
+  }
+
+  editarOrden(id: number, req: OrdenRequest): Observable<Orden> {
+    return this.http.put<Orden>(`${this.url}/ordenes/${id}`, req);
+  }
+
+  enviarOrden(businessAccountId: number, id: number): Observable<Orden> {
+    return this.http.post<Orden>(`${this.url}/ordenes/${id}/enviar`, { businessAccountId });
+  }
+
+  cancelarOrden(businessAccountId: number, id: number): Observable<Orden> {
+    return this.http.post<Orden>(`${this.url}/ordenes/${id}/cancelar`, { businessAccountId });
+  }
+
+  /** Sin "todos", solo los artículos que hay que pedir. */
+  sugerida(businessAccountId: number, proveedorId: number, sucursal: string, dias: number, cubrir: number, todos = false): Observable<Sugerida> {
+    const params: Record<string, string | number | boolean> = { businessAccountId, proveedorId, sucursal, dias, cubrir };
+    if (todos) params['todos'] = true;
+    return this.http.get<Sugerida>(`${this.url}/sugerida`, { params });
   }
 }
 
@@ -258,4 +423,89 @@ export function cuitConGuiones(cuit: string | null): string {
 
 export function textoCondicion(c: CondicionIva): string {
   return CONDICIONES_IVA.find((x) => x.valor === c)?.texto ?? c;
+}
+
+// ------------------------------------------------------------------ la orden para mandar (WhatsApp, mail, copiar)
+
+export function textoEstadoOrden(e: EstadoOrden): string {
+  return ESTADOS_ORDEN.find((x) => x.valor === e)?.texto ?? e;
+}
+
+const cant = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 3 });
+const pesosAr = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** "2026-10-28" -> "28/10/2026". */
+export function fechaCorta(iso: string | null): string {
+  if (!iso) return '';
+  const [a, m, d] = iso.slice(0, 10).split('-');
+  return `${d}/${m}/${a}`;
+}
+
+/** Un instante UTC del servidor ("2026-10-22T18:30:00", a veces sin Z) como fecha local: "22/10/2026". */
+export function fechaDeUtc(utc: string | null): string {
+  if (!utc) return '';
+  const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(utc) ? utc : `${utc}Z`);
+  return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/** "3 bultos (36 u.)" o "24 u.". */
+export function cantidadDeRenglon(r: Pick<RenglonOrden, 'unidades' | 'bultos'>): string {
+  if (r.bultos != null) return `${cant.format(r.bultos)} ${r.bultos === 1 ? 'bulto' : 'bultos'} (${cant.format(r.unidades)} u.)`;
+  return `${cant.format(r.unidades)} u.`;
+}
+
+/**
+ * El texto de la orden para pegar en WhatsApp o en un mail: lo manda el comprador, nosotros no mandamos nada.
+ * conCostos = con el costo pactado y el total (algunos prefieren no mandarlo).
+ */
+export function mensajeDeOrden(o: Orden, conCostos = true): string {
+  const lineas: string[] = [];
+  lineas.push(`Orden de compra ${o.numeroTexto}${o.comercio ? ` de ${o.comercio}` : ''}`);
+  lineas.push(`Entregar en: ${o.sucursal}${o.sucursalDomicilio ? ` (${o.sucursalDomicilio})` : ''}`);
+  if (o.entregaEsperada) lineas.push(`Para el ${fechaCorta(o.entregaEsperada)}`);
+  lineas.push('');
+  for (const r of o.items) {
+    const cod = r.codigoProveedor ? `[${r.codigoProveedor}] ` : '';
+    let l = `- ${cantidadDeRenglon(r)} ${cod}${r.descripcion} (${r.codigo})`;
+    if (conCostos && r.costoNetoPactado != null) {
+      l += ` a $${pesosAr.format(r.costoNetoPactado)}`;
+      if (r.bonificacionPct) l += ` -${cant.format(r.bonificacionPct)} %`;
+    }
+    lineas.push(l);
+  }
+  if (conCostos && o.totalEstimado > 0) {
+    lineas.push('');
+    lineas.push(`Total estimado sin IVA: $${pesosAr.format(o.totalEstimado)}`);
+  }
+  if (o.nota) {
+    lineas.push('');
+    lineas.push(o.nota);
+  }
+  return lineas.join('\n');
+}
+
+/**
+ * El teléfono del proveedor para wa.me (549 + característica + número), o null si no se entiende (WhatsApp abre igual
+ * y el comprador elige el chat). Acepta "0266 4123456", "+54 9 266 412-3456", "2664123456".
+ */
+export function telefonoParaWhatsApp(tel: string | null): string | null {
+  if (!tel) return null;
+  let d = tel.replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('54')) {
+    d = d.slice(2);
+    if (d.startsWith('9')) d = d.slice(1);
+  }
+  if (d.startsWith('0')) d = d.slice(1);
+  return d.length === 10 ? `549${d}` : null;
+}
+
+export function linkWhatsApp(tel: string | null, texto: string): string {
+  const n = telefonoParaWhatsApp(tel);
+  return `https://wa.me/${n ?? ''}?text=${encodeURIComponent(texto)}`;
+}
+
+export function linkMail(email: string | null, o: Orden, texto: string): string {
+  const asunto = `Orden de compra ${o.numeroTexto}${o.comercio ? ` — ${o.comercio}` : ''}`;
+  return `mailto:${email ?? ''}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
 }
