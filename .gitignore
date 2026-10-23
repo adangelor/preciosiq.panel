@@ -44,6 +44,7 @@ Thumbs.db
 
 # 27-ago-2026 -- clave de FTP del deploy (ver deploy.ps1). NUNCA al repo.
 .ftp-password
+.deploy-ultimo.txt
 
 # 08-oct-2026 (BP-67) -- cache entero de Angular y cualquier firma.
 /.angular

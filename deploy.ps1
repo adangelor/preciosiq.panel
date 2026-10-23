@@ -10,7 +10,12 @@
 # Opciones utiles:
 #   .\deploy.ps1 -SkipBuild     sube el dist que ya esta (frena si hay fuentes mas nuevas)
 #   .\deploy.ps1 -UseSsl        FTP sobre TLS, si Hostinger lo tiene habilitado en la cuenta
+#   .\deploy.ps1 -SimularLimpieza   sube y muestra que bundles viejos borraria, sin borrar
+#   .\deploy.ps1 -SinLimpieza       sube y no borra nada
 param([switch]$SkipBuild, [switch]$UseSsl, [switch]$Force, [string]$Password,
+      # 23-oct-2026: despues de subir se borran los bundles viejos (chunk-*.js, etc.). -SimularLimpieza
+      # muestra que borraria sin borrar; -SinLimpieza no borra nada.
+      [switch]$SinLimpieza, [switch]$SimularLimpieza,
       # RemoteDir vacio A PROPOSITO (verificado el 27-ago-2026 contra el server): la cuenta
       # FTP de este dominio deja el login DIRECTAMENTE ADENTRO del web root -- el listado de
       # la raiz devuelve los chunk-*.js y la carpeta home del sitio publicado. Poner
@@ -27,4 +32,5 @@ param([switch]$SkipBuild, [switch]$UseSsl, [switch]$Force, [string]$Password,
     -FtpUser     'u351670056.preciosiq.com' `
     -FtpPort     21 `
     -RemoteDir   $RemoteDir `
-    -SkipBuild:$SkipBuild -UseSsl:$UseSsl -Force:$Force -Password $Password
+    -SkipBuild:$SkipBuild -UseSsl:$UseSsl -Force:$Force -Password $Password `
+    -SinLimpieza:$SinLimpieza -SimularLimpieza:$SimularLimpieza
