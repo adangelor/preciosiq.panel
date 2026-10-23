@@ -27,6 +27,9 @@ export interface TiendaConfig {
   slugsAnteriores: string[];
   /** BP-167 -- la sucursal principal que marco el comercio (null = abre en la habilitada de menor BranchId). */
   sucursalPrincipal?: string | null;
+  /** BP-198 -- suspendida por un admin (null = no): no se ve en ningun lado y no se puede publicar. */
+  suspendidaAtUtc?: string | null;
+  suspendidaMotivo?: string | null;
 }
 
 /**

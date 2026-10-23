@@ -121,3 +121,7 @@
   p { margin: 0 0 0.35rem; }
   ul { margin: 0 0 0.35rem; padding-left: 1.2rem; font-family: ui-monospace, monospace; font-size: 0.85rem; }
 }
+
+// BP-198 -- tienda suspendida por un admin.
+.estado--suspendida { color: var(--danger); border-color: var(--danger); }
+.aviso--suspendida { background: var(--bg-elevated); border: 1px solid var(--danger); }

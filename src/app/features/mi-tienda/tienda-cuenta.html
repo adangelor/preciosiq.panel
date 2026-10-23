@@ -13,11 +13,24 @@
       </p>
     </div>
     @if (tienda(); as t) {
-      <span class="estado" [class.estado--ok]="t.activa">{{ t.activa ? 'Publicada' : 'Sin publicar' }}</span>
+      @if (t.suspendidaAtUtc) {
+        <span class="estado estado--suspendida">Suspendida</span>
+      } @else {
+        <span class="estado" [class.estado--ok]="t.activa">{{ t.activa ? 'Publicada' : 'Sin publicar' }}</span>
+      }
     } @else {
       <span class="estado">Sin tienda</span>
     }
   </header>
+
+  <!-- BP-198 (23-oct-2026): suspendida por un admin. Mientras lo esta no se ve y no se puede publicar. -->
+  @if (tienda()?.suspendidaAtUtc) {
+    <p class="aviso aviso--suspendida" role="alert">
+      <strong>Tu tienda está suspendida</strong> y no se ve en misuper.app ni en la app BuscaPrecios.
+      Motivo: {{ tienda()?.suspendidaMotivo ?? 'sin motivo' }}. Para volver a publicarla escribinos a
+      <a href="mailto:info@buscaprecios.online">info@buscaprecios.online</a>.
+    </p>
+  }
 
   @if (mensaje()) {
     <p class="aviso aviso--ok" role="status">{{ mensaje() }}</p>
