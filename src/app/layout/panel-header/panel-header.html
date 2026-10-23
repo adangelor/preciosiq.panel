@@ -65,7 +65,8 @@
             [attr.title]="iconsOnly() ? 'Formación de precios' : null"
           >
             <mat-icon>calculate</mat-icon>
-            <span class="shell__link-text">Formación de precios</span>
+            <span class="shell__link-text">Formación de precios
+              @if (faltaFormacion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</span>
           </a>
         </li>
         <li>
@@ -125,7 +126,8 @@
         </li>
 
         <!-- BP-178 (21-oct-2026) -- Gestión: la ficha de artículo de la cuenta (ERP para cadenas, Avanzado y Cadena). -->
-        <li class="shell__nav-section">Gestión</li>
+        <li class="shell__nav-section">Gestión
+          @if (faltaGestion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</li>
         <li>
           <a
             class="shell__link"
@@ -248,7 +250,8 @@
 
         <!-- BP-148 (17-oct-2026) -- la tienda online tiene su propia seccion (pedido de Andres): la tienda
              de misuper.app (BP-71) y sus pedidos, que antes vivian adentro de la tarjeta de la tienda. -->
-        <li class="shell__nav-section">Tienda online</li>
+        <li class="shell__nav-section">Tienda online
+          @if (faltaTienda()) { <span class="shell__plan-tag" title="Desde el plan Inicial">Inicial</span> }</li>
         <li>
           <a
             class="shell__link"

@@ -18,6 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth';
 import { ThemeService } from '../../core/theme';
 import { BusinessAccountService } from '../../core/business-account';
+import { BusinessSubscriptionService } from '../../core/business-subscription';
+import { SubscriptionStatusResponse } from '../../core/business-subscription.models';
 import { BusinessAccountResponse, resolveLogoUrl } from '../../core/business-account.models';
 import { AccountMenuComponent } from '../account-menu/account-menu';
 import { AvisosService } from '../../core/avisos';
@@ -51,12 +53,23 @@ import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
 export class PanelHeaderComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly businessAccountService = inject(BusinessAccountService);
+  private readonly subscriptionService = inject(BusinessSubscriptionService);
   private readonly breakpointObserver = inject(BreakpointObserver);
   // Publico: el template lo usa para el toggle claro/oscuro de la barra de arriba.
   protected readonly themeService = inject(ThemeService);
 
   protected readonly razonSocial = signal<string | null>(null);
   protected readonly logoUrl = signal<string | null>(null);
+
+  /**
+   * 23-oct-2026 (reestructura de precios) -- el menu marca con el plan que hace falta lo que la cuenta no tiene
+   * (contratado + trial). No lo esconde: la pantalla explica y ofrece subir de plan. Sin el dato (falla, o un backend
+   * viejo que no manda el tilde) no se marca nada.
+   */
+  private readonly planStatus = signal<SubscriptionStatusResponse | null>(null);
+  protected readonly faltaTienda = computed(() => this.planStatus()?.hasTiendaOnline === false);
+  protected readonly faltaGestion = computed(() => this.planStatus()?.hasGestionArticulos === false);
+  protected readonly faltaFormacion = computed(() => this.planStatus()?.hasFormacionPrecios === false);
   protected resolveLogoUrl = resolveLogoUrl;
 
   // E10.5 -- solo para mostrar/ocultar el link "Admin: trials" del menu. La
@@ -159,6 +172,10 @@ export class PanelHeaderComponent implements OnInit {
         this.razonSocial.set(accounts[0].razonSocial);
         this.logoUrl.set(accounts[0].logoUrl);
         this.avisos.vigilar(accounts[0].businessAccountId);
+        this.subscriptionService.getStatus(accounts[0].businessAccountId).subscribe({
+          next: (s) => this.planStatus.set(s),
+          error: () => {},
+        });
       },
       error: () => {},
     });

@@ -124,3 +124,23 @@
   font-size: 0.65rem;
   padding: 0 0.25rem;
 }
+
+// 23-oct-2026 (reestructura de precios) -- el plan que hace falta, al lado de lo que la cuenta no tiene. Con el menu
+// colapsado no se muestra (no entra al lado del icono).
+.shell__plan-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  vertical-align: middle;
+}
+.shell__sidenav--collapsed .shell__plan-tag {
+  display: none;
+}
