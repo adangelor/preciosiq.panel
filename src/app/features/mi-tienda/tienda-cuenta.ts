@@ -221,7 +221,13 @@ export class TiendaCuentaComponent implements OnInit {
         error: (err) => {
           this.guardando.set(false);
           const e = err?.error as ErrorDeCampo | undefined;
-          if (e?.campo) this.errores.set({ [e.campo as Campo]: e.error });
+          // 23-oct-2026: la tienda va desde Inicial. En Gratis se puede armar y guardar sin publicar.
+          if (err?.status === 402) {
+            this.activa.set(false);
+            this.errores.set({
+              activa: 'Publicar la tienda está disponible desde el plan Inicial (Tu plan). Podés guardarla sin publicar y publicarla cuando cambies de plan.',
+            });
+          } else if (e?.campo) this.errores.set({ [e.campo as Campo]: e.error });
           else this.errorGeneral.set(e?.error ?? 'No se pudo guardar. Probá de nuevo en un rato.');
         },
       });

@@ -11,7 +11,9 @@ PreciosIQ (https://preciosiq.com) es una plataforma B2B (SaaS) para supermercado
 - Carga de precios propios: manual, por CSV con mapeo de columnas, o por historial de importaciones. Sin límite de productos en ningún plan.
 - Categorización automática del catálogo.
 - Historial de precio por producto y dashboard de benchmarking.
-- Tienda online en misuper.app: con los mismos precios y promociones cargados, cada sucursal publica su tienda en https://misuper.app/<slug>, con pedido por WhatsApp y cartel A5 con QR para la vidriera.
+- Tus precios en la app BuscaPrecios: cada sucursal puede mostrarse a los consumidores en la app (en todos los planes).
+- Tienda online en misuper.app (desde el plan Inicial): con los mismos precios y promociones cargados, el comercio publica su tienda en https://misuper.app/<slug>, con pedido por WhatsApp y cartel A5 con QR para la vidriera.
+- Gestión del comercio (planes Avanzado y Cadena): ficha de artículos, stock con historial, formación de precios por costo y margen contra la competencia, y compras (órdenes, recepción, factura del proveedor y Libro IVA compras).
 - Asesor de Precios: informe escrito (generado con un modelo de lenguaje sobre un resumen determinístico de tus datos) con sugerencias concretas de ajuste; con las unidades vendidas cargadas, estima el impacto en ganancia.
 
 ## Para quién
@@ -20,15 +22,15 @@ Comercios minoristas y cadenas de Argentina que fijan precios y hoy "mandan a al
 
 ## Planes
 
-Cinco planes. La carga de datos es libre en todos (catálogo completo por CSV, sin límite de productos ni de sucursales); lo que crece al subir de plan es el nivel de análisis. Cada plan incluye todo lo del anterior.
+Cinco planes. La carga de datos es libre en todos (catálogo completo por CSV, sin límite de productos ni de sucursales); al subir de plan crecen la tienda online, el nivel de análisis y la gestión del comercio. Cada plan incluye todo lo del anterior.
 
-- Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV, comparación contra las cadenas de tu zona, sucursal por sucursal, y tu tienda online en misuper.app (pedidos por WhatsApp, cobro directo con tu alias, CVU o QR, cartel con QR para la vidriera).
-- Inicial ($20.000/mes o $200.000/año) — tu evolución: suma historial de precios.
-- Pyme ($50.000/mes o $500.000/año, el recomendado) — tu competitividad: suma dashboard completo e informe del Asesor de Precios.
-- Avanzado ($150.000/mes o $1.500.000/año) — tu rentabilidad: suma análisis de margen por producto (requiere cargar tus costos).
-- Cadena ($200.000/mes o $2.000.000/año) — tu ganancia: suma la ganancia en pesos por mes (requiere cargar tus ventas).
+- Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV, comparación contra las cadenas de tu zona, sucursal por sucursal, y tus precios visibles en la app BuscaPrecios. No incluye la tienda online.
+- Inicial ($80.000/mes o $800.000/año) — tu vidriera: suma tu tienda online en misuper.app (pedidos por WhatsApp, cobro directo con tu alias, CVU o QR, cartel con QR para la vidriera) e historial de precios.
+- Pyme ($160.000/mes o $1.600.000/año, el recomendado) — tu competitividad: suma dashboard completo, informe del Asesor de Precios y estadísticas de 30 días de la tienda.
+- Avanzado ($320.000/mes o $3.200.000/año) — tu rentabilidad y tu gestión: suma análisis de margen por producto (requiere cargar tus costos), asistente con IA en la tienda y la gestión del comercio (artículos, stock, formación de precios y compras).
+- Cadena ($640.000/mes o $6.400.000/año) — tu ganancia: suma la ganancia en pesos por mes (requiere cargar tus ventas).
 
-Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 meses y se usan 12. Se cambia o se cancela cuando se quiera. Pago por Mercado Pago. Detalle vigente en https://preciosiq.com/#planes.
+Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 meses y se usan 12. Se cambia o se cancela cuando se quiera. Pago con link de pago (Nave, de Banco Galicia). Precios vigentes desde el 23/10/2026. Detalle vigente en https://preciosiq.com/#planes.
 
 ## Páginas
 

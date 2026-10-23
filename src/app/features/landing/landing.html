@@ -172,14 +172,18 @@
      Features por tarjeta: PlanLimits.Plans; esas sí están escritas a mano acá.
 
      BP-85 (11-oct-2026): PlanLimits ya tiene la matriz de la caja y de la tienda. Acá se
-     muestra solo lo que existe hoy (la tienda en misuper.app, gratis en todos); la caja, la
-     factura, el subdominio y el dominio propio entran a las tarjetas cuando se publiquen. -->
+     muestra solo lo que existe hoy; la caja, la factura, el subdominio y el dominio propio entran
+     a las tarjetas cuando se publiquen.
+
+     23-oct-2026 (reestructura de precios): la tienda pasa a Inicial; Gratis muestra los precios en
+     la app BuscaPrecios (Branch.IsPublic); la gestión (BP-178..181) va en Avanzado y Cadena. -->
 <section class="bg-gradient-primary-to-secondary" id="planes">
   <div class="container px-5">
     <h2 class="text-center text-white font-alt mb-3">El dato entra gratis. El análisis se paga.</h2>
     <p class="text-center text-white-50 mb-5 mx-auto" style="max-width: 46rem">
       Cargá tu catálogo completo por CSV en cualquier plan, incluido el gratuito: sin límite de
-      productos ni de sucursales. Lo que crece al subir de plan es cuánto te decimos sobre él.
+      productos ni de sucursales, y mostrá tus precios en la app BuscaPrecios. Al subir de plan suman tu
+      tienda online, el análisis y, en Avanzado y Cadena, la gestión de tu comercio.
     </p>
 
     <!-- El monto de un plan pago. Mientras la API no contesta la tarjeta guarda el lugar; si
@@ -207,7 +211,7 @@
             <li class="mb-2">✓ Carga libre de catálogo por CSV</li>
             <li class="mb-2">✓ Comparación contra las cadenas de tu zona</li>
             <li class="mb-2">✓ Sucursal por sucursal</li>
-            <li class="mb-2">✓ Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
+            <li class="mb-2">✓ Tus precios en la app BuscaPrecios</li>
           </ul>
           <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezá gratis</a>
         </div>
@@ -221,6 +225,7 @@
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'inicial' }" />
           <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
             <li class="mb-2">Todo lo del plan Gratis, más:</li>
+            <li class="mb-2">✓ Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
             <li class="mb-2">✓ Historial de precios</li>
           </ul>
           <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
@@ -253,6 +258,8 @@
             <li class="mb-2">Todo lo del plan Pyme, más:</li>
             <li class="mb-2">✓ Análisis de margen por producto</li>
             <li class="mb-2 fst-italic">Requiere cargar tus costos</li>
+            <li class="mb-2">✓ Gestión del comercio: artículos, stock, formación de precios y compras</li>
+            <li class="mb-2">✓ Asistente con IA en tu tienda</li>
           </ul>
           <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
         </div>

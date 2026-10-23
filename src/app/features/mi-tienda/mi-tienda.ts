@@ -22,7 +22,8 @@ import { environment } from '../../../environments/environment';
       <h1>Mi tienda online</h1>
       <p class="subtitle">
         Tus clientes ven tus precios y tus promos en <strong>misuper.app</strong> y te hacen el pedido por WhatsApp.
-        Gratis, en todos los planes. La tienda sale de los precios que ya cargás acá: no tenés que cargar nada nuevo.
+        Viene desde el plan Inicial (<a routerLink="/plan">Tu plan</a>); en el gratis podés armarla y dejarla lista sin publicar.
+        La tienda sale de los precios que ya cargás acá: no tenés que cargar nada nuevo.
       </p>
 
       @if (cargando()) {

@@ -25,6 +25,10 @@ export interface PlanCatalogItem {
   hasFormacionPrecios?: boolean;
   // BP-180 (22-oct-2026) -- compras, Avanzado y Cadena.
   hasCompras?: boolean;
+  // 23-oct-2026 (reestructura de precios) -- tienda desde Inicial, factura de la caja, asistente con IA. Opcionales.
+  hasTiendaOnline?: boolean;
+  hasCajaInvoicing?: boolean;
+  hasTiendaAsistente?: boolean;
 }
 
 export interface SubscriptionStatusResponse {

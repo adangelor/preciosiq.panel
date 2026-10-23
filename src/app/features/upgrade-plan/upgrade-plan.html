@@ -9,10 +9,11 @@
   -->
   <p class="subtitle">
     Gratis / Inicial / Pyme / Avanzado / Cadena. Ningún plan te limita la cantidad de productos
-    ni de sucursales, y la carga masiva por CSV está en todos, incluido el gratis. Lo que suma
-    cada plan pago es análisis: el historial de precios desde Inicial; el dashboard completo de
-    benchmarking y el informe del Asesor desde Pyme; el análisis de margen (tus costos) desde
-    Avanzado; y el de ganancia (tus ventas) en Cadena.
+    ni de sucursales, y la carga masiva por CSV está en todos, incluido el gratis. En el gratis
+    también podés mostrar tus precios en la app BuscaPrecios. Desde Inicial suman la tienda en
+    misuper.app y el historial de precios; desde Pyme, el dashboard completo
+    y el informe del Asesor; desde Avanzado, el análisis de margen y la gestión del comercio
+    (artículos, stock, formación de precios y compras); y en Cadena, el análisis de ganancia.
   </p>
 
   @if (loadingContext() || loading()) {
@@ -153,9 +154,9 @@
               @if (plan.priceArs === null) {
                 Gratis
               } @else if (billingCycle() === 'annual') {
-                ${{ plan.priceArsAnnual }} ARS/año
+                {{ pesos(plan.priceArsAnnual) }} por año
               } @else {
-                ${{ plan.priceArs }} ARS/mes
+                {{ pesos(plan.priceArs) }} por mes
               }
             </p>
             <!--
@@ -167,11 +168,15 @@
             <ul>
               <li>{{ plan.maxProducts === null ? 'Productos ilimitados' : plan.maxProducts + ' productos' }}</li>
               <li [class.feature--off]="!plan.hasCsvBulkImport">Carga masiva por CSV</li>
-              <li>Tienda online en misuper.app</li>
+              <!-- 23-oct-2026: Branch.IsPublic (Sucursales -> Pública) no es una feature de plan: está en todos. -->
+              <li>Tus precios en la app BuscaPrecios</li>
+              <li [class.feature--off]="!plan.hasTiendaOnline">Tienda online en misuper.app</li>
               <li [class.feature--off]="!plan.hasPriceHistory">Historial de precios</li>
               <li [class.feature--off]="!plan.hasFullDashboard">Dashboard completo de benchmarking</li>
               <li [class.feature--off]="!plan.hasAdvisorReport">Informe del Asesor de Precios</li>
               <li [class.feature--off]="!plan.hasMarginAnalysis">Análisis de margen (tus costos)</li>
+              <li [class.feature--off]="!plan.hasTiendaAsistente">Asistente con IA en tu tienda</li>
+              <li [class.feature--off]="!plan.hasGestionArticulos">Gestión: artículos, stock, formación de precios y compras</li>
               <li [class.feature--off]="!plan.hasProfitAnalysis">Análisis de ganancia (tus ventas)</li>
             </ul>
             @if (plan.tier === s.tier) {
