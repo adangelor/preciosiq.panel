@@ -21,7 +21,7 @@ import { BusinessPriceService } from '../../core/business-price';
 import { BusinessAccountProductItem, UpsertBusinessPriceRequest } from '../../core/business-price.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
-import { GestionContextoService } from '../../core/gestion-contexto';
+import { GESTION_VISIBLE, GestionContextoService } from '../../core/gestion-contexto';
 import { BranchListItem } from '../../core/business-account.models';
 import { AdvisorService } from '../../core/advisor';
 import { PriceZoneItem } from '../../core/advisor.models';
@@ -259,7 +259,7 @@ export class CsvImportComponent implements OnInit {
           return;
         }
         this.branches.set(ctx.branches);
-        this.gestion.load().subscribe({ next: (g) => this.conArticulos.set(!!g?.gestionArticulos), error: () => {} });
+        this.gestion.load().subscribe({ next: (g) => this.conArticulos.set(GESTION_VISIBLE && !!g?.gestionArticulos), error: () => {} });
         this.uploadForm.patchValue({ businessAccountId: ctx.account.businessAccountId });
         if (ctx.branches.length > 0) {
           this.uploadForm.patchValue({ branchId: ctx.branches[0].branchId });

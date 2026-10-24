@@ -20,7 +20,7 @@ import { PromoReglaGrupo, reglaDesdeValores, valoresDesdeRegla } from '../../cor
 import { PromoReglaEditorComponent } from '../../shared/promo-regla-editor/promo-regla-editor';
 import { planGateErrorMessage } from '../../core/plan-gate';
 import { BusinessContextService } from '../../core/business-context';
-import { GestionContextoService } from '../../core/gestion-contexto';
+import { GESTION_VISIBLE, GestionContextoService } from '../../core/gestion-contexto';
 import { BranchListItem } from '../../core/business-account.models';
 import { BrandLabelPipe } from '../../core/brand-label';
 
@@ -151,7 +151,7 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
           return;
         }
         this.branches.set(ctx.branches);
-        this.gestion.load().subscribe({ next: (g) => this.puedeSinCodigoDeBarras.set(!!g?.gestionArticulos), error: () => {} });
+        this.gestion.load().subscribe({ next: (g) => this.puedeSinCodigoDeBarras.set(GESTION_VISIBLE && !!g?.gestionArticulos), error: () => {} });
         this.form.patchValue({ businessAccountId: ctx.account.businessAccountId });
         if (ctx.branches.length > 0) {
           this.form.patchValue({ branchId: ctx.branches[0].branchId });

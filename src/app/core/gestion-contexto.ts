@@ -5,6 +5,14 @@ import { BusinessContextService } from './business-context';
 import { BranchListItem } from './business-account.models';
 import { BusinessSubscriptionService } from './business-subscription';
 
+/**
+ * 24-oct-2026 -- Gestión (Artículos, Stock, Rubros, Proveedores, Compras, Libro IVA) queda ESCONDIDA hasta tener
+ * 20-30 clientes en PreciosIQ. Con false: no aparece en el menú, la carga masiva no pide las columnas de la ficha y
+ * "Cargar precio" no ofrece el alta sin código de barras. Las rutas siguen andando por URL (Formación de precios
+ * enlaza a Rubros) y el backend no cambia. Para volver a mostrarla: true (y repasar landing, Tu plan y llms.txt).
+ */
+export const GESTION_VISIBLE = false;
+
 // BP-178 (21-oct-2026) -- lo que necesitan las pantallas de Gestión (Artículos, Rubros, Proveedores): la cuenta, sus
 // sucursales y qué trae el plan. El panel no esconde nada por plan (el 402 lo explica), pero la portada de Gestión dice
 // qué plan la trae ANTES de llamar a la API, con los has* de /subscriptions/status (que ya incluyen el trial).

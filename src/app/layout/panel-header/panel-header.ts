@@ -25,6 +25,7 @@ import { AccountMenuComponent } from '../account-menu/account-menu';
 import { AvisosService } from '../../core/avisos';
 import { CampanitaComponent } from '../campanita/campanita';
 import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
+import { GESTION_VISIBLE } from '../../core/gestion-contexto';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -69,6 +70,8 @@ export class PanelHeaderComponent implements OnInit {
   private readonly planStatus = signal<SubscriptionStatusResponse | null>(null);
   protected readonly faltaTienda = computed(() => this.planStatus()?.hasTiendaOnline === false);
   protected readonly faltaGestion = computed(() => this.planStatus()?.hasGestionArticulos === false);
+  /** 24-oct-2026 -- Gestión escondida hasta tener 20-30 clientes (ver GESTION_VISIBLE). */
+  protected readonly gestionVisible = GESTION_VISIBLE;
   protected readonly faltaFormacion = computed(() => this.planStatus()?.hasFormacionPrecios === false);
   protected resolveLogoUrl = resolveLogoUrl;
 

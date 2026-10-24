@@ -125,102 +125,105 @@
           </a>
         </li>
 
-        <!-- BP-178 (21-oct-2026) -- Gestión: la ficha de artículo de la cuenta (ERP para cadenas, Avanzado y Cadena). -->
-        <li class="shell__nav-section">Gestión
-          @if (faltaGestion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</li>
-        <li>
-          <a
-            class="shell__link"
-            routerLink="/gestion/articulos"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Artículos' : null"
-          >
-            <mat-icon>inventory_2</mat-icon>
-            <span class="shell__link-text">Artículos</span>
-          </a>
-        </li>
-        <li>
-          <!-- BP-179 bloque 7 (21-oct-2026) -- stock con historial. -->
-          <a
-            class="shell__link"
-            routerLink="/gestion/stock"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Stock' : null"
-          >
-            <mat-icon>warehouse</mat-icon>
-            <span class="shell__link-text">Stock</span>
-          </a>
-        </li>
-        <li>
-          <a
-            class="shell__link"
-            routerLink="/gestion/rubros"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Rubros' : null"
-          >
-            <mat-icon>account_tree</mat-icon>
-            <span class="shell__link-text">Rubros</span>
-          </a>
-        </li>
-        <li>
-          <a
-            class="shell__link"
-            routerLink="/gestion/proveedores"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Proveedores' : null"
-          >
-            <mat-icon>local_shipping</mat-icon>
-            <span class="shell__link-text">Proveedores</span>
-          </a>
-        </li>
-        <li>
-          <!-- BP-180 bloque 3 (22-oct-2026) -- órdenes de compra y compra sugerida. -->
-          <a
-            class="shell__link"
-            routerLink="/gestion/compras/ordenes"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Órdenes de compra' : null"
-          >
-            <mat-icon>request_quote</mat-icon>
-            <span class="shell__link-text">Órdenes de compra</span>
-          </a>
-        </li>
-        <li>
-          <!-- BP-180 bloque 4 (22-oct-2026) -- recepción de mercadería y devoluciones al proveedor. -->
-          <a
-            class="shell__link"
-            routerLink="/gestion/compras/recepciones"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Recepciones' : null"
-          >
-            <mat-icon>move_to_inbox</mat-icon>
-            <span class="shell__link-text">Recepciones</span>
-          </a>
-        </li>
-        <li>
-          <!-- BP-180 bloque 5 (22-oct-2026) -- facturas y notas de los proveedores. -->
-          <a
-            class="shell__link"
-            routerLink="/gestion/compras/comprobantes"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Comprobantes' : null"
-          >
-            <mat-icon>receipt</mat-icon>
-            <span class="shell__link-text">Comprobantes</span>
-          </a>
-        </li>
-        <li>
-          <!-- BP-180 bloque 7 (22-oct-2026) -- Libro IVA compras. -->
-          <a
-            class="shell__link"
-            routerLink="/gestion/compras/libro-iva"
-            routerLinkActive="shell__link--active"
-            [attr.title]="iconsOnly() ? 'Libro IVA compras' : null"
-          >
-            <mat-icon>menu_book</mat-icon>
-            <span class="shell__link-text">Libro IVA compras</span>
-          </a>
-        </li>
+        <!-- 24-oct-2026 -- Gestión escondida hasta tener 20-30 clientes (GESTION_VISIBLE en core/gestion-contexto.ts). -->
+        @if (gestionVisible) {
+          <!-- BP-178 (21-oct-2026) -- Gestión: la ficha de artículo de la cuenta (ERP para cadenas, Avanzado y Cadena). -->
+          <li class="shell__nav-section">Gestión
+            @if (faltaGestion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</li>
+          <li>
+            <a
+              class="shell__link"
+              routerLink="/gestion/articulos"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Artículos' : null"
+            >
+              <mat-icon>inventory_2</mat-icon>
+              <span class="shell__link-text">Artículos</span>
+            </a>
+          </li>
+          <li>
+            <!-- BP-179 bloque 7 (21-oct-2026) -- stock con historial. -->
+            <a
+              class="shell__link"
+              routerLink="/gestion/stock"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Stock' : null"
+            >
+              <mat-icon>warehouse</mat-icon>
+              <span class="shell__link-text">Stock</span>
+            </a>
+          </li>
+          <li>
+            <a
+              class="shell__link"
+              routerLink="/gestion/rubros"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Rubros' : null"
+            >
+              <mat-icon>account_tree</mat-icon>
+              <span class="shell__link-text">Rubros</span>
+            </a>
+          </li>
+          <li>
+            <a
+              class="shell__link"
+              routerLink="/gestion/proveedores"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Proveedores' : null"
+            >
+              <mat-icon>local_shipping</mat-icon>
+              <span class="shell__link-text">Proveedores</span>
+            </a>
+          </li>
+          <li>
+            <!-- BP-180 bloque 3 (22-oct-2026) -- órdenes de compra y compra sugerida. -->
+            <a
+              class="shell__link"
+              routerLink="/gestion/compras/ordenes"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Órdenes de compra' : null"
+            >
+              <mat-icon>request_quote</mat-icon>
+              <span class="shell__link-text">Órdenes de compra</span>
+            </a>
+          </li>
+          <li>
+            <!-- BP-180 bloque 4 (22-oct-2026) -- recepción de mercadería y devoluciones al proveedor. -->
+            <a
+              class="shell__link"
+              routerLink="/gestion/compras/recepciones"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Recepciones' : null"
+            >
+              <mat-icon>move_to_inbox</mat-icon>
+              <span class="shell__link-text">Recepciones</span>
+            </a>
+          </li>
+          <li>
+            <!-- BP-180 bloque 5 (22-oct-2026) -- facturas y notas de los proveedores. -->
+            <a
+              class="shell__link"
+              routerLink="/gestion/compras/comprobantes"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Comprobantes' : null"
+            >
+              <mat-icon>receipt</mat-icon>
+              <span class="shell__link-text">Comprobantes</span>
+            </a>
+          </li>
+          <li>
+            <!-- BP-180 bloque 7 (22-oct-2026) -- Libro IVA compras. -->
+            <a
+              class="shell__link"
+              routerLink="/gestion/compras/libro-iva"
+              routerLinkActive="shell__link--active"
+              [attr.title]="iconsOnly() ? 'Libro IVA compras' : null"
+            >
+              <mat-icon>menu_book</mat-icon>
+              <span class="shell__link-text">Libro IVA compras</span>
+            </a>
+          </li>
+        }
 
         <li class="shell__nav-section">Análisis</li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->

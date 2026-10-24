@@ -12,8 +12,8 @@
     ni de sucursales, y la carga masiva por CSV está en todos, incluido el gratis. En el gratis
     también podés mostrar tus precios en la app BuscaPrecios. Desde Inicial suman la tienda en
     misuper.app y el historial de precios; desde Pyme, el dashboard completo
-    y el informe del Asesor; desde Avanzado, el análisis de margen y la gestión del comercio
-    (artículos, stock, formación de precios y compras); y en Cadena, el análisis de ganancia.
+    y el informe del Asesor; desde Avanzado, el análisis de margen y la formación de precios;
+    y en Cadena, el análisis de ganancia.
   </p>
 
   @if (loadingContext() || loading()) {
@@ -176,7 +176,8 @@
               <li [class.feature--off]="!plan.hasAdvisorReport">Informe del Asesor de Precios</li>
               <li [class.feature--off]="!plan.hasMarginAnalysis">Análisis de margen (tus costos)</li>
               <li [class.feature--off]="!plan.hasTiendaAsistente">Asistente con IA en tu tienda</li>
-              <li [class.feature--off]="!plan.hasGestionArticulos">Gestión: artículos, stock, formación de precios y compras</li>
+              <!-- 24-oct-2026: la gestión (artículos, stock, compras) se esconde hasta tener 20-30 clientes. -->
+              <li [class.feature--off]="!plan.hasFormacionPrecios">Formación de precios (costo y margen contra la competencia)</li>
               <li [class.feature--off]="!plan.hasProfitAnalysis">Análisis de ganancia (tus ventas)</li>
             </ul>
             @if (plan.tier === s.tier) {
