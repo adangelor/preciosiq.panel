@@ -21,7 +21,7 @@
   background: var(--bg-card);
 }
 // Las que no estan en la tienda, mas apagadas (pero legibles: hay que poder leer por que).
-.suc--fuera { background: var(--bg-soft); .suc__nombre { color: var(--text-2); } }
+.suc--fuera { background: var(--bg-hover); .suc__nombre { color: var(--text-2); } }
 
 .suc__cabeza { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .suc__datos { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; min-width: 0; }

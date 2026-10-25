@@ -50,7 +50,7 @@ export interface ArticuloElegido {
       max-height: 18rem; overflow: auto;
     }
     .buscador__lista li { padding: .45rem .7rem; cursor: pointer; display: flex; flex-direction: column; gap: .1rem; font-size: .875rem; }
-    .buscador__lista li:hover { background: var(--bg-muted, rgba(0,0,0,.04)); }
+    .buscador__lista li:hover { background: var(--bg-hover); }
     .muted { color: var(--text-2); font-size: .8rem; }
   `,
 })
