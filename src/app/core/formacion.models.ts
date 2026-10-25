@@ -152,6 +152,10 @@ export interface CartelItem {
   cantidadReferencia: number | null;
   unidadReferencia: string | null;
   promo: CartelPromo | null;
+  /** Res. 4/2025: el precio sin IVA, con la alícuota de la ficha (21 % si no hay). Opcional: un backend viejo no lo manda. */
+  precioSinImpuestos?: number | null;
+  ivaAlicuota?: number | null;
+  ivaDeLaFicha?: boolean;
 }
 
 export interface CartelesResponse {

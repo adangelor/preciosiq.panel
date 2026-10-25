@@ -11,7 +11,10 @@ import {
   presentacionTexto,
   promoDelCartel,
   referenciaDelCartel,
+  sinImpuestosDelCartel,
+  tamanoDelPrecio,
 } from '../../core/formacion-form';
+import { CodigoDeBarras, codigoDeBarras } from '../../core/codigo-barras';
 import { CartelItem, CartelesOrigen, CartelesResponse } from '../../core/formacion.models';
 
 const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
@@ -21,7 +24,10 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
  * ?batchId= o ?groupId= (lo que cambió en esa carga: la formación de precios o cualquier carga masiva) o con ?eans=
  * (una selección). Con un grupo se elige la sucursal (?branchId=), porque cada sucursal puede tener otro precio.
  * Cada cartel: descripción, marca, presentación, precio grande, precio por kilo o litro si aporta, la promo vigente con
- * el texto de la caja (promo-calculator), el código y la fecha. Sin código de barras dibujado en v1 (anotado).
+ * el texto de la caja (promo-calculator), el código y la fecha.
+ * 25-oct-2026: lo que pide la Res. 4/2025 (precio por unidad de medida y "PRECIO SIN IMPUESTOS NACIONALES", los dos más
+ * chicos que el precio), el código de barras dibujado (BP-190), el grande en A4 apaisada y el precio que se achica
+ * para entrar en el ancho.
  */
 @Component({
   selector: 'app-carteles-gondola',
@@ -84,12 +90,26 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
               @if (promo(c); as p) {
                 <div class="cartel__promo">{{ p.texto }}</div>
               }
-              <div class="cartel__precio">
+              <div class="cartel__precio" [style.font-size.mm]="tamanoPrecio(c)">
                 <span class="cartel__signo">$</span>{{ partido(c).enteros }}@if (partido(c).centavos) {<sup>{{ partido(c).centavos }}</sup>}
               </div>
               @if (referencia(c)) { <div class="cartel__ref">{{ referencia(c) }}</div> }
+              @if (sinImpuestos(c); as s) { <div class="cartel__legal">{{ s }}</div> }
               @if (promo(c)?.ejemplo; as ej) { <div class="cartel__ej">{{ ej }}</div> }
-              <div class="cartel__pie"><span>{{ c.codigo }}</span><span>{{ fecha }}</span></div>
+              <div class="cartel__pie">
+                @if (barras().get(c.codigo); as b) {
+                  <div class="cartel__codigo">
+                    <svg class="cartel__barras" [attr.viewBox]="'0 0 ' + b.ancho + ' 40'" preserveAspectRatio="none"
+                         shape-rendering="crispEdges" role="img" [attr.aria-label]="'Código ' + c.codigo">
+                      @for (r of b.barras; track r.x) { <rect [attr.x]="r.x" y="0" [attr.width]="r.w" height="40" /> }
+                    </svg>
+                    <span>{{ c.codigo }}</span>
+                  </div>
+                } @else {
+                  <span>{{ c.codigo }}</span>
+                }
+                <span>{{ fecha }}</span>
+              </div>
             </article>
           }
         </section>
@@ -109,7 +129,8 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
             display: grid; align-content: start; gap: 0; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
     .hoja--chico { grid-template-columns: repeat(3, 66mm); grid-auto-rows: 35.6mm; }
     .hoja--mediano { grid-template-columns: repeat(2, 99mm); grid-auto-rows: 57mm; }
-    .hoja--grande { grid-template-columns: repeat(2, 99mm); grid-auto-rows: 142mm; }
+    /* El grande va en A4 APAISADA: 2 x 2 de 142,5 x 99 mm (el tamaño de un cartel de oferta). */
+    .hoja--grande { width: 297mm; min-height: 210mm; grid-template-columns: repeat(2, 142.5mm); grid-auto-rows: 99mm; page: apaisada; }
 
     .cartel { box-sizing: border-box; border: 0.3mm dashed #9ca3af; padding: 2mm 3mm; display: flex; flex-direction: column; overflow: hidden; }
     .cartel__desc { font-weight: 700; text-transform: uppercase; line-height: 1.1; font-size: 3mm;
@@ -121,7 +142,16 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
     .cartel__signo { font-size: 0.55em; vertical-align: 0.55em; margin-right: 0.5mm; }
     .cartel__ref { font-size: 2.4mm; color: #374151; }
     .cartel__ej { font-size: 2.3mm; color: #b91c1c; font-weight: 700; }
-    .cartel__pie { display: flex; justify-content: space-between; font-size: 2mm; color: #6b7280; margin-top: 0.8mm; }
+    .cartel__legal { font-size: 1.9mm; color: #374151; letter-spacing: 0.05mm; }
+    .cartel__pie { display: flex; justify-content: space-between; align-items: flex-end; font-size: 2mm; color: #6b7280; margin-top: 0.8mm; }
+    .cartel__codigo { display: flex; flex-direction: column; align-items: center; color: #111; line-height: 1.1; }
+    .cartel__barras { display: block; width: 30mm; height: 5mm; fill: #000; }
+    /* Ningún renglón se aplasta para hacerle lugar a otro (la descripción quedaba cortada a la mitad en el chico). */
+    .cartel > * { flex-shrink: 0; }
+    /* En el chico (36 mm de alto) el número va al costado de las barras, no abajo. */
+    .hoja--chico .cartel__codigo { flex-direction: row; align-items: flex-end; gap: 1mm; font-size: 1.8mm; }
+    .hoja--chico .cartel__barras { width: 28mm; height: 4mm; }
+    .hoja--chico .cartel__legal { font-size: 1.7mm; }
     .cartel--promo { border-color: #dc2626; }
 
     .hoja--mediano .cartel__desc { font-size: 4mm; }
@@ -130,14 +160,20 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
     .hoja--mediano .cartel__precio { font-size: 18mm; }
     .hoja--mediano .cartel__ej { font-size: 3mm; }
     .hoja--mediano .cartel__pie { font-size: 2.5mm; }
+    .hoja--mediano .cartel__legal { font-size: 2.4mm; }
+    .hoja--mediano .cartel__barras { width: 38mm; height: 8mm; }
 
-    .hoja--grande .cartel { padding: 6mm; }
-    .hoja--grande .cartel__desc { font-size: 7mm; -webkit-line-clamp: 3; }
-    .hoja--grande .cartel__sub, .hoja--grande .cartel__ref { font-size: 4.5mm; }
-    .hoja--grande .cartel__promo { font-size: 8mm; padding: 1mm 3mm; margin-top: 4mm; }
-    .hoja--grande .cartel__precio { font-size: 34mm; }
-    .hoja--grande .cartel__ej { font-size: 4.5mm; }
-    .hoja--grande .cartel__pie { font-size: 3.5mm; }
+    .hoja--grande .cartel { padding: 5mm 6mm; }
+    .hoja--grande .cartel__desc { font-size: 6.5mm; -webkit-line-clamp: 2; }
+    .hoja--grande .cartel__sub, .hoja--grande .cartel__ref { font-size: 4.2mm; }
+    .hoja--grande .cartel__promo { font-size: 6.5mm; padding: 0.8mm 3mm; margin-top: 2mm; }
+    .hoja--grande .cartel__ej { font-size: 4.2mm; }
+    .hoja--grande .cartel__legal { font-size: 3.2mm; }
+    .hoja--grande .cartel__pie { font-size: 3.2mm; }
+    .hoja--grande .cartel__barras { width: 46mm; height: 11mm; }
+
+    /* Página con nombre: solo las hojas del tamaño grande salen apaisadas. */
+    @page apaisada { size: A4 landscape; margin: 0; }
 
     @media print {
       @page { size: A4 portrait; margin: 0; }
@@ -239,6 +275,24 @@ export class CartelesGondolaComponent implements OnInit {
   protected partido(c: CartelItem): { enteros: string; centavos: string | null } {
     return precioPartido(c.precio);
   }
+
+  protected tamanoPrecio(c: CartelItem): number {
+    return tamanoDelPrecio(c.precio, this.tamano());
+  }
+
+  protected sinImpuestos(c: CartelItem): string | null {
+    return sinImpuestosDelCartel(c);
+  }
+
+  /** Las barras de cada código, calculadas una vez por carga (no en cada vuelta del template). */
+  protected readonly barras = computed(() => {
+    const m = new Map<string, CodigoDeBarras>();
+    for (const c of this.datos()?.items ?? []) {
+      const b = codigoDeBarras(c.codigo);
+      if (b) m.set(c.codigo, b);
+    }
+    return m;
+  });
 }
 
 /** Los query params como origen de los carteles, o null si no hay ninguno válido. */

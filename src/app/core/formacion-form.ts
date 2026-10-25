@@ -178,6 +178,9 @@ export function unidadDeReferencia(unidad: string | null | undefined, cantidad: 
   if (LITRO.has(u)) return q === 1 ? 'el litro' : null;
   if (GRAMO.has(u) && q === 100) return 'los 100 g';
   if (ML.has(u) && q === 100) return 'los 100 ml';
+  // Res. 4/2025 art. 2 e): en envases de 50 g o ml o menos, el precio por unidad va por 10 g o 10 ml.
+  if (GRAMO.has(u) && q === 10) return 'los 10 g';
+  if (ML.has(u) && q === 10) return 'los 10 ml';
   return null;
 }
 
@@ -223,8 +226,36 @@ export type TamanoDeCartel = 'chico' | 'mediano' | 'grande';
 export const TAMANOS: Record<TamanoDeCartel, { porHoja: number; columnas: number; etiqueta: string }> = {
   chico: { porHoja: 24, columnas: 3, etiqueta: 'Chico (24 por hoja, 66 × 36 mm)' },
   mediano: { porHoja: 10, columnas: 2, etiqueta: 'Mediano (10 por hoja, 99 × 57 mm)' },
-  grande: { porHoja: 4, columnas: 2, etiqueta: 'Grande (4 por hoja, 99 × 142 mm)' },
+  grande: { porHoja: 4, columnas: 2, etiqueta: 'Grande (4 por hoja apaisada, 142 × 99 mm)' },
 };
+
+/**
+ * El tamaño de letra del precio grande (en mm) para que entre en el ancho del cartel: el de cada tamaño, o menos si el
+ * precio tiene muchos dígitos ("$12.345,67"). Antes era fijo y "$1.475" se cortaba en el grande.
+ */
+const PRECIO_MM: Record<TamanoDeCartel, { base: number; ancho: number }> = {
+  chico: { base: 11, ancho: 60 },        // 66 mm menos el margen interno
+  mediano: { base: 18, ancho: 93 },      // 99 mm
+  grande: { base: 30, ancho: 132 },      // 142,5 mm de la hoja apaisada
+};
+
+export function tamanoDelPrecio(precio: number, tamano: TamanoDeCartel): number {
+  const { enteros, centavos } = precioPartido(precio);
+  // Ancho aproximado en "em" de Arial negrita: dígito 0,62; punto 0,3; el signo $ (al 55 %) 0,34; centavos (al 45 %) 0,56.
+  let em = 0.34;
+  for (const ch of enteros) em += ch === '.' ? 0.3 : 0.62;
+  if (centavos) em += 0.56;
+  const { base, ancho } = PRECIO_MM[tamano];
+  return Math.min(base, Math.floor(((ancho * 0.95) / em) * 10) / 10);
+}
+
+/**
+ * Res. 4/2025 art. 2 c): "PRECIO SIN IMPUESTOS NACIONALES" (sin IVA ni otros impuestos nacionales indirectos), en letra
+ * más chica que el precio. Null si el backend no lo mandó.
+ */
+export function sinImpuestosDelCartel(c: Pick<CartelItem, 'precioSinImpuestos'>): string | null {
+  return c.precioSinImpuestos == null || c.precioSinImpuestos <= 0 ? null : `PRECIO SIN IMPUESTOS NACIONALES ${pesos(c.precioSinImpuestos, true)}`;
+}
 
 /** Los carteles en hojas: cada hoja, a lo sumo `porHoja`. */
 export function enHojas<T>(items: T[], porHoja: number): T[][] {

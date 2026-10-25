@@ -18,6 +18,8 @@ import {
   referenciaDelCartel,
   resumenDeAplicar,
   resumenTexto,
+  sinImpuestosDelCartel,
+  tamanoDelPrecio,
 } from '../../core/formacion-form';
 import { CartelesResponse, SugeridoItem, SugeridosResponse } from '../../core/formacion.models';
 import { GestionContexto, GestionContextoService } from '../../core/gestion-contexto';
@@ -109,6 +111,24 @@ describe('Carteles de góndola: los textos', () => {
     expect(referenciaDelCartel({ precio: 4250, precioReferencia: 4250, cantidadReferencia: 1, unidadReferencia: 'KG' })).toBeNull();
     expect(referenciaDelCartel({ precio: 900, precioReferencia: 900, cantidadReferencia: 1, unidadReferencia: 'EA' })).toBeNull();
     expect(referenciaDelCartel({ precio: 500, precioReferencia: 120, cantidadReferencia: 100, unidadReferencia: 'gr.' })).toMatch(/120 los 100 g$/);
+    // Res. 4/2025: en envases de 50 g o ml o menos, por 10 g o 10 ml; y el litro que calcula el backend con el contenido neto.
+    expect(referenciaDelCartel({ precio: 450, precioReferencia: 180, cantidadReferencia: 10, unidadReferencia: 'g' })).toMatch(/180 los 10 g$/);
+    expect(referenciaDelCartel({ precio: 1475, precioReferencia: 3118.39, cantidadReferencia: 1, unidadReferencia: 'l' })).toMatch(/3\.118,39 el litro$/);
+  });
+
+  it('el precio sin impuestos nacionales, con la leyenda de la Res. 4/2025', () => {
+    expect(sinImpuestosDelCartel({ precioSinImpuestos: 1219.01 })).toMatch(/^PRECIO SIN IMPUESTOS NACIONALES \$\s?1\.219,01$/);
+    expect(sinImpuestosDelCartel({ precioSinImpuestos: null })).toBeNull();
+    expect(sinImpuestosDelCartel({})).toBeNull();   // backend viejo: no lo manda
+  });
+
+  it('el precio grande se achica para entrar en el ancho', () => {
+    expect(tamanoDelPrecio(1475, 'grande')).toBe(30);             // en la hoja apaisada entra al tamaño normal
+    expect(tamanoDelPrecio(123456.78, 'grande')).toBeLessThan(30);
+    expect(tamanoDelPrecio(1475, 'chico')).toBe(11);
+    // el más largo que se puede esperar sigue entrando: ancho estimado <= ancho del cartel
+    const mm = tamanoDelPrecio(9999999.99, 'mediano');
+    expect(mm * (0.34 + 7 * 0.62 + 2 * 0.3 + 0.56)).toBeLessThanOrEqual(93);
   });
 
   it('el precio grande con centavos aparte', () => {
@@ -280,7 +300,8 @@ describe('Carteles de góndola (BP-181)', () => {
       sucursal: { branchId: '999-13', nombre: 'Prueba Centro' },
       sucursales: [{ branchId: '999-13', nombre: 'Prueba Centro' }, { branchId: '999-14', nombre: 'Prueba Norte' }],
       items: [
-        { codigo: '779001', descripcion: 'Queso cremoso', marca: 'La Paulina', presentacionCantidad: 500, presentacionUnidad: 'GR', precio: 2125, precioReferencia: 4250, cantidadReferencia: 1, unidadReferencia: 'KG', promo: null },
+        { codigo: '7798167047923', descripcion: 'Queso cremoso', marca: 'La Paulina', presentacionCantidad: 500, presentacionUnidad: 'GR', precio: 2125, precioReferencia: 4250, cantidadReferencia: 1, unidadReferencia: 'KG', promo: null,
+          precioSinImpuestos: 1756.2, ivaAlicuota: 21, ivaDeLaFicha: false },
         { codigo: '779002', descripcion: 'Gaseosa cola', marca: null, presentacionCantidad: 2250, presentacionUnidad: 'ML', precio: 1890, precioReferencia: 840, cantidadReferencia: 1, unidadReferencia: 'LT',
           promo: { tipo: 'n_x_m', minQty: 3, maxQty: null, precioPromo: null, porcentaje: null, grupoN: 3, pagaM: 2, cadaN: null, validFrom: null, validTo: null } },
       ],
@@ -293,6 +314,11 @@ describe('Carteles de góndola (BP-181)', () => {
     expect(carteles.length).toBe(2);
     expect(carteles[0].textContent).toContain('2.125');
     expect(carteles[0].textContent).toMatch(/4\.250 el kilo/);
+    expect(carteles[0].querySelector('.cartel__legal')!.textContent).toMatch(/PRECIO SIN IMPUESTOS NACIONALES \$\s?1\.756,20/);
+    // EAN válido: barras dibujadas, con el número abajo. Código corto de la otra fila: Code128.
+    expect(carteles[0].querySelectorAll('svg.cartel__barras rect').length).toBeGreaterThan(20);
+    expect(carteles[1].querySelector('svg.cartel__barras')).not.toBeNull();
+    expect(carteles[1].querySelector('.cartel__legal')).toBeNull();   // sin el dato (backend viejo), no inventa
     expect(carteles[1].classList).toContain('cartel--promo');
     expect(carteles[1].querySelector('.cartel__promo')!.textContent).toBe('3x2');
     // Con un grupo, se elige de qué sucursal son los precios.
