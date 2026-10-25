@@ -5,6 +5,23 @@ import { BusinessSubscriptionService } from '../../core/business-subscription';
 import { accionDeCobro, diasDeGracia, textoDeGracia } from '../../core/cobro';
 import { ProfileService } from '../../core/profile';
 
+const CLAVE_MAIL_OCULTO = 'avisos.mailSinConfirmar.ocultoHasta';
+
+/** El dia de hoy en hora local, AAAA-MM-DD: "hasta mañana" es hasta que cambia la fecha en la compu de la persona. */
+function hoyLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function leerMailOculto(): { email: string; dia: string } | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(CLAVE_MAIL_OCULTO) ?? 'null');
+    return v && typeof v.email === 'string' && typeof v.dia === 'string' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 // BP-196 (22-oct-2026) -- carteles fijos arriba de todas las pantallas del panel (van en el shell, panel-header):
 //   - en gracia (vencio el plan sin pagar): "No pudimos cobrar tu plan. Te quedan N dias..." + [Pagar];
 //   - mail sin confirmar: "Confirma tu mail para que te lleguen los avisos de tu cuenta" + [Mandarme el mail].
@@ -23,7 +40,7 @@ import { ProfileService } from '../../core/profile';
         <a routerLink="/plan" class="aviso__link">Ver mi plan</a>
       </div>
     }
-    @if (avisos.emailSinConfirmar(); as email) {
+    @if (mailParaAvisar(); as email) {
       <div class="aviso aviso--atencion">
         @if (mailEnviado()) {
           <span class="aviso__texto">Te mandamos un mail a <strong>{{ email }}</strong> con el link para confirmarlo.</span>
@@ -33,6 +50,8 @@ import { ProfileService } from '../../core/profile';
             {{ enviando() ? 'Enviando…' : 'Mandarme el mail' }}
           </button>
         }
+        <button type="button" class="aviso__cerrar" (click)="ocultarMailHastaManana(email)"
+                aria-label="Cerrar este aviso hasta mañana" title="Cerrar hasta mañana">✕</button>
       </div>
     }
     @if (error(); as e) {
@@ -56,6 +75,11 @@ import { ProfileService } from '../../core/profile';
     .aviso__boton--secundario { background: transparent; color: var(--warning); border: 1px solid var(--warning); }
     .aviso__boton:disabled { opacity: 0.6; cursor: default; }
     .aviso__link { color: inherit; font-weight: 600; }
+    .aviso__cerrar {
+      border: 0; background: transparent; color: inherit; cursor: pointer;
+      font-size: 1.1rem; line-height: 1; padding: 0.25rem 0.4rem; border-radius: var(--radius-sm, 0.375rem); opacity: 0.8;
+    }
+    .aviso__cerrar:hover, .aviso__cerrar:focus-visible { opacity: 1; background: rgba(255, 255, 255, 0.08); }
   `,
 })
 export class AvisosCuentaComponent implements OnInit {
@@ -67,6 +91,23 @@ export class AvisosCuentaComponent implements OnInit {
   protected readonly enviando = signal(false);
   protected readonly mailEnviado = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  // El aviso de mail sin confirmar se puede cerrar con la cruz: queda escondido el resto del dia (en este navegador
+  // y para ese mail) y vuelve al dia siguiente. El de gracia del plan no se cierra.
+  private readonly ocultoMail = signal<{ email: string; dia: string } | null>(leerMailOculto());
+
+  protected readonly mailParaAvisar = computed(() => {
+    const email = this.avisos.emailSinConfirmar();
+    if (!email) return null;
+    const oculto = this.ocultoMail();
+    return oculto && oculto.email === email && oculto.dia === hoyLocal() ? null : email;
+  });
+
+  protected ocultarMailHastaManana(email: string): void {
+    const valor = { email, dia: hoyLocal() };
+    this.ocultoMail.set(valor);
+    try { localStorage.setItem(CLAVE_MAIL_OCULTO, JSON.stringify(valor)); } catch { /* sin storage: dura hasta recargar */ }
+  }
 
   protected readonly gracia = computed(() => {
     const cobro = this.avisos.estado()?.cobro;
