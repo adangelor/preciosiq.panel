@@ -193,6 +193,12 @@
     }
 
     @if (datos(); as d) {
+      @if (d.condicionIvaSupuesta) {
+        <p class="alert alert--info">
+          <span>Los sugeridos se calculan como <strong>responsable inscripto</strong> porque no cargaste tu condición frente
+            al IVA. Si sos monotributista o exento, <a routerLink="/negocio">cargala en Datos del negocio →</a></span>
+        </p>
+      }
       @if (!d.competenciaDisponible && d.sinCompetenciaPorque) {
         <p class="alert alert--warning"><span>{{ d.sinCompetenciaPorque }} <a routerLink="/sucursales">Ver sucursales →</a></span></p>
       }

@@ -7,7 +7,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { BusinessAccountService } from '../../core/business-account';
-import { BranchListItem, BusinessAccountResponse, resolveLogoUrl } from '../../core/business-account.models';
+import {
+  BranchListItem,
+  BusinessAccountResponse,
+  CONDICIONES_IVA,
+  CondicionIva,
+  CondicionIvaResponse,
+  resolveLogoUrl,
+  textoCondicionIva,
+} from '../../core/business-account.models';
 import { BusinessContextService } from '../../core/business-context';
 
 // E-Cuenta (17-ago-2026) -- pedido de Andres: "otro menu mas que me permita cambiar
@@ -90,6 +98,7 @@ export class BusinessProfileComponent implements OnInit {
         this.account.set(ctx.account);
         this.branches.set(ctx.branches);
         this.legalForm.patchValue({ razonSocial: ctx.account.razonSocial, cuit: ctx.account.cuit });
+        this.cargarCondicion(ctx.account.businessAccountId);
 
         if (ctx.branches.length > 0) {
           this.selectBranch(ctx.branches[0].branchId);
@@ -116,6 +125,46 @@ export class BusinessProfileComponent implements OnInit {
     });
     this.addressSuccess.set(false);
     this.addressError.set(null);
+  }
+
+  // --- BP-207: condición frente al IVA (si el backend no la ofrece, la tarjeta no aparece) ---
+  protected readonly condiciones = CONDICIONES_IVA;
+  protected readonly texto = textoCondicionIva;
+  protected readonly condicion = signal<CondicionIvaResponse | null>(null);
+  protected readonly condicionElegida = signal<CondicionIva | null>(null);
+  protected readonly guardandoCondicion = signal(false);
+  protected readonly condicionError = signal<string | null>(null);
+  protected readonly condicionGuardada = signal(false);
+
+  private cargarCondicion(businessAccountId: number): void {
+    this.businessAccountService.getCondicionIva(businessAccountId).subscribe({
+      next: (r) => {
+        this.condicion.set(r);
+        this.condicionElegida.set(r.condicionIva);
+      },
+      error: () => this.condicion.set(null),
+    });
+  }
+
+  protected guardarCondicion(): void {
+    const account = this.account();
+    const valor = this.condicionElegida();
+    if (!account || !valor) return;
+    this.guardandoCondicion.set(true);
+    this.condicionError.set(null);
+    this.condicionGuardada.set(false);
+    this.businessAccountService.setCondicionIva(account.businessAccountId, valor).subscribe({
+      next: (r) => {
+        this.guardandoCondicion.set(false);
+        this.condicionGuardada.set(true);
+        this.condicion.set(r);
+        this.condicionElegida.set(r.condicionIva);
+      },
+      error: (err) => {
+        this.guardandoCondicion.set(false);
+        this.condicionError.set(err?.error?.error ?? 'No se pudo guardar. Probá de nuevo.');
+      },
+    });
   }
 
   protected saveLegal(): void {

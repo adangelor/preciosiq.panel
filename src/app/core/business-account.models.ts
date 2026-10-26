@@ -100,6 +100,28 @@ export interface UpdateBusinessAccountRequest {
   cuit: string;
 }
 
+/** BP-207: la condición frente al IVA del comercio (Datos del negocio). La usa la formación de precios. */
+export type CondicionIva = 'ri' | 'mono' | 'exento';
+
+export interface CondicionIvaResponse {
+  /** La que vale: la de la facturación si está activada, si no la elegida; null = sin dato. */
+  condicionIva: CondicionIva | null;
+  /** 'facturacion' (la confirmó ARCA al activar la facturación de la caja) | 'cuenta' | null. */
+  origen: 'facturacion' | 'cuenta' | null;
+  editable: boolean;
+  elegida: CondicionIva | null;
+}
+
+export const CONDICIONES_IVA: { valor: CondicionIva; texto: string }[] = [
+  { valor: 'ri', texto: 'Responsable inscripto' },
+  { valor: 'mono', texto: 'Monotributista' },
+  { valor: 'exento', texto: 'Exento' },
+];
+
+export function textoCondicionIva(c: CondicionIva | null | undefined): string {
+  return CONDICIONES_IVA.find((x) => x.valor === c)?.texto ?? 'Sin cargar';
+}
+
 // Espejo de UpdateBranchAddressRequest.cs (E-Cuenta, 17-ago-2026). NO incluye lat/long
 // -- eso sigue siendo UpdateBranchLocationRequest/RegeocodeBranchRequest, en /sucursales.
 export interface UpdateBranchAddressRequest {

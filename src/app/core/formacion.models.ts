@@ -76,6 +76,9 @@ export interface SugeridosResponse {
   page: number;
   pageSize: number;
   items: SugeridoItem[];
+  /** BP-207: con qué condición frente al IVA se calculó, y si se supuso inscripto por falta de dato. */
+  condicionIva?: 'ri' | 'mono' | 'exento';
+  condicionIvaSupuesta?: boolean;
 }
 
 /** A quién se le forman los precios: exactamente uno. */

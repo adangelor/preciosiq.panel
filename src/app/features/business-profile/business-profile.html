@@ -1,7 +1,7 @@
 <div class="business-profile card--page">
   <header class="business-profile__header">
     <h1>Datos del negocio</h1>
-    <p class="subtitle">Corregí lo que cargaste en el alta: razón social, CUIT, logo y domicilio.</p>
+    <p class="subtitle">Corregí lo que cargaste en el alta: razón social, CUIT, condición frente al IVA, logo y domicilio.</p>
   </header>
 
   @if (loading()) {
@@ -39,6 +39,44 @@
         </button>
       </form>
     </section>
+
+    @if (condicion(); as ci) {
+      <section class="business-profile__card">
+        <h2>Condición frente al IVA</h2>
+        <p class="hint">
+          La usa la formación de precios: un responsable inscripto suma el IVA al precio de venta; un monotributista o
+          un exento no, y el IVA de sus compras ya va en el costo.
+        </p>
+        @if (ci.origen === 'facturacion') {
+          <p>
+            <strong>{{ texto(ci.condicionIva) }}</strong>: es la que confirmó ARCA cuando activaste la facturación de la
+            caja, así que se cambia desde ahí, no acá.
+          </p>
+        } @else if (ci.editable) {
+          <mat-form-field appearance="outline">
+            <mat-label>Condición frente al IVA</mat-label>
+            <mat-select [value]="condicionElegida()" (selectionChange)="condicionElegida.set($event.value)">
+              @for (c of condiciones; track c.valor) {
+                <mat-option [value]="c.valor">{{ c.texto }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          @if (!ci.condicionIva) {
+            <p class="hint">Sin cargar: mientras tanto, los precios sugeridos se calculan como responsable inscripto.</p>
+          }
+          @if (condicionError()) {
+            <p class="form-error">{{ condicionError() }}</p>
+          }
+          @if (condicionGuardada()) {
+            <p class="form-success">Guardado.</p>
+          }
+          <button mat-flat-button color="primary" type="button" (click)="guardarCondicion()"
+                  [disabled]="!condicionElegida() || condicionElegida() === ci.condicionIva || guardandoCondicion()">
+            {{ guardandoCondicion() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        }
+      </section>
+    }
 
     <section class="business-profile__card">
       <h2>Logo</h2>

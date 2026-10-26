@@ -6,6 +6,8 @@ import {
   BranchListItem,
   BranchResponse,
   BusinessAccountResponse,
+  CondicionIva,
+  CondicionIvaResponse,
   CreateBranchRequest,
   CreateBusinessAccountRequest,
   LogoResponse,
@@ -69,6 +71,15 @@ export class BusinessAccountService {
   // alta, desde el nuevo menu lateral "Datos del negocio".
   update(businessAccountId: number, request: UpdateBusinessAccountRequest): Observable<BusinessAccountResponse> {
     return this.http.patch<BusinessAccountResponse>(`${this.accountsUrl}/${businessAccountId}`, request);
+  }
+
+  // BP-207 (26-oct-2026) -- condición frente al IVA (la usa la formación de precios).
+  getCondicionIva(businessAccountId: number): Observable<CondicionIvaResponse> {
+    return this.http.get<CondicionIvaResponse>(`${this.accountsUrl}/${businessAccountId}/condicion-iva`);
+  }
+
+  setCondicionIva(businessAccountId: number, condicionIva: CondicionIva | null): Observable<CondicionIvaResponse> {
+    return this.http.put<CondicionIvaResponse>(`${this.accountsUrl}/${businessAccountId}/condicion-iva`, { condicionIva });
   }
 
   createBranch(request: CreateBranchRequest): Observable<BranchResponse> {
