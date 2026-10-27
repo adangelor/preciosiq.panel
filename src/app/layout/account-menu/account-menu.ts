@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,7 +27,6 @@ import { profileInitials, resolveProfilePictureUrl, UserProfileResponse } from '
 export class AccountMenuComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
-  private readonly router = inject(Router);
 
   protected readonly profile = signal<UserProfileResponse | null>(null);
   protected resolveProfilePictureUrl = resolveProfilePictureUrl;
@@ -44,8 +43,10 @@ export class AccountMenuComponent implements OnInit {
     return profile ? profileInitials(profile) : '?';
   }
 
+  // 27-oct-2026 -- recarga entera: los servicios raiz (avisos de arriba, cuenta) guardan lo del usuario anterior, y con
+  // navigateByUrl el siguiente veia el mail sin confirmar y el cobro del que salio. Igual en distribucioniq.panel.
   protected logout(): void {
     this.authService.logout();
-    this.router.navigateByUrl('/login');
+    window.location.assign('/login');
   }
 }
