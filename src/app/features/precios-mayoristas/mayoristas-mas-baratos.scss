@@ -15,3 +15,11 @@
   margin-top: 0.75rem;
   font-size: 0.8rem;
 }
+
+// Los montos no se parten en dos lineas en pantallas angostas.
+.mayoristas__tabla {
+  td.num,
+  th.num {
+    white-space: nowrap;
+  }
+}
