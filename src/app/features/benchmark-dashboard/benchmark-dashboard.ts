@@ -25,6 +25,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { RadiusAdvisorComponent } from '../../layout/radius-advisor/radius-advisor';
 import { BenchmarkPreferencesService } from '../../core/benchmark-preferences';
 import { BrandLabelPipe } from '../../core/brand-label';
+import { OfertasCercaComponent } from './ofertas-cerca';
 
 // BP-164 (18-oct-2026): 'ownAvg' / 'zoneAvg', las columnas de promedios que traia el benchmark instantaneo.
 export type CategorySortColumn = 'categoryName' | 'competitorCount' | 'delta' | 'ownProducts' | 'zoneProducts' | 'matched' | 'ownAvg' | 'zoneAvg';
@@ -68,7 +69,7 @@ export interface FlatProductRow extends ProductDetailRow {}
 @Component({
   selector: 'app-benchmark-dashboard',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LoadingBarComponent, RadiusAdvisorComponent, BrandLabelPipe],
+  imports: [ReactiveFormsModule, RouterLink, LoadingBarComponent, RadiusAdvisorComponent, BrandLabelPipe, OfertasCercaComponent],
   templateUrl: './benchmark-dashboard.html',
   styleUrl: './benchmark-dashboard.scss',
 })
@@ -80,6 +81,8 @@ export class BenchmarkDashboardComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
 
   protected readonly loadingContext = signal(true);
+  // BP-204 (bloque 5): la cuenta como signal, para la tarjeta de ofertas de la competencia cerca.
+  protected readonly cuentaId = signal<number | null>(null);
   protected readonly contextErrorMessage = signal<string | null>(null);
   // E1.8 -- distingue "todavia no diste de alta tu comercio" de un error real.
   protected readonly noAccountYet = signal(false);
@@ -585,6 +588,7 @@ export class BenchmarkDashboardComponent implements OnInit {
         const account = accounts[0];
         this.ownCommerceId.set(account.commerceId);
         this.form.patchValue({ businessAccountId: account.businessAccountId });
+        this.cuentaId.set(account.businessAccountId);
 
         this.businessAccountService.listBranches(account.businessAccountId).subscribe({
           next: (branches) => {

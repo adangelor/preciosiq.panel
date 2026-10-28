@@ -1,0 +1,226 @@
+// BP-204 (28-oct-2026, bloque 5) -- la tarjeta "Ofertas de la competencia cerca" del dashboard.
+
+.ofertas-cerca {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warning);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin: 0 0 1.5rem;
+  min-width: 0;
+}
+
+.ofertas-cerca__cabeza h2 {
+  margin: 0;
+  font-size: 1.05rem;
+
+  i {
+    opacity: 0.6;
+    margin-right: 0.3rem;
+  }
+}
+
+.ofertas-cerca__sub {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.ofertas-cerca__muted {
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+
+.ofertas-cerca__nota {
+  margin: 0.5rem 0;
+}
+
+.ofertas-cerca__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: opacity 0.15s;
+}
+
+.ofertas-cerca__cuerpo--cargando {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+// Los dos grupos de botones (lo que vendés / todo, y las etiquetas)
+.ofertas-cerca__vista,
+.ofertas-cerca__filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  button {
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-2);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    &.activo {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--text);
+      font-weight: 600;
+    }
+  }
+}
+
+.ofertas-cerca__numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.numero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-2);
+  text-align: center;
+}
+
+.numero--ok {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.numero--mal {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.numero--ojo {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.numero__valor {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.numero__label {
+  font-size: 0.78rem;
+}
+
+.ofertas-cerca__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.oferta {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.oferta__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.oferta__producto {
+  overflow-wrap: anywhere;
+}
+
+.oferta__ean {
+  font-size: 0.78rem;
+}
+
+.oferta__donde {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.oferta__precio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.oferta__ahora {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.oferta__tuyo {
+  font-weight: 600;
+}
+
+.oferta__motivo {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.ofertas-cerca__mas,
+.ofertas-cerca__btn {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+}
+
+.ofertas-cerca__aviso {
+  margin: 0.25rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  background: var(--warning-soft);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.ofertas-cerca__candado p {
+  margin: 0 0 0.75rem;
+  color: var(--text-2);
+  font-size: 0.9rem;
+}
+
+// La hoja de la landing le pone relleno a todo <section> (ver dashboard): este no.
+:host > section.ofertas-cerca {
+  padding: 1rem 1.2rem;
+}

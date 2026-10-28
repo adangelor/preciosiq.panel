@@ -82,6 +82,12 @@
     </div>
   }
 
+  <!-- BP-204 (bloque 5): las ofertas de los supermercados a 5 km de la sucursal, calificadas. Desde Pyme. No espera a
+       "Ver dashboard": no depende del radio. -->
+  @if (selectedBranch(); as sb) {
+    <app-ofertas-cerca [businessAccountId]="cuentaId()" [branchId]="sb.branchId" [branchName]="sb.branchName" />
+  }
+
   @if (categories(); as cats) {
     @if (categoryTotals().length === 0 && leafRows().length === 0) {
       <p class="empty-state">

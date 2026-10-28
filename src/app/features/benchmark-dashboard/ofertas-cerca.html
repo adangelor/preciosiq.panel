@@ -1,0 +1,126 @@
+<section class="ofertas-cerca" aria-labelledby="ofertas-cerca-titulo">
+  <header class="ofertas-cerca__cabeza">
+    <h2 id="ofertas-cerca-titulo"><i class="fa-solid fa-tags" aria-hidden="true"></i> Ofertas de la competencia cerca</h2>
+    @if (datos(); as d) {
+      <p class="ofertas-cerca__sub">
+        Supermercados de cadena a menos de {{ d.radioMetros / 1000 }} km de {{ branchName() || 'tu sucursal' }}@if (d.fecha) {, con los
+        precios del {{ fecha(d.fecha) }}}.
+      </p>
+    }
+  </header>
+
+  @if (bloqueado()) {
+    <div class="ofertas-cerca__candado">
+      <p>
+        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+        Desde el plan <strong>Pyme</strong>: las ofertas de los supermercados de tu zona, con las que no son de verdad
+        marcadas (la cadena subió el precio antes, o a pocas cuadras otra lo tiene más barato). Primero lo que vendés vos.
+      </p>
+      <a routerLink="/plan" class="ofertas-cerca__btn">Ver los planes</a>
+    </div>
+  } @else if (error()) {
+    <p class="form-error">{{ error() }}</p>
+  } @else if (!datos() && cargando()) {
+    <p class="ofertas-cerca__muted">Buscando las ofertas de los supermercados cerca…</p>
+  } @else if (datos(); as d) {
+    @if (d.sucursalesPropias === 0) {
+      <p class="empty-state">
+        Esta sucursal no tiene la ubicación cargada: cargala en <a routerLink="/sucursales">Sucursales</a> para ver las
+        ofertas de los supermercados cerca.
+      </p>
+    } @else if (d.sucursalesCerca === 0) {
+      <p class="empty-state">No hay supermercados de cadena a menos de {{ d.radioMetros / 1000 }} km de esta sucursal.</p>
+    } @else {
+      <div class="ofertas-cerca__cuerpo" [class.ofertas-cerca__cuerpo--cargando]="cargando()">
+        <div class="ofertas-cerca__vista" role="group" aria-label="Qué productos ver">
+          <button type="button" [class.activo]="soloLoQueVendo()" (click)="verLoQueVendo(true)">
+            Lo que vendés ({{ d.deLoQueVendes.ofertas | number: '1.0-0' : 'es-AR' }})
+          </button>
+          <button type="button" [class.activo]="!soloLoQueVendo()" (click)="verLoQueVendo(false)">
+            Todo ({{ d.todas.ofertas | number: '1.0-0' : 'es-AR' }})
+          </button>
+        </div>
+
+        @if (conteo(); as c) {
+          <div class="ofertas-cerca__numeros">
+            <div class="numero numero--ok">
+              <span class="numero__valor">{{ c.reales | number: '1.0-0' : 'es-AR' }}</span>
+              <span class="numero__label">ofertas reales</span>
+            </div>
+            <div class="numero" [class.numero--mal]="c.subioAntes > 0">
+              <span class="numero__valor">{{ c.subioAntes | number: '1.0-0' : 'es-AR' }}</span>
+              <span class="numero__label">subieron el precio antes</span>
+            </div>
+            <div class="numero" [class.numero--ojo]="c.masBaratoCerca > 0">
+              <span class="numero__valor">{{ c.masBaratoCerca | number: '1.0-0' : 'es-AR' }}</span>
+              <span class="numero__label">con más barato en otra cadena cerca</span>
+            </div>
+          </div>
+          <p class="ofertas-cerca__muted ofertas-cerca__nota">
+            Productos distintos en oferta en {{ d.porCadena.length }} {{ d.porCadena.length === 1 ? 'cadena' : 'cadenas' }}
+            cerca. Las que subieron antes o tienen más barato cerca no conviene salir a igualarlas.
+          </p>
+        }
+
+        @if (d.desactualizada) {
+          <p class="ofertas-cerca__aviso">La calificación es del {{ fecha(d.fecha) }} y ya hubo ingestas después: puede estar atrasada.</p>
+        }
+
+        <div class="ofertas-cerca__filtro" role="group" aria-label="Filtrar por etiqueta">
+          <button type="button" [class.activo]="etiqueta() === null" (click)="filtrar(null)">Todas</button>
+          @for (e of etiquetas; track e) {
+            @if (cuantas(e) > 0) {
+              <button type="button" [class.activo]="etiqueta() === e" (click)="filtrar(e)">
+                {{ nombreEtiqueta[e] }} ({{ cuantas(e) | number: '1.0-0' : 'es-AR' }})
+              </button>
+            }
+          }
+        </div>
+
+        @if (lista().length === 0) {
+          <p class="ofertas-cerca__muted">No hay ofertas con ese filtro.</p>
+        } @else {
+          <ul class="ofertas-cerca__lista">
+            @for (o of lista(); track o.ean + '|' + o.commerceId + '|' + o.bannerId + '|' + o.etiqueta) {
+              <li class="oferta">
+                <div class="oferta__cabeza">
+                  <span class="pill {{ pill(o.etiqueta) }}" [title]="ayuda(o.etiqueta)">{{ nombreEtiqueta[o.etiqueta] }}</span>
+                  <strong class="oferta__producto">{{ o.descripcion || o.ean }}</strong>
+                  <span class="ofertas-cerca__muted oferta__ean">{{ o.ean }}</span>
+                </div>
+                <div class="oferta__donde">{{ donde(o) }}</div>
+                <div class="oferta__precio">
+                  <span class="oferta__ahora">$ {{ o.precioOferta | number: '1.0-2' : 'es-AR' }}</span>
+                  <span class="ofertas-cerca__muted">de $ {{ o.precioLista | number: '1.0-2' : 'es-AR' }}
+                    (−{{ o.descuentoPct | number: '1.0-0' : 'es-AR' }} %)</span>
+                  @if (o.loVende && o.tuPrecio != null) {
+                    <span class="oferta__tuyo">· Vos: $ {{ o.tuPrecio | number: '1.0-2' : 'es-AR' }}</span>
+                  }
+                </div>
+                @if (o.motivo) {
+                  <p class="oferta__motivo">{{ o.motivo }}</p>
+                } @else if (o.etiqueta === 'sin_dato' && o.motivoSinDato) {
+                  <p class="oferta__motivo ofertas-cerca__muted">{{ o.motivoSinDato }}</p>
+                }
+              </li>
+            }
+          </ul>
+          @if (d.lista.length > lista().length) {
+            <button type="button" class="ofertas-cerca__mas" (click)="verMas()">
+              Ver {{ porTanda }} más (van {{ lista().length }} de {{ d.totalLista > d.lista.length ? d.lista.length + '+' : d.lista.length }})
+            </button>
+          } @else if (d.totalLista > d.lista.length) {
+            <p class="ofertas-cerca__muted ofertas-cerca__nota">
+              Se muestran {{ d.lista.length }} de {{ d.totalLista | number: '1.0-0' : 'es-AR' }}: primero las que no son de verdad,
+              después los descuentos más grandes. Usá los filtros para ver el resto.
+            </p>
+          }
+        }
+
+        @if (d.cobertura.aviso) {
+          <p class="ofertas-cerca__aviso">{{ d.cobertura.aviso }}</p>
+        }
+      </div>
+    }
+  }
+</section>
