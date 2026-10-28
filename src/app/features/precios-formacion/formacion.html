@@ -245,6 +245,7 @@
               <th class="num">Sugerido</th>
               <th class="num">Dif.</th>
               <th>Competencia (mín – ref – máx)</th>
+              <th class="num" title="El mayorista más barato a menos de 50 km: precio por unidad sin IVA">Mayorista cerca</th>
               <th>Avisos</th>
             </tr>
           </thead>
@@ -292,6 +293,16 @@
                     <span class="muted">—</span>
                   }
                 </td>
+                <td class="num">
+                  @if (i.mayorista; as m) {
+                    <span [class.formacion__sube]="m.etiqueta === 'mas_barato'" [title]="m.texto">{{ pesos(m.precioComparado) }}{{ m.comparaCon === 'sin_iva' ? ' + IVA' : '' }}</span>
+                    <div class="muted gestion__sub" [title]="m.texto">
+                      {{ m.mayorista }}{{ m.sucursal ? ' ' + m.sucursal : '' }} · {{ kmTexto(m.km) }}@if (m.bulto > 1) { · bulto de {{ m.bulto }} }
+                    </div>
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
                 <td>
                   @for (a of avisosDe(i); track a) {
                     <span [class]="'pill ' + AVISOS[a].clase" [title]="tituloDeAviso(i, a)">{{ AVISOS[a].texto }}</span>
@@ -300,7 +311,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="9" class="muted">
+                <td colspan="10" class="muted">
                   @if (soloCambios() && !q() && rubroId() == null && proveedorId() == null && !aviso()) {
                     Ningún precio para mover: todos los artículos con costo ya están en su sugerido.
                   } @else {

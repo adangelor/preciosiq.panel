@@ -88,6 +88,10 @@
     <app-ofertas-cerca [businessAccountId]="cuentaId()" [branchId]="sb.branchId" [branchName]="sb.branchName" />
   }
 
+  <!-- BP-209 (bloque 4): lo que un mayorista a 50 km vende más barato que el proveedor. El conteo, en todo plan; sin
+       costos cargados o sin mayorista cerca no aparece. -->
+  <app-mayoristas-cerca [businessAccountId]="cuentaId()" />
+
   @if (categories(); as cats) {
     @if (categoryTotals().length === 0 && leafRows().length === 0) {
       <p class="empty-state">

@@ -1,0 +1,75 @@
+// BP-209 (28-oct-2026, bloque 4) -- la tarjeta "N artículos que un mayorista cerca vende más barato que tu proveedor".
+
+.mayoristas-cerca {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--info, var(--primary));
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin: 0 0 1.5rem;
+  min-width: 0;
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+
+.mayoristas-cerca__numero {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.mayoristas-cerca__numero--cero {
+  color: var(--text-3);
+}
+
+.mayoristas-cerca__texto {
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.mayoristas-cerca__sub {
+  margin: 0.3rem 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.mayoristas-cerca__candado {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+
+  i {
+    margin-right: 0.3rem;
+    opacity: 0.7;
+  }
+
+  a {
+    margin-left: 0.3rem;
+    font-weight: 600;
+  }
+}
+
+.mayoristas-cerca__btn {
+  display: inline-block;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}

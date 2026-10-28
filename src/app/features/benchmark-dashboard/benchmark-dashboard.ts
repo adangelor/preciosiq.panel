@@ -26,6 +26,7 @@ import { RadiusAdvisorComponent } from '../../layout/radius-advisor/radius-advis
 import { BenchmarkPreferencesService } from '../../core/benchmark-preferences';
 import { BrandLabelPipe } from '../../core/brand-label';
 import { OfertasCercaComponent } from './ofertas-cerca';
+import { MayoristasCercaComponent } from './mayoristas-cerca';
 
 // BP-164 (18-oct-2026): 'ownAvg' / 'zoneAvg', las columnas de promedios que traia el benchmark instantaneo.
 export type CategorySortColumn = 'categoryName' | 'competitorCount' | 'delta' | 'ownProducts' | 'zoneProducts' | 'matched' | 'ownAvg' | 'zoneAvg';
@@ -69,7 +70,7 @@ export interface FlatProductRow extends ProductDetailRow {}
 @Component({
   selector: 'app-benchmark-dashboard',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, LoadingBarComponent, RadiusAdvisorComponent, BrandLabelPipe, OfertasCercaComponent],
+  imports: [ReactiveFormsModule, RouterLink, LoadingBarComponent, RadiusAdvisorComponent, BrandLabelPipe, OfertasCercaComponent, MayoristasCercaComponent],
   templateUrl: './benchmark-dashboard.html',
   styleUrl: './benchmark-dashboard.scss',
 })

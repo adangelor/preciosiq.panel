@@ -1,0 +1,122 @@
+<div class="gestion mayoristas card--page">
+  <h1>Más barato en un mayorista cerca</h1>
+  <p class="subtitle">
+    Los artículos cuyo costo está un 10 % o más arriba del precio por unidad de un mayorista a menos de 50 km de alguna
+    de tus sucursales (Makro, Maxiconsumo, Yaguar y los demás que publican en el SEPA Mayorista). El dato, para negociar
+    con tu proveedor: tu proveedor quizás te entrega en el local, te da crédito o te vende por unidad, y el mayorista
+    muchas veces vende solo por bulto o pide CUIT.
+  </p>
+
+  @if (cargando()) {
+    <app-loading-bar label="Comparando tus costos con los mayoristas cerca…" />
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (error()) {
+    <p class="alert alert--danger">{{ error() }}</p>
+  } @else if (datos(); as d) {
+    @if (d.noDisponible) {
+      <p class="alert alert--info">Los precios de los mayoristas todavía no están habilitados en este servidor.</p>
+    } @else if (d.resumen.costosCargados === 0) {
+      <p class="empty-state">
+        Para comparar hace falta el costo de tus artículos. Cargalo en la ficha de cada artículo o por planilla en
+        <a routerLink="/precios/carga-masiva">Carga masiva</a>.
+      </p>
+    } @else if (d.resumen.sucursalesMayoristas === 0) {
+      <p class="empty-state">
+        @if (d.resumen.sucursalesPropias === 0) {
+          Tus sucursales no tienen la ubicación cargada: cargala en <a routerLink="/sucursales">Sucursales</a> para buscar los
+          mayoristas cerca.
+        } @else {
+          No hay sucursales mayoristas del SEPA a menos de {{ d.radioKm }} km de tus sucursales.
+        }
+      </p>
+    } @else {
+      <p class="mayoristas__resumen">
+        <strong>{{ d.total }}</strong> de {{ d.resumen.conMayoristaCerca }} artículos con costo que también vende un mayorista
+        cerca ({{ d.resumen.sucursalesMayoristas }} {{ d.resumen.sucursalesMayoristas === 1 ? 'sucursal' : 'sucursales' }} a menos
+        de {{ d.radioKm }} km).
+        {{ d.resumen.comparaConIva
+          ? 'Comparamos con IVA: con factura C tu costo no discrimina IVA.'
+          : 'Sin IVA contra sin IVA: tu costo sin IVA contra el precio sin IVA del mayorista.' }}
+        @if (d.resumen.atipicos > 0) {
+          No aparecen {{ d.resumen.atipicos }} con una diferencia de más de {{ d.topeAtipicoPct }} % o un precio que no se parece
+          a tu góndola: suele ser otra unidad (vos cargaste la caja, el mayorista la unidad) o un error del archivo del mayorista.
+        }
+      </p>
+
+      @if (!d.detalle) {
+        <div class="alert alert--info">
+          <span>
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            La lista, con el mayorista, el precio por unidad, el bulto y la diferencia de cada artículo, viene con los planes
+            <strong>Avanzado</strong> y <strong>Cadena</strong>. <a routerLink="/plan">Ver planes →</a>
+          </span>
+        </div>
+      } @else if (d.total === 0) {
+        <p class="empty-state">Ningún mayorista cerca vende un 10 % o más barato que tu costo.</p>
+      } @else {
+        <div class="gestion__filtros">
+          <input type="search" placeholder="Buscar por artículo, código, proveedor o mayorista"
+                 [value]="q()" (input)="onBuscar($event)" aria-label="Buscar" />
+        </div>
+        <div class="table-wrap">
+          <table class="data mayoristas__tabla">
+            <thead>
+              <tr>
+                <th>Artículo</th>
+                <th class="num">Tu costo{{ d.resumen.comparaConIva ? '' : ' s/IVA' }}</th>
+                <th>Mayorista</th>
+                <th class="num">Por unidad</th>
+                <th class="num">Diferencia</th>
+                @if (conVentas()) { <th class="num" title="Unidades vendidas por mes × (tu costo − el del mayorista)">Plata por mes</th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (i of filtrados(); track i.ean) {
+                <tr>
+                  <td class="strong">
+                    {{ i.descripcion }}
+                    <div class="muted gestion__sub">
+                      <span class="gestion__codigo">{{ i.ean }}</span>@if (i.proveedor) { · {{ i.proveedor }} }
+                    </div>
+                  </td>
+                  <td class="num">{{ pesos(i.mayorista.costoComparado) }}</td>
+                  <td>
+                    {{ dondeMayorista(i.mayorista) }}
+                    <div class="muted gestion__sub">{{ bultoTexto(i.mayorista.bulto) }} · dato del {{ fecha(i.mayorista.fechaDato) }}</div>
+                  </td>
+                  <td class="num">
+                    {{ pesos(i.mayorista.precioComparado) }}{{ i.mayorista.comparaCon === 'sin_iva' ? ' + IVA' : '' }}
+                    <div class="muted gestion__sub">{{ pesos(i.mayorista.unidadConIva) }} con IVA</div>
+                    @if (i.mayorista.promoConIva != null) {
+                      <div class="muted gestion__sub" [title]="i.mayorista.promoTexto ?? ''">promo {{ pesos(i.mayorista.promoConIva) }} con IVA</div>
+                    }
+                  </td>
+                  <td class="num" [title]="i.mayorista.texto">
+                    <span class="mayoristas__dif">{{ pct(i.mayorista.diferenciaPct) }} más</span>
+                  </td>
+                  @if (conVentas()) {
+                    <td class="num">
+                      @if (i.plataEnJuegoMes != null) {
+                        {{ pesos(i.plataEnJuegoMes) }}
+                        <div class="muted gestion__sub">{{ i.unidadesMes }} u./mes</div>
+                      } @else {
+                        <span class="muted">—</span>
+                      }
+                    </td>
+                  }
+                </tr>
+              } @empty {
+                <tr><td [attr.colspan]="conVentas() ? 6 : 5" class="muted">Nada coincide con la búsqueda.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="muted mayoristas__nota">
+          Precio por unidad comprando el bulto, según lo que cada mayorista informa al SEPA Mayorista (Secretaría de
+          Comercio). La promo se muestra al lado y no cuenta para la diferencia.
+        </p>
+      }
+    }
+  }
+</div>

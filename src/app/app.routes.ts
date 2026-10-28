@@ -125,6 +125,13 @@ export const routes: Routes = [
         title: 'PreciosIQ — Formación de precios',
       },
       {
+        // BP-209 (28-oct-2026) -- lo que un mayorista cerca vende más barato que el proveedor (Avanzado y Cadena).
+        path: 'precios/mayoristas',
+        loadComponent: () =>
+          import('./features/precios-mayoristas/mayoristas-mas-baratos').then((m) => m.MayoristasMasBaratosComponent),
+        title: 'PreciosIQ — Más barato en un mayorista cerca',
+      },
+      {
         path: 'precios/formacion/configuracion',
         loadComponent: () => import('./features/precios-formacion/configuracion').then((m) => m.FormacionConfiguracionComponent),
         title: 'PreciosIQ — Configuración de la formación de precios',

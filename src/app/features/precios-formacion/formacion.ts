@@ -508,11 +508,17 @@ export class FormacionPreciosComponent implements OnInit, OnDestroy {
     return n.toLocaleString('es-AR');
   }
 
+  /** BP-209: "2,1 km", "12 km". */
+  protected kmTexto(km: number): string {
+    return km < 1 ? 'menos de 1 km' : `${km.toLocaleString('es-AR', { maximumFractionDigits: km < 10 ? 1 : 0 })} km`;
+  }
+
   protected avisosDe(i: SugeridoItem): Aviso[] {
     return i.avisos.filter((a) => a !== 'sin_costo');
   }
 
   protected tituloDeAviso(i: SugeridoItem, a: Aviso): string {
+    if (a === 'mayorista' && i.mayorista) return i.mayorista.texto;
     return a === 'dudosa' && i.motivoDudosa ? i.motivoDudosa : AVISOS[a].ayuda;
   }
 }

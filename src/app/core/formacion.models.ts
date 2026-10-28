@@ -2,7 +2,9 @@
 
 export type BaseMargen = 'sobre_costo' | 'sobre_precio';
 export type RedondeoModo = 'arriba' | 'cercano';
-export type Aviso = 'caro' | 'dejas_margen' | 'testigo' | 'renegociar' | 'dudosa' | 'sin_costo';
+import { MayoristaCerca } from './mayoristas.models';
+
+export type Aviso = 'caro' | 'dejas_margen' | 'testigo' | 'renegociar' | 'dudosa' | 'sin_costo' | 'mayorista';
 
 export interface ConfiguracionDePrecios {
   margenDefaultPct: number;
@@ -54,6 +56,8 @@ export interface SugeridoItem {
   competencia: Competencia | null;
   avisos: Aviso[];
   motivoDudosa: string | null;
+  /** BP-209: el mayorista más barato a 50 km (Avanzado y Cadena). Null = no hay o el servidor no lo tiene. */
+  mayorista?: MayoristaCerca | null;
 }
 
 export interface SugeridosResumen {

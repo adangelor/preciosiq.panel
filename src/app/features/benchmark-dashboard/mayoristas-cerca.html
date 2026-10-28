@@ -1,0 +1,41 @@
+@if (datos(); as d) {
+  @if (visible(d)) {
+    <section class="mayoristas-cerca" aria-labelledby="mayoristas-cerca-titulo">
+      <div class="mayoristas-cerca__numero" [class.mayoristas-cerca__numero--cero]="d.resumen.masBaratos === 0">
+        {{ d.resumen.masBaratos | number: '1.0-0' : 'es-AR' }}
+      </div>
+      <div class="mayoristas-cerca__texto">
+        <h2 id="mayoristas-cerca-titulo">
+          @if (d.resumen.masBaratos === 1) {
+            artículo que un mayorista cerca vende más barato que tu proveedor
+          } @else {
+            artículos que un mayorista cerca vende más barato que tu proveedor
+          }
+        </h2>
+        <p class="mayoristas-cerca__sub">
+          Comparamos tu costo con el precio por unidad de {{ d.resumen.sucursalesMayoristas }}
+          {{ d.resumen.sucursalesMayoristas === 1 ? 'sucursal mayorista' : 'sucursales mayoristas' }} a menos de
+          {{ d.radioKm }} km@if (d.resumen.mayoristaMasCerca) { (la más cerca: {{ d.resumen.mayoristaMasCerca }}, a {{ km(d.resumen.kmMasCerca) }})},
+          {{ d.resumen.comparaConIva ? 'con IVA (con factura C tu costo no discrimina IVA)' : 'sin IVA contra sin IVA' }}.
+          Cuenta desde un {{ d.umbralPct }} % de diferencia, entre {{ d.resumen.conMayoristaCerca | number: '1.0-0' : 'es-AR' }}
+          artículos con costo que también vende un mayorista.
+          @if (d.resumen.atipicos > 0) {
+            {{ d.resumen.atipicos }} más tienen una diferencia tan grande que no se cuentan (puede ser otra unidad o un error del archivo del mayorista).
+          }
+        </p>
+        @if (d.detalle) {
+          @if (d.resumen.masBaratos > 0) {
+            <a routerLink="/precios/mayoristas" class="mayoristas-cerca__btn">Ver cuáles</a>
+          }
+        } @else if (d.resumen.masBaratos > 0) {
+          <p class="mayoristas-cerca__candado">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            La lista, con el mayorista, el precio, el bulto y la diferencia de cada uno, en los planes <strong>Avanzado</strong> y
+            <strong>Cadena</strong>.
+            <a routerLink="/plan">Ver los planes</a>
+          </p>
+        }
+      </div>
+    </section>
+  }
+}

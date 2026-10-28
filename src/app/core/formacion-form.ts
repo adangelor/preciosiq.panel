@@ -84,10 +84,12 @@ export const AVISOS: Record<Aviso, AvisoInfo> = {
   renegociar: { texto: 'Renegociar costo', clase: 'pill--warning', ayuda: 'Tu costo ya supera lo que cobra la cadena más barata de la zona.' },
   dudosa: { texto: 'Comparación dudosa', clase: 'pill--neutral', ayuda: 'Puede ser otro producto con el mismo código (pack contra unidad, código dudoso): mirala antes de creerle.' },
   sin_costo: { texto: 'Sin costo', clase: 'pill--neutral', ayuda: 'Sin costo cargado no hay precio sugerido. Cargalo en la ficha del artículo o por planilla.' },
+  // BP-209: el dato, sin adjetivos (el proveedor quizás entrega en el local, da crédito o vende por unidad).
+  mayorista: { texto: 'Arriba del mayorista', clase: 'pill--info', ayuda: 'Tu costo está 10 % o más arriba del precio por unidad de un mayorista a menos de 50 km (sin IVA contra sin IVA).' },
 };
 
 /** Los avisos que se pueden elegir como filtro, en orden. */
-export const AVISOS_FILTRO: Aviso[] = ['caro', 'dejas_margen', 'testigo', 'renegociar', 'dudosa', 'sin_costo'];
+export const AVISOS_FILTRO: Aviso[] = ['caro', 'dejas_margen', 'testigo', 'renegociar', 'dudosa', 'mayorista', 'sin_costo'];
 
 export interface PrecioElegido {
   item: SugeridoItem;
