@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { BackLinkComponent } from '../../layout/back-link/back-link';
+import { AuthLayoutComponent } from '../../layout/auth-layout/auth-layout';
 
 // Login estandar (E-Auth, 15-ago-2026) -- alta con email + contraseña, alternativa al
 // alta inline que ya hacia StartOtp (OTP crea el ApplicationUser si el mail no existia).
@@ -11,7 +12,7 @@ import { BackLinkComponent } from '../../layout/back-link/back-link';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent],
+  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent, AuthLayoutComponent],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })

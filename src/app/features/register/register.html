@@ -1,16 +1,17 @@
-<div class="register">
+<!-- 29-oct-2026 -- dentro del marco nuevo (layout/auth-layout); formulario y logica, iguales. -->
+<app-auth-layout>
   <app-back-link fallback="/login" />
 
   <h1>Creá tu cuenta en PreciosIQ</h1>
-  <p class="subtitle">Usuario y contraseña propios, para entrar directo sin código por mail.</p>
+  <p class="auth-sub">Usuario y contraseña propios, para entrar directo sin código por mail.</p>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="register__form">
-    <div class="register__row">
-      <label class="register__grow">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <div class="auth-row">
+      <label>
         Nombre
         <input type="text" formControlName="firstName" autocomplete="given-name" />
       </label>
-      <label class="register__grow">
+      <label>
         Apellido
         <input type="text" formControlName="lastName" autocomplete="family-name" />
       </label>
@@ -36,10 +37,10 @@
       <p class="form-error">{{ errorMessage() }}</p>
     }
 
-    <button type="submit" [disabled]="submitting()">
+    <button type="submit" class="auth-btn" [disabled]="submitting()">
       {{ submitting() ? 'Creando cuenta…' : 'Crear cuenta' }}
     </button>
 
-    <p class="hint">¿Ya tenés cuenta? <a routerLink="/login">Ingresá</a>.</p>
+    <p class="auth-hint auth-hint--end">¿Ya tenés cuenta? <a routerLink="/login">Ingresá</a></p>
   </form>
-</div>
+</app-auth-layout>

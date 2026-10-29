@@ -1,21 +1,19 @@
-<div class="login">
-  <!-- 25-ago-2026 -- salida con un click (pedido de Andres). Sin historial propio
-       vuelve a la landing publica. -->
+<!-- 29-oct-2026 -- dentro del marco nuevo (layout/auth-layout): el logo y la vuelta a la landing los pone el
+     marco, y los estilos de inputs y botones (clases auth-*) tambien. Los tres pasos y su logica, iguales. -->
+<app-auth-layout>
+  <!-- 25-ago-2026 -- salida con un click (pedido de Andres). Sin historial propio vuelve a la landing publica. -->
   <app-back-link fallback="/" />
 
-  <!-- 19-ago-2026 -- icono de marca real (LogoPreciosIQ.svg), pedido de Andres. -->
-  <div class="login__brand">
-    <img src="/home/assets/img/logo-preciosiq.svg" alt="PreciosIQ" class="login__brand-icon" />
-    <h1>Ingresá a PreciosIQ</h1>
-  </div>
-
   @if (step() === 'password') {
+    <h1>Ingresá a PreciosIQ</h1>
+    <p class="auth-sub">{{ googleAvailable() ? 'Con Google, con tu contraseña o con un código por mail.' : 'Con tu contraseña o con un código por mail.' }}</p>
+
     @if (googleAvailable()) {
-      <div class="login__google" #googleButton></div>
-      <div class="login__divider"><span>o con tu mail</span></div>
+      <div class="auth-google" #googleButton></div>
+      <div class="auth-divider"><span>o con tu mail</span></div>
     }
 
-    <form [formGroup]="passwordForm" (ngSubmit)="loginWithPassword()" class="login__form">
+    <form [formGroup]="passwordForm" (ngSubmit)="loginWithPassword()" class="auth-form">
       <label>
         Email
         <input type="email" formControlName="email" autocomplete="email" placeholder="vos@tucomercio.com" />
@@ -36,28 +34,29 @@
         <p class="form-error">{{ errorMessage() }}</p>
       }
 
-      <button type="submit" [disabled]="submitting()">
+      <button type="submit" class="auth-btn" [disabled]="submitting()">
         {{ submitting() ? 'Ingresando…' : 'Ingresar' }}
       </button>
 
-      <div class="login__links">
-        <a routerLink="/recuperar-contrasena" class="login__link">¿Olvidaste tu contraseña?</a>
-        <button type="button" class="login__link" (click)="useOtpInstead()">Prefiero un código por mail</button>
+      <div class="auth-links">
+        <a routerLink="/recuperar-contrasena" class="auth-link">¿Olvidaste tu contraseña?</a>
+        <button type="button" class="auth-link" (click)="useOtpInstead()">Prefiero un código por mail</button>
       </div>
 
-      <p class="hint">¿No tenés cuenta? <a routerLink="/registrarme">Registrate</a>.</p>
+      <p class="auth-hint auth-hint--end">¿No tenés cuenta? <a routerLink="/registrarme">Creala gratis</a></p>
     </form>
   }
 
   @if (step() === 'email') {
+    <h1>Ingresá con un código</h1>
+    <p class="auth-sub">Te mandamos un código de 6 dígitos por mail. Sin contraseña.</p>
+
     @if (googleAvailable()) {
-      <div class="login__google" #googleButton></div>
-      <div class="login__divider"><span>o con tu mail</span></div>
+      <div class="auth-google" #googleButton></div>
+      <div class="auth-divider"><span>o con tu mail</span></div>
     }
 
-    <p class="subtitle">Te mandamos un código de 6 dígitos por mail. Sin contraseña.</p>
-
-    <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="login__form">
+    <form [formGroup]="emailForm" (ngSubmit)="requestOtp()" class="auth-form">
       <label>
         Email
         <input type="email" formControlName="email" autocomplete="email" placeholder="vos@tucomercio.com" />
@@ -66,13 +65,13 @@
         }
       </label>
 
-      <p class="hint">¿Primera vez? Contanos tu nombre para el mail de bienvenida (opcional).</p>
-      <div class="login__row">
-        <label class="login__grow">
+      <p class="auth-hint">¿Primera vez? Contanos tu nombre para el mail de bienvenida (opcional).</p>
+      <div class="auth-row">
+        <label>
           Nombre
           <input type="text" formControlName="firstName" autocomplete="given-name" />
         </label>
-        <label class="login__grow">
+        <label>
           Apellido
           <input type="text" formControlName="lastName" autocomplete="family-name" />
         </label>
@@ -82,17 +81,18 @@
         <p class="form-error">{{ errorMessage() }}</p>
       }
 
-      <button type="submit" [disabled]="submitting()">
+      <button type="submit" class="auth-btn" [disabled]="submitting()">
         {{ submitting() ? 'Enviando…' : 'Enviarme el código' }}
       </button>
-      <button type="button" class="login__link" (click)="usePasswordInstead()">Prefiero usar mi contraseña</button>
+      <button type="button" class="auth-link" (click)="usePasswordInstead()">Prefiero usar mi contraseña</button>
     </form>
   }
 
   @if (step() === 'otp') {
-    <p class="subtitle">Revisá tu mail y escribí el código de 6 dígitos.</p>
+    <h1>Revisá tu mail</h1>
+    <p class="auth-sub">Escribí el código de 6 dígitos que te mandamos.</p>
 
-    <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="login__form">
+    <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="auth-form">
       <label>
         Código
         <input type="text" formControlName="otp" inputmode="numeric" maxlength="6" placeholder="123456" />
@@ -105,10 +105,10 @@
         <p class="form-error">{{ errorMessage() }}</p>
       }
 
-      <button type="submit" [disabled]="submitting()">
+      <button type="submit" class="auth-btn" [disabled]="submitting()">
         {{ submitting() ? 'Verificando…' : 'Ingresar' }}
       </button>
-      <button type="button" class="login__link" (click)="backToEmail()">Usar otro email</button>
+      <button type="button" class="auth-link" (click)="backToEmail()">Usar otro email</button>
     </form>
   }
-</div>
+</app-auth-layout>

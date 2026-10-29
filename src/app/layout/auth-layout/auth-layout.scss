@@ -1,0 +1,389 @@
+// Estilos del marco de las pantallas sin sesion. SIN encapsulacion (ver auth-layout.ts): todo cuelga de
+// .auth. La paleta es la de la landing (features/landing/landing.scss); si cambia alla, cambia aca.
+//
+// Igual que la landing, estas pantallas son SIEMPRE claras: el tema compartido pone `--text: #fff` y el
+// fondo navy en modo oscuro, asi que se redefinen los tokens y se fijan color y fondo en .auth.
+
+.auth {
+  --text: #222b45;
+  --text-2: #5d6a89;
+  --text-3: #8f9bb3;
+  --bg-input: #ffffff;
+  --border: #e4e9f2;
+  --border-strong: #c9d3e4;
+
+  --navy: #1b2440;
+  --blue: #2e5aac;
+  --sky: #e8eef9;
+  --orange: #f2a33a;
+  --orange-d: #c77a12;
+  --red: #d64545;
+  --ink-2: #4a5568;
+  --ink-3: #6a7590;
+  --line: #e1e6f0;
+  --bg: #f5f7fb;
+
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) 1.1fr;
+  min-height: 100vh;
+  color: var(--navy);
+  color-scheme: light;
+  background: var(--bg);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+// --- panel de marca ---
+.auth__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  margin: 16px 0 16px 16px;
+  padding: 40px 44px;
+  border-radius: 32px;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+
+  // Un brillo suave, como el degrade de la portada de la landing.
+  &::after {
+    content: '';
+    position: absolute;
+    right: -120px;
+    bottom: -120px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(74, 116, 199, 0.45) 0%, rgba(74, 116, 199, 0) 70%);
+    pointer-events: none;
+  }
+}
+.auth__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 10px;
+    padding: 3px;
+  }
+  b {
+    color: #8fb0f0;
+  }
+}
+.auth__pitch {
+  position: relative;
+  z-index: 1;
+  h2 {
+    margin: 16px 0 0;
+    font-family: inherit;
+    font-size: clamp(30px, 3.2vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    color: #fff;
+    span {
+      color: #8fb0f0;
+    }
+  }
+  ul {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    color: #e3eaf7;
+    font-size: 16px;
+  }
+  li {
+    display: flex;
+    gap: 12px;
+    &::before {
+      content: '✓';
+      color: var(--orange);
+      font-weight: 800;
+    }
+  }
+}
+.auth__eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+.auth__note {
+  margin: 24px 0 0;
+  font-size: 14px;
+  color: #aebbd8;
+}
+.auth__foot {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 13px;
+  color: #aebbd8;
+  a {
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+// --- tarjeta del formulario ---
+.auth__main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+.auth__card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 30px 70px rgba(27, 36, 64, 0.1), 0 4px 14px rgba(27, 36, 64, 0.05);
+
+  h1,
+  .auth-title {
+    margin: 0;
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--navy);
+  }
+  p {
+    margin: 0;
+  }
+  .auth-sub {
+    margin: 10px 0 24px;
+    color: var(--ink-2);
+    font-size: 15px;
+  }
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  input {
+    height: 48px;
+    width: 100%;
+    padding: 0 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--navy);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    &:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(46, 90, 172, 0.12);
+    }
+    &.ng-touched.ng-invalid {
+      border-color: var(--red);
+    }
+  }
+  fieldset {
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    margin: 0 0 12px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--orange-d);
+  }
+  .auth-row {
+    display: flex;
+    gap: 12px;
+    > * {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+  .field-error,
+  .form-error {
+    color: var(--red);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .form-error {
+    margin: 0 0 12px;
+  }
+  .field-hint,
+  .auth-hint {
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .auth-hint {
+    margin: 0 0 14px;
+    a {
+      color: var(--blue);
+      font-weight: 700;
+    }
+  }
+  .auth-hint--end {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  // El boton principal: la pastilla navy de la landing.
+  .auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 52px;
+    margin-top: 4px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--navy);
+    color: #fff;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(27, 36, 64, 0.22);
+    transition: transform 0.15s, box-shadow 0.15s;
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(27, 36, 64, 0.3);
+    }
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    &:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 3px;
+    }
+  }
+  // Botones que se ven como link ("Prefiero un código por mail", "Usar otro email").
+  .auth-link {
+    align-self: center;
+    margin-top: 12px;
+    padding: 4px;
+    border: 0;
+    background: none;
+    color: var(--blue);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  .auth-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    .auth-link {
+      margin: 0;
+      padding: 4px 0;
+      font-size: 13px;
+    }
+  }
+  .auth-google {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+    color: var(--ink-3);
+    font-size: 13px;
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+}
+
+// --- anchos ---
+@media (max-width: 900px) {
+  .auth {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  // En pantallas angostas el panel de marca queda como una franja con el logo.
+  .auth__side {
+    margin: 12px 12px 0;
+    padding: 18px 22px;
+    border-radius: 22px;
+    &::after {
+      display: none;
+    }
+  }
+  .auth__pitch,
+  .auth__foot {
+    display: none;
+  }
+  .auth__main {
+    align-items: flex-start;
+    padding: 28px 16px 48px;
+  }
+}
+@media (max-width: 560px) {
+  .auth__brand {
+    font-size: 18px;
+    img {
+      width: 30px;
+      height: 30px;
+    }
+  }
+  // La tarjeta se aplana: el boton de Google mide 320 px fijos y tiene que entrar en 375.
+  .auth__card {
+    max-width: none;
+    padding: 4px 4px 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    h1,
+    .auth-title {
+      font-size: 26px;
+    }
+  }
+}

@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth';
 import { BusinessAccountService } from '../../core/business-account';
 import { environment } from '../../../environments/environment';
 import { BackLinkComponent } from '../../layout/back-link/back-link';
+import { AuthLayoutComponent } from '../../layout/auth-layout/auth-layout';
 
 // Google Identity Services se carga por script en index.html; no hay @types oficiales
 // livianos para esto, así que se tipa suelto aca nomas.
@@ -21,7 +22,7 @@ declare const google: any;
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent],
+  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent, AuthLayoutComponent],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

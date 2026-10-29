@@ -1,0 +1,25 @@
+<div class="auth">
+  <aside class="auth__side">
+    <a routerLink="/" class="auth__brand" aria-label="PreciosIQ, volver al inicio">
+      <img src="/home/assets/img/logo-preciosiq.svg" alt="" />
+      <span>Precios<b>IQ</b></span>
+    </a>
+    <!-- Los mismos textos de la landing: nada que la landing no diga. -->
+    <div class="auth__pitch">
+      <span class="auth__eyebrow">Para comercios y cadenas</span>
+      <h2>¿Sabés cuánto cobra <span>tu competencia hoy?</span></h2>
+      <ul>
+        <li>Tus precios contra los de tu zona</li>
+        <li>Tu catálogo por CSV, sin límite de productos</li>
+        <li>Tus precios en la app BuscaPrecios</li>
+      </ul>
+      <p class="auth__note">El plan Gratis es para siempre y sin tarjeta.</p>
+    </div>
+    <p class="auth__foot">Parte de la <a href="https://buscaprecios.online/familia">familia BuscaPrecios</a></p>
+  </aside>
+  <main class="auth__main">
+    <div class="auth__card">
+      <ng-content />
+    </div>
+  </main>
+</div>

@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { BackLinkComponent } from '../../layout/back-link/back-link';
+import { AuthLayoutComponent } from '../../layout/auth-layout/auth-layout';
 
 type Step = 'email' | 'reset' | 'done';
 
@@ -15,7 +16,7 @@ type Step = 'email' | 'reset' | 'done';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent],
+  imports: [ReactiveFormsModule, RouterLink, BackLinkComponent, AuthLayoutComponent],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss',
 })
