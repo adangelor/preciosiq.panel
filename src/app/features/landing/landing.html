@@ -1,382 +1,408 @@
-<!-- Navigation-->
-<nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm" id="mainNav">
-  <div class="container px-5">
-    <!-- 19-ago-2026 -- icono de marca real (LogoPreciosIQ.svg), pedido de Andres. -->
-    <a class="navbar-brand fw-bold" href="#page-top">
-      <img src="/home/assets/img/logo-preciosiq.svg" alt="" class="navbar-brand__icon" />
-      PreciosIQ
+<!-- 29-oct-2026 -- LANDING NUEVA, con el diseño del modelo de DistribucionIQ que paso Andres
+     (DistribucionIQ_landing.html), adaptado a lo que hace PreciosIQ. Todo lo que funcionaba sigue: la
+     agenda de Omnivox (BP-94, ahora al pie y creada recien con el primer click), el formulario de
+     respaldo si la agenda no carga, #planes con los precios de la API (BP-101), la captura real del
+     panel en .browser-mockup (BP-95/96) y los links de registro e ingreso.
+     Los numeros de las tarjetas son ilustrativos y van marcados "Ejemplo". Salio la frase entre comillas
+     "Dejamos de perder margen..." porque no la dijo ningun cliente.
+     Las clases llevan el prefijo lp- porque el tema New Age (Bootstrap) sigue cargado global y .btn,
+     .card, .lead o .nav chocarian con las suyas. -->
+<header class="lp-header" [class.scrolled]="scrolled()">
+  <div class="lp-wrap lp-nav">
+    <a href="#top" class="lp-brand" aria-label="PreciosIQ, inicio">
+      <img src="/home/assets/img/logo-preciosiq.svg" alt="" />
+      <span>Precios<b>IQ</b></span>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-      Menu
-      <i class="bi-list"></i>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarResponsive">
-      <ul class="navbar-nav ms-auto me-4 my-3 my-lg-0">
-        <li class="nav-item"><a class="nav-link me-lg-3" href="#features">Qué hace</a></li>
-        <li class="nav-item"><a class="nav-link me-lg-3" href="#como-funciona">Cómo funciona</a></li>
-        <li class="nav-item"><a class="nav-link me-lg-3" href="#planes">Planes</a></li>
-        <li class="nav-item"><a class="nav-link me-lg-3" routerLink="/login">Ingresar / Crear cuenta</a></li>
-      </ul>
-      <button class="btn btn-primary rounded-pill px-3 mb-2 mb-lg-0" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">
-        <span class="d-flex align-items-center">
-          <i class="bi-calendar-check me-2"></i>
-          <span class="small">Agendar demo</span>
-        </span>
-      </button>
-    </div>
-  </div>
-</nav>
-<!-- Mashead header-->
-<header class="masthead">
-  <div class="container px-5">
-    <div class="row gx-5 align-items-center">
-      <div class="col-lg-6">
-        <!-- Mashead text and CTAs-->
-        <div class="mb-5 mb-lg-0 text-center text-lg-start">
-          <h1 class="display-1 lh-1 mb-3">No adivines lo que cobra la competencia: <span class="text-gradient">SABELO</span>.</h1>
-          <p class="lead fw-normal text-muted mb-5">PreciosIQ es la plataforma de inteligencia de precios para comercios y cadenas, construida sobre la misma red de datos de BuscaPrecios: precios reales, sucursal por sucursal, actualizados por miles de usuarios y proveedores todos los días.</p>
-          <div class="d-flex flex-column flex-lg-row align-items-center">
-            <a class="btn btn-primary btn-lg rounded-pill px-4 me-lg-3 mb-4 mb-lg-0" routerLink="/registrarme">Empezá gratis</a>
-            <a class="btn btn-outline-primary btn-lg rounded-pill px-4" href="#planes">Ver planes</a>
-          </div>
-          <p class="small text-muted mt-3 mb-0">Sin tarjeta y sin límite de productos. Subí tu catálogo entero por CSV y mirá cómo estás parado frente a la competencia hoy mismo.</p>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <!-- Masthead device mockup feature-->
-        <div class="masthead-device-mockup">
-          <svg class="circle" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="circleGradient" gradientTransform="rotate(45)">
-                <stop class="gradient-start-color" offset="0%"></stop>
-                <stop class="gradient-end-color" offset="100%"></stop>
-              </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="50"></circle>
-          </svg><svg class="shape-1 d-none d-sm-block" viewBox="0 0 240.83 240.83" xmlns="http://www.w3.org/2000/svg">
-            <rect x="-32.54" y="78.39" width="305.92" height="84.05" rx="42.03" transform="translate(120.42 -49.88) rotate(45)"></rect>
-            <rect x="-32.54" y="78.39" width="305.92" height="84.05" rx="42.03" transform="translate(-49.88 120.42) rotate(-45)"></rect>
-          </svg><svg class="shape-2 d-none d-sm-block" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"></circle></svg>
-          <!-- 11-oct-2026 -- captura REAL del panel dentro de un marco de ventana de navegador. Antes iba
-               demo-screen.jpg (una pantalla de la app vieja de BuscaPrecios, la misma en PreciosIQ y en
-               DistribucionIQ) adentro del iPhone X, que es el unico mockup que trae el tema New Age y no
-               sirve para un panel de escritorio. El marco es CSS propio: .browser-mockup en landing.scss.
-               La imagen es una captura del panel EN PRODUCCION a 1440x900 (html2canvas a 2x), escalada a
-               1600x1000 JPEG; como se hizo y como rehacerla esta en BP-95 de BACKLOG.md (raiz del repo). -->
-          <figure class="browser-mockup mb-0">
-            <div class="browser-mockup__bar" aria-hidden="true">
-              <span></span><span></span><span></span>
-              <div class="browser-mockup__url">preciosiq.com/dashboard</div>
-            </div>
-            <button class="browser-mockup__zoom" type="button" data-bs-toggle="modal" data-bs-target="#heroZoomModal" aria-label="Ver la captura del panel en grande">
-              <img class="browser-mockup__screen" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" />
-              <span class="browser-mockup__hint" aria-hidden="true"><i class="bi-arrows-fullscreen"></i> Ampliar</span>
-            </button>
-          </figure>
-        </div>
-      </div>
+    <nav class="lp-nav-links" aria-label="Secciones">
+      <a href="#que-hace">Qué hace</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#planes">Planes</a>
+    </nav>
+    <div class="lp-nav-cta">
+      <a class="lp-login" routerLink="/login">Ingresar</a>
+      <a class="lp-login" routerLink="/registrarme">Crear cuenta</a>
+      <a class="lp-btn lp-btn-primary" href="#demo" (click)="irADemo($event)"><span class="lp-hide-xs">Agendá tu demo</span><span class="lp-show-xs">Demo</span></a>
     </div>
   </div>
 </header>
-<!-- Quote/testimonial aside-->
-<aside class="text-center bg-gradient-primary-to-secondary">
-  <div class="container px-5">
-    <div class="row gx-5 justify-content-center">
-      <div class="col-xl-8">
-        <div class="h2 fs-1 text-white mb-4">"Dejamos de perder margen por no saber qué cobraba la cadena de al lado."</div>
-      </div>
-    </div>
-  </div>
-</aside>
-<!-- Features section-->
-<section id="features">
-  <div class="container px-5">
-    <div class="row gx-5 justify-content-center mb-5">
-      <div class="col-lg-8 text-center">
-        <h2 class="display-4 lh-1 mb-4">Todo lo que necesitás para fijar precios con datos</h2>
-      </div>
-    </div>
-    <div class="row gx-5">
-      <div class="col-md-6 col-lg-3 mb-5">
-        <div class="text-center">
-          <i class="bi-currency-dollar icon-feature text-gradient d-block mb-3"></i>
-          <h3 class="font-alt">Precios de la competencia</h3>
-          <p class="text-muted mb-0">Precios actualizados de las principales cadenas de tu zona, cruzados por EAN, con la frecuencia que necesitás.</p>
+
+<main id="top">
+  <!-- 1. PORTADA -->
+  <section class="lp-hero">
+    <div class="lp-wrap lp-hero-grid">
+      <div class="lp-rv">
+        <span class="lp-eyebrow">Para comercios y cadenas</span>
+        <h1>¿Sabés cuánto cobra <span>tu competencia hoy?</span></h1>
+        <p class="lp-lead">Nosotros sí: producto por producto y sucursal por sucursal, con los precios reales de la red de BuscaPrecios.</p>
+        <div class="lp-hero-ctas">
+          <a class="lp-btn lp-btn-primary" routerLink="/registrarme">Empezá gratis</a>
+          <a class="lp-btn lp-btn-ghost" href="#demo" (click)="irADemo($event)">Agendá una demo</a>
         </div>
+        <p class="lp-hero-note">Sin tarjeta y sin límite de productos. Subí tu catálogo entero por CSV y mirá cómo estás parado hoy mismo.</p>
       </div>
-      <div class="col-md-6 col-lg-3 mb-5">
-        <div class="text-center">
-          <i class="bi-cloud-arrow-up icon-feature text-gradient d-block mb-3"></i>
-          <h3 class="font-alt">Carga masiva, en todos los planes</h3>
-          <p class="text-muted mb-0">Subí tu lista de precios por CSV, mapeá las columnas una sola vez y listo. Sin límite de productos, también en el plan gratuito.</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 mb-5">
-        <div class="text-center">
-          <i class="bi-tags icon-feature text-gradient d-block mb-3"></i>
-          <h3 class="font-alt">Categorización automática</h3>
-          <p class="text-muted mb-0">Clasificamos tu catálogo por categoría sin que muevas un dedo, para que compares manzanas con manzanas.</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 mb-5">
-        <div class="text-center">
-          <i class="bi-geo-alt icon-feature text-gradient d-block mb-3"></i>
-          <h3 class="font-alt">Sucursal por sucursal</h3>
-          <p class="text-muted mb-0">Los precios varían de un local a otro. Comparamos al nivel que realmente importa para tu decisión.</p>
+      <div class="lp-rv lp-hero-shot">
+        <!-- 11-oct-2026 (BP-95) -- captura REAL del panel EN PRODUCCION a 1440x900 (html2canvas a 2x),
+             escalada a 1600x1000 JPEG; como se hizo y como rehacerla esta en BP-95 de BACKLOG.md.
+             BP-96: click en la imagen = se ve en grande (#heroZoomModal, abajo). -->
+        <figure class="browser-mockup">
+          <div class="browser-mockup__bar" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <div class="browser-mockup__url">preciosiq.com/dashboard</div>
+          </div>
+          <button class="browser-mockup__zoom" type="button" data-bs-toggle="modal" data-bs-target="#heroZoomModal" aria-label="Ver la captura del panel en grande">
+            <img class="browser-mockup__screen" src="/home/assets/img/hero-panel.jpg" width="1600" height="1000" alt="Dashboard de benchmarking de PreciosIQ: tu posición de precios contra las cadenas de la zona, categoría por categoría" />
+            <span class="browser-mockup__hint" aria-hidden="true"><i class="bi-arrows-fullscreen"></i> Ampliar</span>
+          </button>
+        </figure>
+        <div class="lp-float">
+          <div class="lp-ic"><i class="bi-bar-chart-fill" aria-hidden="true"></i></div>
+          <div><b>Tu posición contra la zona</b><div class="lp-muted lp-small">captura real del panel</div></div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- Basic features section-->
-<section class="bg-light" id="como-funciona">
-  <div class="container px-5">
-    <div class="row gx-5 align-items-center justify-content-center justify-content-lg-between">
-      <div class="col-12 col-lg-5">
-        <h2 class="display-4 lh-1 mb-4">Dejá de mandar a alguien a mirar precios a la vuelta.</h2>
-        <p class="lead fw-normal text-muted mb-5 mb-lg-0">
-          PreciosIQ nace de BuscaPrecios: la misma red de miles de usuarios que escanean y comparten precios todos los días, ahora puesta al servicio de tu negocio.
-          Sumamos tu propio catálogo, lo cruzamos con la competencia y te devolvemos un panel simple para decidir qué cobrar, sin planillas ni relevamientos manuales.
-          Y cuando quieras ir más lejos, el Asesor de Precios te dice dónde estás perdiendo margen y cuánto vale corregirlo.
-        </p>
+  </section>
+
+  <!-- 2. EL DATO -->
+  <section id="dato" class="lp-shock">
+    <div class="lp-wrap">
+      <p class="lp-big-q lp-rv">El mismo producto, a la vuelta.</p>
+      <div class="lp-pair">
+        <div class="lp-card lp-pp lp-rv"><div class="lp-pp-lab">Tu precio</div><div class="lp-big" style="color: var(--red)">$ 2.450</div></div>
+        <div class="lp-vs lp-rv">vs.</div>
+        <div class="lp-card lp-pp lp-rv"><div class="lp-pp-lab">La cadena de al lado</div><div class="lp-big" style="color: var(--green)">$ 1.990</div></div>
       </div>
-      <div class="col-sm-8 col-md-6">
-        <div class="px-5 px-sm-0"><img class="img-fluid rounded-circle" src="/home/assets/img/Retail.jpg" alt="PreciosIQ - inteligencia de precios retail" /></div>
+      <p class="lp-punch lp-rv"><span>23 % más caro.</span> ¿Lo sabías?</p>
+      <p class="lp-shock-sub lp-rv"><span class="lp-ej">Ejemplo</span> Para cada producto de tu catálogo, por código de barras, ves a cuánto lo venden las cadenas y comercios cercanos a cada una de tus sucursales.</p>
+    </div>
+  </section>
+
+  <!-- 3. LO QUE NO ESTAS VIENDO -->
+  <section id="que-hace" class="lp-tight">
+    <div class="lp-wrap">
+      <div class="lp-center lp-rv"><h2>Y no es lo único que no estás viendo.</h2></div>
+      <div class="lp-beats">
+        <div class="lp-card lp-beat lp-rv">
+          <h3>Dónde estás caro y dónde barato.</h3>
+          <p>Categoría por categoría, contra el mercado de tu zona.</p>
+          <div class="lp-viz">
+            <span class="lp-ej">Ejemplo</span>
+            <div class="lp-vrow"><span>Almacén</span><div class="lp-bar"><i style="--w: 40%; background: var(--red)"></i></div><span class="lp-v" style="color: var(--red)">+8 %</span></div>
+            <div class="lp-vrow"><span>Bebidas</span><div class="lp-bar"><i style="--w: 15%; background: var(--green)"></i></div><span class="lp-v" style="color: var(--green)">−3 %</span></div>
+            <div class="lp-vrow"><span>Limpieza</span><div class="lp-bar"><i style="--w: 60%; background: var(--red)"></i></div><span class="lp-v" style="color: var(--red)">+12 %</span></div>
+          </div>
+        </div>
+        <div class="lp-card lp-beat lp-rv">
+          <h3>Dónde perdés margen.</h3>
+          <p>El Asesor de Precios te lo escribe, con sugerencias concretas de ajuste. Desde el plan Pyme.</p>
+          <div class="lp-viz">
+            <span class="lp-ej">Ejemplo</span>
+            <div class="lp-arow"><span>Producto 1</span><span class="lp-chip lp-bad">Bajalo</span></div>
+            <div class="lp-arow"><span>Producto 2</span><span class="lp-chip lp-ok">Podés subirlo</span></div>
+            <div class="lp-arow"><span>Producto 3</span><span class="lp-chip lp-neutral">Estás bien</span></div>
+          </div>
+        </div>
+        <div class="lp-card lp-beat lp-rv">
+          <h3>Qué precio poner.</h3>
+          <p>Formación de precios: tu costo y tu margen, acotados por la competencia. Desde el plan Avanzado.</p>
+          <div class="lp-viz">
+            <span class="lp-ej">Ejemplo</span>
+            <div class="lp-crow"><span>Tu costo</span><b>$ 1.500</b></div>
+            <div class="lp-crow"><span>Precio sugerido</span><b style="color: var(--blue)">$ 1.890</b></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
-<!-- Call to action section-->
-<section class="cta">
-  <div class="cta-content">
-    <div class="container px-5">
-      <h3 class="text-white display-1 lh-1 mb-4">
-        Tu competencia ya sabe cuánto cobrás vos.
-        <br />
-        ¿Vos sabés cuánto cobra ella?
-      </h3>
-      <button class="btn btn-outline-light py-3 px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">Quiero una demo</button>
+  </section>
+
+  <!-- 4. TUS PRECIOS, PARA TUS CLIENTES: misuper.app (desde Inicial) y la app BuscaPrecios (todos). -->
+  <section class="lp-night">
+    <div class="lp-wrap lp-night-grid">
+      <div class="lp-rv">
+        <span class="lp-eyebrow" style="color: var(--orange)">Tu tienda online</span>
+        <h2>Con los mismos precios que cargás, tu tienda en misuper.app.</h2>
+        <p class="lp-lead">Pedidos por WhatsApp, sin comisiones, y un cartel con QR para la vidriera. Desde el plan Inicial. Y en todos los planes, tus precios en la app BuscaPrecios.</p>
+      </div>
+      <div class="lp-tags lp-tags-night lp-rv">
+        <span>misuper.app/tu-comercio</span>
+        <span>Pedidos por WhatsApp</span>
+        <span>Sin comisiones</span>
+        <span>Cartel con QR</span>
+        <span>App BuscaPrecios</span>
+      </div>
     </div>
-  </div>
-</section>
-<!-- Planes section
+  </section>
 
-     REESCRITA 01-sep-2026. La versión anterior vendía el eje de monetización viejo
-     ("hasta 15 productos", "catálogos sin límite" como diferencial de Cadena), que dejó
-     de existir con el REDISEÑO 2 del 21-ago en Services/PlanLimits.cs: MaxProducts quedó
-     en null para TODOS los planes y CsvBulkImport pasó a ser universal. El eje ahora es
-     el NIVEL DE ANÁLISIS (N0..N3).
+  <!-- 5. EL RESTO DEL PANEL -->
+  <section class="lp-tight-top">
+    <div class="lp-wrap">
+      <div class="lp-mini-grid">
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-cloud-arrow-up" aria-hidden="true"></i></div>
+          <h3>Carga masiva, en todos los planes</h3>
+          <p>Tu lista de precios por CSV, sin límite de productos, también en el plan gratis.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-tags" aria-hidden="true"></i></div>
+          <h3>Categorización automática</h3>
+          <p>Clasificamos tu catálogo por categoría para que compares manzanas con manzanas.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-geo-alt" aria-hidden="true"></i></div>
+          <h3>Sucursal por sucursal</h3>
+          <p>Los precios varían de un local a otro: comparamos al nivel que importa para tu decisión.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-graph-up" aria-hidden="true"></i></div>
+          <h3>Historial de precios</h3>
+          <p>Cómo se movió cada producto en el tiempo. Desde el plan Inicial.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-     Precios: BP-101 (11-oct-2026), los trae la API (GET business/subscriptions/plans, que
-     lee Billing:Plans); cambiar un precio ya no pide tocar esta página. Anual = 10 meses.
-     Features por tarjeta: PlanLimits.Plans; esas sí están escritas a mano acá.
+  <!-- 6. ASI DE FACIL -->
+  <section id="como" class="lp-easy">
+    <div class="lp-wrap">
+      <h2 class="lp-rv">¿Cuánto tardás en saber cómo estás parado?<br /><span>Lo que tardás en subir tu lista de precios.</span></h2>
+      <div class="lp-flow lp-rv">
+        <div class="lp-st"><i>1</i>Subís tu CSV</div><span class="lp-arrow" aria-hidden="true">→</span>
+        <div class="lp-st"><i>2</i>Lo cruzamos con tu zona</div><span class="lp-arrow" aria-hidden="true">→</span>
+        <div class="lp-st"><i>3</i>Ves tu posición</div>
+      </div>
+      <p class="lp-sub lp-rv">Mapeás las columnas una sola vez. Sin planillas ni relevamientos manuales.</p>
+    </div>
+  </section>
 
-     BP-85 (11-oct-2026): PlanLimits ya tiene la matriz de la caja y de la tienda. Acá se
-     muestra solo lo que existe hoy; la caja, la factura, el subdominio y el dominio propio entran
-     a las tarjetas cuando se publiquen.
+  <!-- 7. PARA QUIEN -->
+  <section class="lp-tight">
+    <div class="lp-wrap">
+      <div class="lp-who">
+        <div class="lp-card lp-dark lp-rv">
+          <span class="lp-eyebrow" style="color: var(--orange)">Si tenés un comercio</span>
+          <h3>Dejá de mandar a alguien a mirar precios a la vuelta.</h3>
+          <p>Supermercados independientes, cooperativas, autoservicios y distribuidoras con salón de venta.</p>
+          <div class="lp-tags"><span>Empezás gratis</span><span>Tu zona</span><span>Tu tienda online</span></div>
+        </div>
+        <div class="lp-card lp-rv">
+          <span class="lp-eyebrow">Si tenés una cadena</span>
+          <h3>Cada sucursal contra su competencia, no contra un promedio.</h3>
+          <p>Con tus costos, el margen por producto. Con tus ventas, la ganancia en pesos por mes.</p>
+          <div class="lp-tags"><span>Sucursal por sucursal</span><span>Margen</span><span>Ganancia en pesos</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-     23-oct-2026 (reestructura de precios): la tienda pasa a Inicial; Gratis muestra los precios en
-     la app BuscaPrecios (Branch.IsPublic); la gestión (BP-178..181) va en Avanzado y Cadena.
-     24-oct-2026: la gestión se esconde hasta tener 20-30 clientes; Avanzado muestra solo la formación de precios. -->
-<section class="bg-gradient-primary-to-secondary" id="planes">
-  <div class="container px-5">
-    <h2 class="text-center text-white font-alt mb-3">El dato entra gratis. El análisis se paga.</h2>
-    <p class="text-center text-white-50 mb-5 mx-auto" style="max-width: 46rem">
-      Cargá tu catálogo completo por CSV en cualquier plan, incluido el gratuito: sin límite de
-      productos ni de sucursales, y mostrá tus precios en la app BuscaPrecios. Al subir de plan suman tu
-      tienda online y el análisis.
-    </p>
+  <!-- 8. PLANES.
+       REESCRITA 01-sep-2026: el eje es el NIVEL DE ANALISIS (N0..N3); MaxProducts quedo en null para
+       TODOS los planes y CsvBulkImport es universal (REDISEÑO 2, Services/PlanLimits.cs).
+       Precios: BP-101 (11-oct-2026), los trae la API (GET business/subscriptions/plans, que lee
+       Billing:Plans). Anual = 10 meses. Features por tarjeta: PlanLimits.Plans, escritas a mano aca.
+       23-oct-2026 (reestructura): la tienda pasa a Inicial; Gratis muestra los precios en la app
+       BuscaPrecios (Branch.IsPublic). 24-oct-2026: la gestion (BP-178..181) se esconde hasta tener
+       20-30 clientes; Avanzado muestra solo la formacion de precios. -->
+  <section id="planes" class="lp-tight">
+    <div class="lp-wrap">
+      <div class="lp-center lp-rv">
+        <h2>El dato entra gratis. El análisis se paga.</h2>
+        <p class="lp-lead">Tu catálogo completo por CSV en cualquier plan, incluido el gratuito: sin límite de productos ni de sucursales. Al subir de plan suman tu tienda online y el análisis.</p>
+      </div>
 
-    <!-- El monto de un plan pago. Mientras la API no contesta la tarjeta guarda el lugar; si
-         no contesta, no se inventa un precio. -->
-    <ng-template #precio let-tier>
-      @if (precios()[tier]; as p) {
-        <div class="mb-1"><span class="display-6 fw-bold">{{ p.mes }}</span><span class="text-muted small">/mes</span></div>
-        <p class="text-muted small mb-3">o {{ p.anio }} al año</p>
-      } @else {
-        <div class="mb-1"><span class="display-6 fw-bold">&nbsp;</span></div>
-        <p class="text-muted small mb-3">@if (preciosCaidos()) { Consultanos el precio } @else { &nbsp; }</p>
-      }
-    </ng-template>
+      <!-- El monto de un plan pago. Mientras la API no contesta la tarjeta guarda el lugar; si no
+           contesta, no se inventa un precio. -->
+      <ng-template #precio let-tier>
+        @if (precios()[tier]; as p) {
+          <div class="lp-ps-price">{{ p.mes }}<small>/mes</small></div>
+          <div class="lp-ps-annual">o {{ p.anio }} al año</div>
+        } @else {
+          <div class="lp-ps-price">&nbsp;</div>
+          <div class="lp-ps-annual">@if (preciosCaidos()) { Consultanos el precio } @else { &nbsp; }</div>
+        }
+      </ng-template>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 align-items-stretch">
-
-      <!-- free -- N0 -->
-      <div class="col">
-        <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
-          <h3 class="font-alt h5 mb-1">Gratis</h3>
-          <p class="text-muted small mb-3">Tu posición</p>
-          <div class="mb-1"><span class="display-6 fw-bold">$0</span></div>
-          <p class="text-muted small mb-3">Para siempre, sin tarjeta.</p>
-          <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
-            <li class="mb-2">✓ Carga libre de catálogo por CSV</li>
-            <li class="mb-2">✓ Comparación contra las cadenas de tu zona</li>
-            <li class="mb-2">✓ Sucursal por sucursal</li>
-            <li class="mb-2">✓ Tus precios en la app BuscaPrecios</li>
+      <div class="lp-plans lp-plans-list lp-rv">
+        <!-- free -- N0 -->
+        <div class="lp-card lp-ps">
+          <div class="lp-tag"></div>
+          <h3>Gratis</h3>
+          <span class="lp-ps-sub">Tu posición</span>
+          <div class="lp-ps-price">$0</div>
+          <div class="lp-ps-annual">Para siempre, sin tarjeta.</div>
+          <ul class="lp-plan-list">
+            <li>Carga libre de catálogo por CSV</li>
+            <li>Comparación contra las cadenas de tu zona</li>
+            <li>Sucursal por sucursal</li>
+            <li>Tus precios en la app BuscaPrecios</li>
           </ul>
-          <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezá gratis</a>
+          <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezá gratis</a>
         </div>
-      </div>
 
-      <!-- inicial -->
-      <div class="col">
-        <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
-          <h3 class="font-alt h5 mb-1">Inicial</h3>
-          <p class="text-muted small mb-3">Tu evolución</p>
+        <!-- inicial -->
+        <div class="lp-card lp-ps">
+          <div class="lp-tag"></div>
+          <h3>Inicial</h3>
+          <span class="lp-ps-sub">Tu evolución</span>
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'inicial' }" />
-          <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
-            <li class="mb-2">Todo lo del plan Gratis, más:</li>
-            <li class="mb-2">✓ Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
-            <li class="mb-2">✓ Historial de precios</li>
+          <ul class="lp-plan-list">
+            <li class="lp-plan-prev">Todo lo del plan Gratis, más:</li>
+            <li>Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
+            <li>Historial de precios</li>
           </ul>
-          <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
+          <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezar</a>
         </div>
-      </div>
 
-      <!-- pyme -- N1 -->
-      <div class="col">
-        <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column border border-primary border-2 position-relative">
-          <span class="badge bg-primary rounded-pill position-absolute top-0 start-50 translate-middle">Recomendado</span>
-          <h3 class="font-alt h5 mb-1">Pyme</h3>
-          <p class="text-muted small mb-3">Tu competitividad</p>
+        <!-- pyme -- N1 -->
+        <div class="lp-card lp-ps lp-rec">
+          <div class="lp-tag">Recomendado</div>
+          <h3>Pyme</h3>
+          <span class="lp-ps-sub">Tu competitividad</span>
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'pyme' }" />
-          <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
-            <li class="mb-2">Todo lo del plan Inicial, más:</li>
-            <li class="mb-2">✓ Dashboard completo</li>
-            <li class="mb-2">✓ Informe del Asesor de Precios</li>
+          <ul class="lp-plan-list">
+            <li class="lp-plan-prev">Todo lo del plan Inicial, más:</li>
+            <li>Dashboard completo</li>
+            <li>Informe del Asesor de Precios</li>
           </ul>
-          <a class="btn btn-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
+          <a class="lp-btn lp-btn-sm lp-btn-orange" routerLink="/registrarme">Empezar</a>
         </div>
-      </div>
 
-      <!-- avanzado -- N2 -->
-      <div class="col">
-        <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
-          <h3 class="font-alt h5 mb-1">Avanzado</h3>
-          <p class="text-muted small mb-3">Tu rentabilidad</p>
+        <!-- avanzado -- N2 -->
+        <div class="lp-card lp-ps">
+          <div class="lp-tag"></div>
+          <h3>Avanzado</h3>
+          <span class="lp-ps-sub">Tu rentabilidad</span>
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'avanzado' }" />
-          <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
-            <li class="mb-2">Todo lo del plan Pyme, más:</li>
-            <li class="mb-2">✓ Análisis de margen por producto</li>
-            <li class="mb-2 fst-italic">Requiere cargar tus costos</li>
-            <li class="mb-2">✓ Formación de precios: tu costo y tu margen contra la competencia</li>
-            <li class="mb-2">✓ Asistente con IA en tu tienda</li>
+          <ul class="lp-plan-list">
+            <li class="lp-plan-prev">Todo lo del plan Pyme, más:</li>
+            <li>Análisis de margen por producto</li>
+            <li class="lp-plan-req">Requiere cargar tus costos</li>
+            <li>Formación de precios: tu costo y tu margen contra la competencia</li>
+            <li>Asistente con IA en tu tienda</li>
           </ul>
-          <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
+          <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezar</a>
         </div>
-      </div>
 
-      <!-- cadena -- N3 -->
-      <div class="col">
-        <div class="p-4 bg-white rounded-4 h-100 d-flex flex-column">
-          <h3 class="font-alt h5 mb-1">Cadena</h3>
-          <p class="text-muted small mb-3">Tu ganancia</p>
+        <!-- cadena -- N3 -->
+        <div class="lp-card lp-ps">
+          <div class="lp-tag"></div>
+          <h3>Cadena</h3>
+          <span class="lp-ps-sub">Tu ganancia</span>
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'cadena' }" />
-          <ul class="list-unstyled small text-muted flex-grow-1 mb-3">
-            <li class="mb-2">Todo lo del plan Avanzado, más:</li>
-            <li class="mb-2">✓ Ganancia en pesos por mes</li>
-            <li class="mb-2 fst-italic">Requiere cargar tus ventas</li>
+          <ul class="lp-plan-list">
+            <li class="lp-plan-prev">Todo lo del plan Avanzado, más:</li>
+            <li>Ganancia en pesos por mes</li>
+            <li class="lp-plan-req">Requiere cargar tus ventas</li>
           </ul>
-          <a class="btn btn-outline-primary rounded-pill px-4 mt-auto" routerLink="/registrarme">Empezar</a>
+          <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezar</a>
         </div>
       </div>
 
-    </div>
-
-    <p class="text-center text-white-50 small mt-4 mb-2">
-      Precios en pesos, por cuenta, IVA incluido. En el plan anual pagás 10 meses y usás 12.
-      Cambiás o cancelás cuando quieras.
-    </p>
-    <div class="text-center mt-2">
-      <button class="btn btn-light rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#feedbackModal" (click)="agendaPedida.set(true)">Hablemos de tu caso</button>
-    </div>
-  </div>
-</section>
-<!-- Footer-->
-<footer class="bg-black text-center py-5">
-  <div class="container px-5">
-    <div class="text-white-50 small">
-      <div class="mb-2">PreciosIQ es parte de la <a class="text-white-50" href="https://buscaprecios.online/familia">familia BuscaPrecios</a>. &copy; 2026. Todos los derechos reservados.</div>
-      <a href="#privacyModal" data-bs-toggle="modal">Privacidad</a>
-      <span class="mx-1">&middot;</span>
-      <a href="#termsModal" data-bs-toggle="modal">Términos de uso</a>
-    </div>
-  </div>
-</footer>
-<!-- Modal de demo. Desde el 11-oct-2026 abre el CALENDARIO de turnos de Omnivox (tenant "preciosiq",
-     servicio "Demo de PreciosIQ") en lugar del formulario de contacto: el visitante elige dia y hora y
-     el turno queda en la misma agenda que el bot y el panel de Omnivox. El calendario se crea recien
-     con el primer click en cualquiera de los tres botones (agendaPedida), asi la landing no pega al API
-     de Omnivox en cada visita. El formulario viejo (LeadService -> /api/public/leads) queda SOLO como
-     respaldo si el bundle de Omnivox no carga (agendaCaida, ver agenda-omnivox.ts). modal-lg porque la
-     semana del calendario son 7 columnas. -->
-<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-gradient-primary-to-secondary p-4">
-        <h5 class="modal-title font-alt text-white" id="feedbackModalLabel">Agendá una demo de PreciosIQ</h5>
-        <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+      <p class="lp-plan-note">
+        Precios en pesos, por cuenta, IVA incluido. En el plan anual pagás 10 meses y usás 12. Cambiás o cancelás cuando quieras.
+      </p>
+      <div class="lp-center">
+        <a class="lp-btn lp-btn-ghost" href="#demo" (click)="irADemo($event)">Hablemos de tu caso</a>
       </div>
-      <div class="modal-body border-0 p-3 p-md-4">
+    </div>
+  </section>
+
+  <!-- 9. DEMO. Desde el 11-oct-2026 (BP-94) la demo se agenda en el CALENDARIO de Omnivox (tenant
+       "preciosiq", servicio "Demo de PreciosIQ"): el turno queda en la misma agenda que el bot y el panel
+       de Omnivox. El calendario se crea recien con el primer click en un boton de demo (agendaPedida),
+       asi la landing no pega al API de Omnivox en cada visita. El formulario (LeadService ->
+       /api/public/leads) queda SOLO como respaldo si el bundle de Omnivox no carga (agendaCaida, ver
+       agenda-omnivox.ts). 29-oct-2026: deja de ser un modal y vive aca; con la agenda abierta la
+       seccion pasa a una columna, porque la semana del calendario son 7 columnas. -->
+  <section id="demo" class="lp-final">
+    <div class="lp-wrap lp-final-grid" [class.lp-final-wide]="agendaPedida() && !agendaCaida()">
+      <div class="lp-rv">
+        <span class="lp-eyebrow" style="color: var(--orange)">Demo en vivo</span>
+        <h2>Traé tu lista.<br />Te mostramos cómo estás parado.</h2>
+        <p class="lp-lead">Elegí el día y la hora. Con tus productos reales, sin compromiso.</p>
+        @if (!agendaPedida()) {
+          <ul>
+            <li>Tus precios contra los de tu zona</li>
+            <li>Dónde estás caro y dónde barato</li>
+            <li>Qué te suma cada plan</li>
+          </ul>
+        }
+      </div>
+      <div class="lp-card lp-form lp-rv">
         @if (agendaCaida()) {
-          <p class="text-muted small mb-3">No pudimos cargar la agenda. Dejanos tus datos y te contactamos para coordinar la demo.</p>
+          <h3 class="lp-form-title">Agendá una demo de PreciosIQ</h3>
+          <p class="lp-muted lp-form-help">No pudimos cargar la agenda. Dejanos tus datos y te contactamos para coordinar la demo.</p>
           @if (submitted()) {
-            <div class="text-center mb-3">
-              <div class="fw-bolder">¡Gracias! Te vamos a contactar a la brevedad.</div>
+            <div class="lp-form-ok" role="status">
+              <b>¡Gracias!</b>
+              <span class="lp-muted">Te vamos a contactar a la brevedad.</span>
             </div>
           } @else {
-            <form [formGroup]="demoForm" (ngSubmit)="submitDemo()">
-              <div class="form-floating mb-3">
-                <input class="form-control" id="name" type="text" formControlName="name" placeholder="Ingresá tu nombre..." />
-                <label for="name">Nombre y apellido</label>
-                @if (demoForm.controls.name.touched && demoForm.controls.name.invalid) {
-                  <div class="invalid-feedback d-block">El nombre es obligatorio.</div>
-                }
+            <form [formGroup]="demoForm" (ngSubmit)="submitDemo()" novalidate>
+              <div class="lp-fgrid">
+                <div class="lp-field">
+                  <label for="name">Nombre y apellido</label>
+                  <input id="name" type="text" formControlName="name" autocomplete="name" [class.lp-invalid]="demoForm.controls.name.touched && demoForm.controls.name.invalid" />
+                  @if (demoForm.controls.name.touched && demoForm.controls.name.invalid) {
+                    <small class="lp-err">El nombre es obligatorio.</small>
+                  }
+                </div>
+                <div class="lp-field">
+                  <label for="businessName">Comercio / cadena</label>
+                  <input id="businessName" type="text" formControlName="businessName" autocomplete="organization" />
+                </div>
+                <div class="lp-field">
+                  <label for="email">Correo electrónico</label>
+                  <input id="email" type="email" formControlName="email" autocomplete="email" [class.lp-invalid]="demoForm.controls.email.touched && demoForm.controls.email.invalid" />
+                  @if (demoForm.controls.email.touched && demoForm.controls.email.invalid) {
+                    <small class="lp-err">Ingresá un correo válido.</small>
+                  }
+                </div>
+                <div class="lp-field">
+                  <label for="phone">Teléfono</label>
+                  <input id="phone" type="tel" formControlName="phone" autocomplete="tel" />
+                </div>
+                <div class="lp-field lp-full">
+                  <label for="message">¿Qué querés lograr con PreciosIQ?</label>
+                  <textarea id="message" formControlName="message" rows="3"></textarea>
+                </div>
               </div>
-              <div class="form-floating mb-3">
-                <input class="form-control" id="businessName" type="text" formControlName="businessName" placeholder="Nombre de tu comercio o cadena..." />
-                <label for="businessName">Comercio / cadena</label>
-              </div>
-              <div class="form-floating mb-3">
-                <input class="form-control" id="email" type="email" formControlName="email" placeholder="nombre@ejemplo.com" />
-                <label for="email">Correo electrónico</label>
-                @if (demoForm.controls.email.touched && demoForm.controls.email.invalid) {
-                  <div class="invalid-feedback d-block">Ingresá un correo válido.</div>
-                }
-              </div>
-              <div class="form-floating mb-3">
-                <input class="form-control" id="phone" type="tel" formControlName="phone" placeholder="(011) 1234-5678" />
-                <label for="phone">Teléfono</label>
-              </div>
-              <div class="form-floating mb-3">
-                <textarea class="form-control" id="message" formControlName="message" placeholder="Contanos sobre tu negocio..." style="height: 8rem"></textarea>
-                <label for="message">¿Qué querés lograr con PreciosIQ?</label>
-              </div>
-
               @if (errorMessage()) {
-                <p class="text-danger small">{{ errorMessage() }}</p>
+                <p class="lp-err">{{ errorMessage() }}</p>
               }
-
-              <div class="d-grid">
-                <button class="btn btn-primary rounded-pill btn-lg" type="submit" [disabled]="submitting()">
-                  {{ submitting() ? 'Enviando…' : 'Enviar' }}
-                </button>
-              </div>
+              <button class="lp-btn lp-btn-orange lp-btn-block" type="submit" [disabled]="submitting()">
+                {{ submitting() ? 'Enviando…' : 'Enviar' }}
+              </button>
             </form>
           }
         } @else if (agendaPedida()) {
+          <h3 class="lp-form-title">Agendá una demo de PreciosIQ</h3>
           <app-agenda-omnivox (fallo)="agendaCaida.set(true)" />
+        } @else {
+          <div class="lp-agenda-cta">
+            <div class="lp-ic"><i class="bi-calendar-check" aria-hidden="true"></i></div>
+            <h3 class="lp-form-title">Agendá una demo de PreciosIQ</h3>
+            <p class="lp-muted">Elegís el día y la hora en el calendario.</p>
+            <button class="lp-btn lp-btn-orange lp-btn-block" type="button" (click)="agendaPedida.set(true)">Ver días y horarios</button>
+          </div>
         }
       </div>
     </div>
+  </section>
+</main>
+
+<footer class="lp-footer">
+  <div class="lp-wrap lp-foot">
+    <a href="#top" class="lp-brand lp-brand-sm">
+      <img src="/home/assets/img/logo-preciosiq.svg" alt="" />
+      <span>Precios<b>IQ</b></span>
+    </a>
+    <div>Parte de la <a href="https://buscaprecios.online/familia" class="lp-strong">familia BuscaPrecios</a></div>
+    <div><a href="#privacyModal" data-bs-toggle="modal">Privacidad</a> · <a href="#termsModal" data-bs-toggle="modal">Términos de uso</a> · © 2026</div>
   </div>
-</div>
-<!-- 11-oct-2026 (BP-96) -- la captura del hero EN GRANDE. Se abre con un click sobre la imagen del
-     masthead (el <button class="browser-mockup__zoom">) y se cierra con otro click en la imagen, con la
-     X, con Esc o tocando afuera: es un modal de Bootstrap como los demas, asi que el foco, el Esc y el
-     fondo los maneja Bootstrap. En escritorio la imagen entra entera en la ventana; en el telefono, donde
-     entera seria ilegible, ocupa el alto y se recorre de costado con el dedo. Estilos: .hero-zoom en
-     landing.scss. Usa el mismo hero-panel.jpg, no hay una segunda imagen que mantener. -->
+</footer>
+
+<!-- 11-oct-2026 (BP-96) -- la captura del hero EN GRANDE. Se abre con un click sobre la imagen de la
+     portada y se cierra con otro click en la imagen, con la X, con Esc o tocando afuera (modal de
+     Bootstrap). En el telefono ocupa el alto y se recorre de costado. Estilos: .hero-zoom en landing.scss. -->
 <div class="modal fade hero-zoom" id="heroZoomModal" tabindex="-1" aria-label="Captura del panel en grande" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered hero-zoom__dialog">
     <div class="modal-content hero-zoom__content">

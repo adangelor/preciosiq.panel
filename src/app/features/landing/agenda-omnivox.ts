@@ -36,13 +36,13 @@ export interface OmnivoxAgendaConfig {
 
 // Tenant y servicio ya configurados en Omnivox (verificado contra produccion el 11-oct-2026:
 // GET https://omnivox.chat/api/v1/public/agenda/preciosiq/config devuelve el negocio "PreciosIQ"
-// con el servicio "Demo de PreciosIQ", 45 min). El color es --bs-primary del tema New Age de la
-// landing (public/home/css/styles.css), para que los botones del calendario sean los de la pagina.
+// con el servicio "Demo de PreciosIQ", 45 min). El color es el --blue de la landing (landing.scss,
+// diseño nuevo del 29-oct-2026), para que los botones del calendario sean los de la pagina.
 const CONFIG_AGENDA: OmnivoxAgendaConfig = {
   tenantSlug: 'preciosiq',
   apiBaseUrl: 'https://omnivox.chat',
   lang: 'es',
-  color: '#2937f0',
+  color: '#2e5aac',
 };
 
 // Si el bundle no llego a estar (bloqueado, caido, sin red) no se puede esperar para siempre con

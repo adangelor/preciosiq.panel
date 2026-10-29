@@ -1,67 +1,32 @@
-// El tema visual (Bootstrap "New Age", colores, tipografia) viene del stylesheet global
-// cargado en index.html (/home/css/styles.css, copiado de Buscaprecios.web/wwwroot).
-// Este archivo se usa solo para lo especifico de ESTE componente, sin tocar el CSS
-// compartido de arriba (que tambien usa distribucioniq.panel).
+// 29-oct-2026 -- DISEÑO NUEVO, del modelo DistribucionIQ_landing.html que paso Andres. Es la misma base
+// que la landing de distribucioniq.panel (copia a proposito: cada panel es un proyecto Angular aparte),
+// con lo propio de PreciosIQ al final: las listas de los planes y la agenda de Omnivox al pie.
+//
+// El tema New Age (/home/css/styles.css, Bootstrap) sigue cargado global en index.html porque lo usan
+// los modales (privacidad, terminos, captura en grande) y la fuente de iconos. Para que no se mezclen,
+// TODAS las clases de esta pagina llevan el prefijo lp-: Bootstrap ya tiene .btn, .card, .lead, .nav,
+// .row y .badge, y con el mismo nombre heredariamos bordes, paddings y colores suyos. Ojo tambien con
+// `aside, section { padding: 5rem 0 }` del tema: lo pisa `section` de aca (el atributo de Angular le
+// da mas especificidad).
+//
+// La letra es Inter, como en el modelo. La carga landing.ts con un <link> (cargarInter): un @import aca
+// lo incrusta el build en el CSS del componente (27 kB) y rompe el presupuesto de 16 kB. El panel
+// sigue con Roboto.
 
-// 19-ago-2026 -- icono de marca (LogoPreciosIQ.svg) al lado del wordmark "PreciosIQ"
-// en el navbar, pedido de Andres.
-.navbar-brand__icon {
-  height: 1.5em;
-  width: 1.5em;
-  margin-right: 0.4rem;
-  vertical-align: middle;
-  object-fit: contain;
-}
-
-// 26-ago-2026 -- LA LANDING NO TIENE TEMA OSCURO, Y NO LO VA A TENER.
+// 26/27/28-ago-2026 -- LA LANDING NO TIENE TEMA OSCURO, Y NO LO VA A TENER.
 //
-// Es markup del tema Bootstrap "New Age": fondos claros FIJOS (bg-white, bg-light, el
-// gradiente violeta) escritos en el HTML. Pero el tema compartido define los tokens en
-// :root y en modo oscuro pone `--text: #ffffff`, y como el propio tema aplica
-// `h1,h2,h3,h4 { color: var(--text) }`, todos los títulos sobre fondo claro salían
-// BLANCO SOBRE BLANCO: el H1 del hero, el nombre de cada plan y el precio mensual.
-// Invisibles, pero seleccionables y copiables -- por eso al pegarlos aparecían.
-//
-// El arreglo no es ir clase por clase poniendo `text-dark`: los tokens HEREDAN, así que
-// redefinirlos acá hace que la misma regla global del tema resuelva al valor claro para
-// todo lo que cuelgue de <app-landing>, títulos incluidos, sin tocar una sola etiqueta.
-// Los valores son los del bloque :root del tema (shared-theme/_theme.scss), no inventados.
-// `color-scheme: light` va para que los inputs del modal de demo tampoco se pinten
-// oscuros sobre la tarjeta blanca.
-// 27-ago-2026 -- SEGUNDA MITAD DEL MISMO ARREGLO, y la que faltaba.
-//
-// El bloque de abajo forzaba los tokens de TEXTO a sus valores claros, pero no el FONDO.
-// Y el fondo no lo pinta la landing: lo pinta `body { background: var(--bg-page) }` del
-// tema compartido, que en modo oscuro vale #151a30. Las secciones que en el markup New Age
-// no traen clase de fondo propia (el masthead, #features, .cta) son TRANSPARENTES, asi que
-// dejaban ver ese navy -- y encima con `--text: #222b45`, o sea gris oscuro sobre azul
-// oscuro. Ilegible. Los <p class="text-muted"> se salvaban de casualidad, porque el CSS de
-// New Age les clava `color: #6c757d !important` y ese gris SI contrasta contra el navy;
-// por eso en la captura los parrafos se leian y los titulos no.
-//
-// Redefinir --bg-page aca no alcanza: la regla que lo usa vive en `body`, no adentro del
-// componente. Hay que pintar el host, que es lo que tapa el fondo del body en la parte de
-// la pagina que ocupa la landing. min-height para que no asome el navy debajo del footer
-// si la ventana es mas alta que el contenido.
-// 07-oct-2026 -- TERCERA MITAD: el `color` heredado. Los tokens de arriba arreglan lo que
-// los LEE (títulos), pero el texto sin clase de color hereda `color` del <html>, que en modo
-// oscuro es blanco. Así seguía invisible el monto de cada plan (`.display-6 fw-bold`, sin
-// clase de color) sobre la tarjeta blanca. Lo que va sobre fondo oscuro (franja violeta,
-// footer) trae `text-white`/`text-white-50` propios y no cambia; el "SABELO" del hero es
-// texto con degradé (relleno transparente), tampoco.
+// El tema compartido (shared-theme/_theme.scss) define los tokens en :root y en modo oscuro pone
+// `--text: #ffffff` y `body { background: #151a30 }`. Sin esto, los titulos salian blanco sobre blanco
+// y las etiquetas del formulario de demo quedaban invisibles (cinco cajas vacias: cero leads).
+//   1. Se redefinen los tokens aca, asi las reglas globales que los leen resuelven al valor claro.
+//   2. Se fija `color` en el host: la herencia trae el valor YA COMPUTADO en <body>, no la variable.
+//   3. Se pinta el fondo del host, que tapa el navy del body.
+// `color-scheme: light` es para que los inputs no se pinten oscuros.
 :host {
-  color-scheme: light;
-  display: block;
-  min-height: 100vh;
-  background: #ffffff;
-  color: var(--text);
-
   --text: #222b45;
   --text-2: #5d6a89;
   --text-3: #8f9bb3;
   --text-inverse: #ffffff;
-
-  // Para lo que cuelgue del componente y sí lea estos tokens (el modal de contacto).
   --bg-page: #f2f4f8;
   --bg-card: #ffffff;
   --bg-card-header: #ffffff;
@@ -70,227 +35,1123 @@
   --border: #e4e9f2;
   --border-soft: #edf1f7;
   --border-strong: #c9d3e4;
-}
 
-// 07-oct-2026 -- el monto de cada plan no entraba en la tarjeta. En xl la fila tiene 5
-// columnas y la tarjeta deja 148 px útiles; a 2.5rem (lo que pone .display-6 desde 1200 px)
-// "$100.000" mide ~170 px y empujaba el "/mes" afuera del borde. A 1.625rem el monto más
-// largo ($150.000) y el "/mes" entran en una línea. nowrap para que un monto nunca se parta.
-#planes .display-6 {
-  white-space: nowrap;
-}
+  // Paleta del modelo.
+  --navy: #1b2440;
+  --blue: #2e5aac;
+  --sky: #e8eef9;
+  --orange: #f2a33a;
+  --orange-d: #c77a12;
+  --green: #2e8b57;
+  --red: #d64545;
+  --ink-2: #4a5568;
+  --ink-3: #6a7590;
+  --line: #e1e6f0;
+  --bg: #f5f7fb;
+  --radius: 24px;
+  --shadow: 0 30px 70px rgba(27, 36, 64, 0.1), 0 4px 14px rgba(27, 36, 64, 0.05);
 
-@media (min-width: 1200px) {
-  #planes .display-6 {
-    font-size: 1.625rem;
-  }
-}
-
-// 11-oct-2026 -- EL HERO MUESTRA EL PANEL DE VERDAD, EN UN MARCO DE NAVEGADOR.
-//
-// Hasta hoy el masthead traia el iPhone X del tema New Age (el unico mockup que incluye su CSS)
-// con demo-screen.jpg adentro: una captura de la app vieja de BuscaPrecios, identica en PreciosIQ y
-// en DistribucionIQ. El producto que se vende aca es un panel web de escritorio, asi que el telefono
-// se reemplaza por un marco de ventana de navegador propio (barra con tres puntos + URL + captura).
-// El contenedor .masthead-device-mockup, el circulo degrade y las dos formas del tema quedan como
-// estaban, detras; solo cambia lo que va adelante. Los anchos siguen los mismos cortes que el tema
-// le daba al telefono (10/12.5/15/17 rem), pero mas generosos porque la captura es apaisada.
-.masthead .masthead-device-mockup .browser-mockup {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 20rem;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow:
-    0 1.5rem 3rem rgba(33, 37, 41, 0.22),
-    0 0 0 1px rgba(33, 37, 41, 0.08);
-
-  @media (min-width: 576px) { max-width: 26rem; }
-  @media (min-width: 768px) { max-width: 30rem; }
-  @media (min-width: 992px) { max-width: 100%; }
-}
-
-.browser-mockup__bar {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  height: 1.75rem;
-  padding: 0 0.75rem;
-  background: #eef1f6;
-  border-bottom: 1px solid #dde3ee;
-
-  span {
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 50%;
-    background: #c9d3e4;
-  }
-  span:nth-child(1) { background: #ff5f57; }
-  span:nth-child(2) { background: #febc2e; }
-  span:nth-child(3) { background: #28c840; }
-}
-
-.browser-mockup__url {
-  flex: 1;
-  margin-left: 0.5rem;
-  height: 1.1rem;
-  line-height: 1.1rem;
-  padding: 0 0.6rem;
-  border-radius: 0.35rem;
-  background: #ffffff;
-  color: #8f9bb3;
-  font-size: 0.65rem;
-  font-family: var(--bs-body-font-family);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.browser-mockup__screen {
   display: block;
-  width: 100%;
-  height: auto;
+  min-height: 100vh;
+  color: var(--navy);
+  color-scheme: light;
+  background: var(--bg);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
 
-// 11-oct-2026 (BP-96) -- CLICK EN LA CAPTURA DEL HERO = SE VE EN GRANDE.
-//
-// La imagen del marco va adentro de un <button> (asi tambien se abre con Tab + Enter) que dispara el
-// modal #heroZoomModal de landing.html. El cartelito "Ampliar" avisa que se puede: en escritorio aparece
-// al pasar el mouse o al enfocar; en pantallas tactiles no hay hover, asi que queda siempre a la vista.
-.browser-mockup__zoom {
-  position: relative;
+a {
+  color: inherit;
+  text-decoration: none;
+}
+img {
+  max-width: 100%;
   display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: zoom-in;
-
-  &:focus-visible {
-    outline: 3px solid #2937f0;
-    outline-offset: -3px;
-  }
+}
+h1,
+h2,
+h3 {
+  font-family: inherit;
+  color: inherit;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0;
+}
+h1 {
+  font-size: clamp(36px, 4.6vw, 58px);
+  font-weight: 800;
+  margin-top: 18px;
+}
+h2 {
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 800;
+}
+h3 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+p {
+  margin: 0;
+}
+section {
+  padding: 96px 0;
+  scroll-margin-top: 76px;
 }
 
-.browser-mockup__hint {
-  position: absolute;
-  right: 0.6rem;
-  bottom: 0.6rem;
+.lp-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.lp-eyebrow {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange-d);
+}
+.lp-lead {
+  font-size: clamp(18px, 2vw, 21px);
+  color: var(--ink-2);
+  max-width: 620px;
+}
+.lp-muted {
+  color: var(--ink-3);
+}
+.lp-small {
+  font-size: 13px;
+}
+.lp-strong {
+  font-weight: 700;
+}
+.lp-center {
+  text-align: center;
+}
+.lp-center .lp-lead {
+  margin: 18px auto 0;
+}
+.lp-tight {
+  padding-top: 0;
+}
+.lp-tight-top {
+  padding-top: 20px;
+  padding-bottom: 0;
+}
+
+// --- botones ---
+.lp-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
-  border-radius: 10rem;
-  background: rgba(33, 37, 41, 0.82);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  opacity: 0;
-  transform: translateY(0.25rem);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  pointer-events: none;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 17px;
+  font-family: inherit;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  white-space: nowrap;
 
-  @media (hover: none) {
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+  }
+}
+.lp-btn-primary {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(27, 36, 64, 0.25);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(27, 36, 64, 0.32);
+  }
+}
+.lp-btn-ghost {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: inset 0 0 0 2px var(--line);
+  &:hover {
+    box-shadow: inset 0 0 0 2px var(--navy);
+  }
+}
+.lp-btn-orange {
+  background: var(--orange);
+  color: var(--navy);
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+.lp-btn-sm {
+  height: 46px;
+  padding: 0 18px;
+  font-size: 15px;
+  width: 100%;
+  margin-top: auto;
+}
+.lp-btn-block {
+  width: 100%;
+  margin-top: 20px;
+}
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lp-neutral {
+  background: var(--sky);
+  color: var(--blue);
+}
+.lp-ok {
+  background: #e3f3ea;
+  color: #1f7a47;
+}
+.lp-bad {
+  background: #fbe5e5;
+  color: #b83232;
+}
+.lp-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+// Marca "Ejemplo" de los numeros ilustrativos (pedido de Andres 29-oct: no son datos reales).
+.lp-ej {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange-d);
+  background: #fdefd9;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+// --- barra de arriba ---
+.lp-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(245, 247, 251, 0.85);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+  &.scrolled {
+    border-color: var(--line);
+  }
+}
+.lp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 76px;
+}
+.lp-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  b {
+    color: var(--blue);
+  }
+}
+.lp-brand-sm {
+  font-size: 18px;
+  img {
+    width: 28px;
+    height: 28px;
+  }
+}
+.lp-nav-links {
+  display: flex;
+  gap: 30px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-2);
+  a:hover {
+    color: var(--navy);
+  }
+}
+.lp-nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  .lp-btn {
+    height: 46px;
+    padding: 0 22px;
+    font-size: 15px;
+  }
+}
+.lp-login {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-2);
+  &:hover {
+    color: var(--navy);
+  }
+}
+
+// --- portada ---
+.lp-hero {
+  padding: 70px 0 110px;
+  background: radial-gradient(ellipse 70% 60% at 70% 30%, #fff 0%, rgba(255, 255, 255, 0) 70%);
+  h1 span {
+    color: var(--blue);
+  }
+  .lp-lead {
+    margin: 22px 0 34px;
+    font-size: clamp(19px, 2.2vw, 22px);
+  }
+}
+.lp-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 56px;
+  align-items: center;
+  > * {
+    min-width: 0;
+  }
+}
+.lp-hero-ctas {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.lp-hero-note {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--ink-3);
+  a {
+    color: var(--blue);
+    font-weight: 700;
+  }
+}
+.lp-hero-shot {
+  position: relative;
+}
+.lp-float {
+  position: absolute;
+  left: -18px;
+  bottom: -28px;
+  z-index: 2;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 18px 12px 12px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  .lp-ic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+}
+
+// --- el dato ---
+.lp-shock {
+  text-align: center;
+  padding-top: 40px;
+}
+.lp-big-q {
+  font-size: clamp(32px, 4.2vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+.lp-pair {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+.lp-pp {
+  width: min(320px, 100%);
+  padding: 24px 28px 22px;
+  text-align: left;
+}
+.lp-pp-lab {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.lp-big {
+  font-size: clamp(36px, 4vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+.lp-vs {
+  align-self: center;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ink-3);
+}
+.lp-punch {
+  margin-top: 28px;
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  span {
+    color: var(--red);
+  }
+}
+.lp-shock-sub {
+  margin: 14px auto 0;
+  max-width: 560px;
+  font-size: 15px;
+  color: var(--ink-3);
+  .lp-ej {
+    margin-right: 6px;
+  }
+}
+
+// --- tarjetas con mini graficos ---
+.lp-beats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 60px;
+}
+.lp-beat {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  h3 {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  p {
+    color: var(--ink-2);
+    font-size: 16px;
+  }
+}
+.lp-viz {
+  position: relative;
+  margin-top: auto;
+  background: #f7f9fd;
+  border-radius: 16px;
+  padding: 18px;
+  padding-top: 40px;
+  .lp-ej {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+}
+.lp-vrow {
+  display: grid;
+  grid-template-columns: 70px 1fr 44px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 0;
+}
+.lp-v {
+  text-align: right;
+  font-weight: 800;
+}
+.lp-bar {
+  height: 12px;
+  border-radius: 8px;
+  background: #e7ecf5;
+  position: relative;
+  overflow: hidden;
+  i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 8px;
+    width: 0;
+    transition: width 1.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+.in .lp-bar i {
+  width: var(--w);
+}
+.lp-arow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 0;
+  border-top: 1px solid #eef1f6;
+  &:nth-child(2) {
+    border-top: 0;
+  }
+}
+.lp-crow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  & + & {
+    margin-top: 6px;
+  }
+  b {
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    color: var(--navy);
+  }
+}
+
+// --- las webs, cada noche (banda oscura) ---
+.lp-night {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 40px;
+  margin: 0 16px;
+  padding: 80px 0;
+  h2 {
+    margin-top: 14px;
+  }
+  .lp-lead {
+    color: #c9d3ea;
+    margin-top: 16px;
+  }
+}
+.lp-night-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  > * {
+    min-width: 0;
+  }
+}
+.lp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 26px;
+  span {
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--sky);
+    color: var(--blue);
+  }
+}
+.lp-tags-night {
+  gap: 10px;
+  margin-top: 0;
+  span {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 16px;
+    padding: 10px 18px;
+  }
+}
+
+// --- el resto del panel ---
+.lp-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.lp-mini {
+  padding: 26px;
+  h3 {
+    font-size: 19px;
+  }
+  p {
+    color: var(--ink-2);
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .lp-ic {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--sky);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+}
+
+// --- asi de facil ---
+.lp-easy {
+  text-align: center;
+  padding-top: 96px;
+  h2 span {
+    color: var(--blue);
+  }
+}
+.lp-flow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 50px;
+  flex-wrap: wrap;
+}
+.lp-st {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 14px 26px 14px 14px;
+  box-shadow: 0 10px 30px rgba(27, 36, 64, 0.07);
+  font-weight: 700;
+  font-size: 18px;
+  text-align: left;
+  i {
+    font-style: normal;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+  }
+}
+.lp-arrow {
+  color: #aebbd8;
+  font-size: 26px;
+  font-weight: 800;
+}
+.lp-sub {
+  margin-top: 26px;
+  color: var(--ink-3);
+  font-size: 17px;
+}
+// --- para quien ---
+.lp-who {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  .lp-card {
+    padding: 44px;
+  }
+  h3 {
+    font-size: clamp(22px, 2.3vw, 28px);
+    letter-spacing: -0.03em;
+    margin-top: 12px;
+  }
+  p {
+    margin-top: 14px;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+}
+.lp-dark {
+  background: var(--navy);
+  color: #fff;
+  p {
+    color: #c9d3ea !important;
+  }
+  .lp-tags span {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}
+
+// --- planes ---
+.lp-plans {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 50px;
+  align-items: stretch;
+}
+.lp-ps {
+  padding: 24px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  h3 {
+    font-size: 20px;
+  }
+}
+.lp-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  min-height: 16px;
+  margin-bottom: 4px;
+}
+.lp-ps-num {
+  display: block;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+  margin-top: 14px;
+  line-height: 1.1;
+}
+.lp-ps-unit,
+.lp-ps-annual {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.lp-ps-price {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  small {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+}
+.lp-ps-annual {
+  margin-bottom: 18px;
+}
+.lp-rec {
+  background: var(--navy);
+  color: #fff;
+  transform: translateY(-10px);
+  .lp-ps-unit,
+  .lp-ps-annual,
+  .lp-ps-price small {
+    color: #aebbd8;
+  }
+}
+.lp-plan-note {
+  margin: 26px auto 22px;
+  max-width: 760px;
+  font-size: 14px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+// --- demo ---
+.lp-final {
+  background: var(--navy);
+  color: #fff;
+  border-radius: 40px;
+  margin: 0 16px;
+  padding: 90px 0;
+  h2 {
+    font-size: clamp(30px, 3.6vw, 46px);
+    margin-top: 14px;
+  }
+  .lp-lead {
+    color: #c9d3ea;
+    margin-top: 18px;
+  }
+  ul {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    color: #e3eaf7;
+  }
+  li {
+    display: flex;
+    gap: 12px;
+    &::before {
+      content: '✓';
+      color: var(--orange);
+      font-weight: 800;
+    }
+  }
+}
+.lp-final-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  > * {
+    min-width: 0;
+  }
+}
+.lp-form {
+  padding: 34px;
+  color: var(--navy);
+}
+.lp-form-title {
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+.lp-fgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.lp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  input,
+  textarea {
+    border-radius: 12px;
+    border: 1.5px solid var(--line);
+    padding: 0 14px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--navy);
+    background: #fff;
+    width: 100%;
+    &:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(46, 90, 172, 0.12);
+    }
+  }
+  input {
+    height: 50px;
+  }
+  textarea {
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 90px;
+  }
+  .lp-invalid {
+    border-color: var(--red);
+  }
+}
+.lp-full {
+  grid-column: 1 / -1;
+}
+.lp-err {
+  display: block;
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 10px;
+}
+.lp-field .lp-err {
+  margin-top: 0;
+}
+.lp-form-ok {
+  text-align: center;
+  padding: 30px 10px;
+  b {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+}
+
+// --- pie ---
+.lp-footer {
+  padding: 50px 0 60px;
+  color: var(--ink-3);
+  font-size: 14px;
+  a:hover {
+    color: var(--navy);
+  }
+}
+.lp-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+// --- aparicion al scrollear (landing.ts pone .in) ---
+.lp-rv {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  &.in {
     opacity: 1;
     transform: none;
   }
-  @media (prefers-reduced-motion: reduce) {
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-rv {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .lp-bar i {
     transition: none;
   }
 }
 
-.browser-mockup__zoom:hover .browser-mockup__hint,
-.browser-mockup__zoom:focus-visible .browser-mockup__hint {
-  opacity: 1;
-  transform: none;
+// --- anchos ---
+@media (max-width: 1060px) {
+  .lp-plans {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .lp-rec {
+    transform: none;
+  }
+}
+@media (max-width: 960px) {
+  .lp-nav-links,
+  .lp-nav-cta .lp-login + .lp-login {
+    display: none;
+  }
+  .lp-hero-grid,
+  .lp-night-grid,
+  .lp-final-grid,
+  .lp-beats,
+  .lp-who {
+    grid-template-columns: 1fr;
+  }
+  .lp-hero-grid {
+    gap: 64px;
+  }
+  .lp-mini-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lp-arrow {
+    display: none;
+  }
+  .lp-fgrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  section {
+    padding: 72px 0;
+  }
+  .lp-tight {
+    padding-top: 0;
+  }
+  .lp-tight-top {
+    padding-top: 12px;
+    padding-bottom: 0;
+  }
+  .lp-easy {
+    padding-top: 64px;
+  }
+  .lp-wrap {
+    padding: 0 16px;
+  }
+  .lp-nav {
+    height: 64px;
+    gap: 10px;
+  }
+  .lp-nav-cta {
+    gap: 12px;
+    .lp-btn {
+      height: 40px;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+  }
+  .lp-login {
+    font-size: 14px;
+  }
+  .lp-brand {
+    font-size: 18px;
+    img {
+      width: 28px;
+      height: 28px;
+    }
+  }
+  .lp-hero {
+    padding: 40px 0 80px;
+  }
+  .lp-hero-ctas .lp-btn {
+    flex: 1 1 100%;
+  }
+  .lp-float {
+    left: 8px;
+    bottom: -30px;
+  }
+  .lp-vs {
+    display: none;
+  }
+  .lp-mini-grid {
+    grid-template-columns: 1fr;
+  }
+  .lp-plans {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .lp-ps {
+    padding: 20px 12px;
+  }
+  .lp-btn-sm {
+    height: auto;
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 13px;
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .lp-who .lp-card,
+  .lp-beat {
+    padding: 26px;
+  }
+  .lp-night,
+  .lp-final {
+    margin: 0 8px;
+    border-radius: 28px;
+    padding: 64px 0;
+  }
+  .lp-form {
+    padding: 22px;
+  }
+  .lp-st {
+    font-size: 16px;
+  }
+}
+.lp-show-xs {
+  display: none;
+}
+@media (max-width: 420px) {
+  .lp-hide-xs {
+    display: none;
+  }
+  .lp-show-xs {
+    display: inline;
+  }
 }
 
-// El modal. Fondo mas oscuro que el de los otros modales (Bootstrap lo lee de --bs-backdrop-opacity,
-// pero el backdrop cuelga de <body>, fuera del componente: no se puede tocar desde aca), asi que el
-// oscurecido extra lo pone el propio .modal, que si es de este template.
-.hero-zoom {
-  background: rgba(10, 12, 24, 0.55);
-}
+// --- lo propio de PreciosIQ ---
 
-.hero-zoom .hero-zoom__dialog {
-  // La captura mide 1600x1000: nunca mas ancha que eso (se pixelaria) ni que la ventana.
-  max-width: min(96vw, 1600px);
-  margin: 0.5rem auto;
+// Planes con la lista de lo que suma cada uno (en DistribucionIQ las tarjetas son solo numero de EAN).
+.lp-plans-list .lp-ps {
+  text-align: left;
+  padding: 24px 20px;
 }
-
-// El contenido se ajusta al ancho de la imagen (no al del dialogo): asi lo que queda a los costados es
-// el fondo del modal y un click ahi cierra, en vez de caer en una franja muerta.
-.hero-zoom__content {
-  position: relative;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  border: 0;
-  background: transparent;
-}
-
-.hero-zoom__scroll {
-  max-width: 100%;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
-}
-
-.hero-zoom__img {
+.lp-ps-sub {
   display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  // Deja lugar para el margen del dialogo: la imagen entera siempre entra en la ventana.
-  max-height: calc(100vh - 2rem);
-  cursor: zoom-out;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-top: 2px;
 }
-
-.hero-zoom__close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+.lp-plans-list .lp-ps-price {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+.lp-plan-list {
+  list-style: none;
+  margin: 0 0 22px;
   padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(33, 37, 41, 0.82);
-  color: #ffffff;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-
-  &:hover {
-    background: #212529;
+  display: grid;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--ink-2);
+  flex-grow: 1;
+  li {
+    display: flex;
+    gap: 8px;
+    &::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 800;
+    }
   }
-  &:focus-visible {
-    outline: 3px solid #ffffff;
-    outline-offset: 2px;
+  .lp-plan-prev,
+  .lp-plan-req {
+    &::before {
+      content: none;
+    }
+  }
+  .lp-plan-prev {
+    font-weight: 700;
+  }
+  .lp-plan-req {
+    font-style: italic;
+    color: var(--ink-3);
+    padding-left: 18px;
+    margin-top: -6px;
   }
 }
-
-// Telefono parado: la captura de un panel de 1440 px apretada en 375 no se lee. Ahi ocupa el alto de
-// la pantalla y se recorre de costado con el dedo (el scroll queda adentro de .hero-zoom__scroll).
-@media (max-width: 767.98px) {
-  .hero-zoom__scroll {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+.lp-rec .lp-plan-list {
+  color: #c9d3ea;
+  li::before {
+    color: var(--orange);
   }
+  .lp-plan-req {
+    color: #aebbd8;
+  }
+}
+.lp-rec .lp-ps-sub {
+  color: #aebbd8;
+}
 
-  .hero-zoom__img {
-    max-width: none;
-    max-height: none;
-    height: min(78vh, 1000px);
+// La demo: antes de pedir la agenda, una invitacion; con la agenda abierta, una sola columna para que
+// entre la semana entera del calendario de Omnivox.
+.lp-final-grid.lp-final-wide {
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
+.lp-agenda-cta {
+  text-align: center;
+  padding: 10px 4px;
+  .lp-ic {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    background: var(--sky);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .lp-form-title {
+    margin-bottom: 8px;
+  }
+}
+.lp-form-help {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 560px) {
+  .lp-plans.lp-plans-list {
+    grid-template-columns: 1fr;
   }
 }
