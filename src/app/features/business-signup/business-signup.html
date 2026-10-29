@@ -1,4 +1,6 @@
-<div class="signup">
+<!-- 29-oct-2026 -- dentro del marco nuevo (layout/auth-layout), con la tarjeta ancha: es la pantalla que sigue a
+     "Crear cuenta". El wizard, los pasos y toda la logica, iguales; cambian el envoltorio y las clases. -->
+<app-auth-layout [ancha]="true">
   @if (createdAccount(); as account) {
     <div class="signup__success">
       <div class="signup__success-icon" aria-hidden="true">
@@ -17,14 +19,14 @@
         <h1>¡Listo, {{ account.razonSocial }}!</h1>
       </div>
 
-      <p class="subtitle">
+      <p class="auth-sub">
         Tu cuenta ya está creada. Ya podés ver tu benchmark de precios frente a la competencia cercana.
       </p>
 
       @if (logoStatus() === 'loading') {
-        <p class="hint">Guardando el logo de tu comercio…</p>
+        <p class="auth-hint">Guardando el logo de tu comercio…</p>
       } @else if (logoStatus() === 'error') {
-        <p class="hint">{{ logoErrorMessage() }}</p>
+        <p class="auth-hint">{{ logoErrorMessage() }}</p>
       }
 
       <!-- 25-ago-2026 -- si en el paso de sucursales cargaron mas de una, las extras se
@@ -36,7 +38,7 @@
               <i class="fa-solid" [class.fa-check]="r.ok" [class.fa-xmark]="!r.ok" aria-hidden="true"></i>
               {{ r.name }}
               @if (!r.ok) {
-                <span class="hint">— {{ r.error }} Podés agregarla desde "Sucursales".</span>
+                <span class="auth-hint">— {{ r.error }} Podés agregarla desde "Sucursales".</span>
               }
             </li>
           }
@@ -47,11 +49,11 @@
         <p class="form-error">{{ checkoutError() }}</p>
       }
 
-      <button type="button" class="signup__success-cta" (click)="continueToDashboard()">Ir a mi panel</button>
+      <button type="button" class="auth-btn signup__success-cta" (click)="continueToDashboard()">Ir a mi panel</button>
     </div>
   } @else {
     <h1>Sumá tu comercio a PreciosIQ</h1>
-    <p class="subtitle">
+    <p class="auth-sub">
       Con esto ya vas a poder ver tu benchmark de precios frente a la competencia cercana.
       Publicar tus precios en la app de consumidores es un paso aparte, y siempre opcional.
     </p>
@@ -85,7 +87,7 @@
       }
     </ol>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" class="signup__form">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form signup__form">
       <!-- ============================================================ 1. PLAN -->
       @if (step() === 1) {
         <fieldset class="signup__plans-fieldset">
@@ -139,10 +141,10 @@
                 </p>
               }
             } @else {
-              <p class="hint">No pudimos cargar los planes ahora -- tu cuenta se crea en el plan Gratis, podés subir de plan después desde "Tu plan".</p>
+              <p class="auth-hint">No pudimos cargar los planes ahora -- tu cuenta se crea en el plan Gratis, podés subir de plan después desde "Tu plan".</p>
             }
           } @else {
-            <p class="hint">Cargando planes…</p>
+            <p class="auth-hint">Cargando planes…</p>
           }
         </fieldset>
       }
@@ -237,7 +239,7 @@
         <button type="button" class="signup__add-branch" (click)="addBranch()">
           <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar otra sucursal
         </button>
-        <p class="hint">
+        <p class="auth-hint">
           Podés cargar todas las sucursales que tengas, ahora o más adelante desde "Sucursales". La
           geolocalización precisa y los horarios se completan después del alta.
         </p>
@@ -312,11 +314,11 @@
         }
         <span class="wizard-nav__spacer"></span>
         @if (step() < steps.length) {
-          <button type="button" (click)="next()">
+          <button type="button" class="auth-btn" (click)="next()">
             Siguiente <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </button>
         } @else {
-          <button type="submit" [disabled]="submitting() || checkoutLoading()">
+          <button type="submit" class="auth-btn" [disabled]="submitting() || checkoutLoading()">
             @if (checkoutLoading()) {
               Abriendo el pago…
             } @else if (submitting()) {
@@ -331,4 +333,4 @@
       </div>
     </form>
   }
-</div>
+</app-auth-layout>

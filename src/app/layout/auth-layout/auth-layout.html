@@ -18,7 +18,7 @@
     <p class="auth__foot">Parte de la <a href="https://buscaprecios.online/familia">familia BuscaPrecios</a></p>
   </aside>
   <main class="auth__main">
-    <div class="auth__card">
+    <div class="auth__card" [class.auth__card--ancha]="ancha()">
       <ng-content />
     </div>
   </main>

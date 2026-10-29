@@ -1,9 +1,9 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 // 29-oct-2026 -- marco de las pantallas sin sesion (ingresar, crear cuenta y recuperar contraseña) con el
 // diseño nuevo de la landing. Copia del de distribucioniq.panel (cada panel es un proyecto aparte). El alta
-// del negocio (/alta, business-signup) todavia no lo usa: es un formulario mucho mas largo y va aparte: panel de marca oscuro a la izquierda y la tarjeta
+// del negocio (/alta, business-signup) lo usa con la tarjeta ancha (input `ancha`): panel de marca oscuro a la izquierda y la tarjeta
 // blanca con el formulario a la derecha. Pedido de Andres: que al tocar "Crear cuenta" no se pase del
 // diseño nuevo al viejo.
 //
@@ -32,6 +32,9 @@ function cargarInter(): void {
   styleUrl: './auth-layout.scss',
 })
 export class AuthLayoutComponent {
+  /** Tarjeta mas ancha, para formularios largos como el alta del negocio (filas de tres campos). */
+  readonly ancha = input(false);
+
   constructor() {
     cargarInter();
   }

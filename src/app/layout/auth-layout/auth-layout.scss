@@ -215,7 +215,11 @@
     padding: 0;
     border: 0;
   }
+  // El reboot de Bootstrap (tema global) le pone float: left y width: 100% al legend: se vuelve al normal.
   legend {
+    float: none;
+    width: auto;
+    line-height: 1.4;
     margin: 0 0 12px;
     padding: 0;
     font-size: 13px;
@@ -340,6 +344,11 @@
       border-bottom: 1px solid var(--line);
     }
   }
+}
+
+// Formularios largos (el alta del negocio).
+.auth__card--ancha {
+  max-width: 680px;
 }
 
 // --- anchos ---

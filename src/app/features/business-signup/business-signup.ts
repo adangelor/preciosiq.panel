@@ -6,6 +6,7 @@ import { BusinessAccountService } from '../../core/business-account';
 import { BusinessAccountResponse, CreateBranchRequest, resolveLogoUrl } from '../../core/business-account.models';
 import { BusinessSubscriptionService } from '../../core/business-subscription';
 import { BillingCycle, PlanCatalogItem } from '../../core/business-subscription.models';
+import { AuthLayoutComponent } from '../../layout/auth-layout/auth-layout';
 
 // E1.5 -- flujo de registro "Soy comerciante". Alta minima: razon social, CUIT y la
 // primera sucursal (nombre + direccion basica). El resto (horarios, geocodificacion
@@ -43,7 +44,7 @@ import { BillingCycle, PlanCatalogItem } from '../../core/business-subscription.
 @Component({
   selector: 'app-business-signup',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AuthLayoutComponent],
   templateUrl: './business-signup.html',
   styleUrl: './business-signup.scss',
 })
