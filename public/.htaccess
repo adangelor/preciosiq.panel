@@ -25,6 +25,11 @@ AddCharset UTF-8 .txt
   RewriteEngine On
   RewriteBase /
 
+  # 30-oct-2026 -- www.preciosiq.com manda a preciosiq.com (301). Eran dos sitios para el navegador, cada uno con
+  # su propia sesion (localStorage es por direccion). Se queda la de sin www: la usan los mails y los links.
+  RewriteCond %{HTTP_HOST} ^www\.preciosiq\.com$ [NC]
+  RewriteRule ^(.*)$ https://preciosiq.com/$1 [R=301,L]
+
   # Si el archivo o la carpeta pedida existe de verdad en el server (JS, CSS,
   # imagenes, favicon.ico, etc.), serville tal cual -- no reescribir esos.
   RewriteCond %{REQUEST_FILENAME} -f [OR]
