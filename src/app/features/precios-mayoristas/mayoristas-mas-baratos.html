@@ -2,7 +2,8 @@
   <h1>Más barato en un mayorista cerca</h1>
   <p class="subtitle">
     Los artículos cuyo costo está un 10 % o más arriba del precio por unidad de un mayorista a menos de 50 km de alguna
-    de tus sucursales (Makro, Maxiconsumo, Yaguar y los demás que publican en el SEPA Mayorista). El dato, para negociar
+    de tus sucursales (Makro, Maxiconsumo, Yaguar y los demás que publican en el SEPA Mayorista, y Vital, desde su
+    tienda online). El dato, para negociar
     con tu proveedor: tu proveedor quizás te entrega en el local, te da crédito o te vende por unidad, y el mayorista
     muchas veces vende solo por bulto o pide CUIT.
   </p>
@@ -27,7 +28,7 @@
           Tus sucursales no tienen la ubicación cargada: cargala en <a routerLink="/sucursales">Sucursales</a> para buscar los
           mayoristas cerca.
         } @else {
-          No hay sucursales mayoristas del SEPA a menos de {{ d.radioKm }} km de tus sucursales.
+          No hay sucursales mayoristas a menos de {{ d.radioKm }} km de tus sucursales.
         }
       </p>
     } @else {
@@ -114,7 +115,8 @@
         </div>
         <p class="muted mayoristas__nota">
           Precio por unidad comprando el bulto, según lo que cada mayorista informa al SEPA Mayorista (Secretaría de
-          Comercio). La promo se muestra al lado y no cuenta para la diferencia.
+          Comercio). Los que dicen "(web)" salen de su tienda online, que publica el precio con IVA: el valor sin IVA es
+          estimado. La promo se muestra al lado y no cuenta para la diferencia.
         </p>
       }
     }
