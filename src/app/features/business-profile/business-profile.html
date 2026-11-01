@@ -99,7 +99,7 @@
           </div>
 
           <label class="business-profile__upload-label">
-            <input type="file" accept="image/jpeg,image/png,image/gif" (change)="onLogoFileSelected($event)" [disabled]="uploadingLogo()" hidden />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onLogoFileSelected($event)" [disabled]="uploadingLogo()" hidden />
             <span class="business-profile__upload-btn">{{ uploadingLogo() ? 'Subiendo…' : 'Subir un archivo' }}</span>
           </label>
         </div>
