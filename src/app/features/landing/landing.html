@@ -120,11 +120,13 @@
       <div class="lp-rv">
         <span class="lp-eyebrow" style="color: var(--orange)">Tu tienda online</span>
         <h2>Con los mismos precios que cargás, tu tienda en misuper.app.</h2>
-        <p class="lp-lead">Pedidos por WhatsApp, sin comisiones, y un cartel con QR para la vidriera. Desde el plan Inicial. Y en todos los planes, tus precios en la app BuscaPrecios.</p>
+        <p class="lp-lead">Pedidos por WhatsApp, envío a domicilio por zona y cobro directo con tu alias o QR, sin comisiones. Con tus promos 2x1 y un cartel con QR para la vidriera. Desde el plan Inicial. Y en todos los planes, tus precios en la app BuscaPrecios.</p>
       </div>
       <div class="lp-tags lp-tags-night lp-rv">
         <span>misuper.app/tu-comercio</span>
         <span>Pedidos por WhatsApp</span>
+        <span>Envío a domicilio</span>
+        <span>Cobro con alias o QR</span>
         <span>Sin comisiones</span>
         <span>Cartel con QR</span>
         <span>App BuscaPrecios</span>
@@ -139,7 +141,7 @@
         <div class="lp-card lp-mini lp-rv">
           <div class="lp-ic"><i class="bi-cloud-arrow-up" aria-hidden="true"></i></div>
           <h3>Carga masiva, en todos los planes</h3>
-          <p>Tu lista de precios por CSV, sin límite de productos, también en el plan gratis.</p>
+          <p>Tu lista de precios por CSV, sin límite de productos, también en el plan gratis. Entiende las promos 2x1, 3x2 y "llevando 2".</p>
         </div>
         <div class="lp-card lp-mini lp-rv">
           <div class="lp-ic"><i class="bi-tags" aria-hidden="true"></i></div>
@@ -148,13 +150,35 @@
         </div>
         <div class="lp-card lp-mini lp-rv">
           <div class="lp-ic"><i class="bi-geo-alt" aria-hidden="true"></i></div>
-          <h3>Sucursal por sucursal</h3>
-          <p>Los precios varían de un local a otro: comparamos al nivel que importa para tu decisión.</p>
+          <h3>Sucursal por sucursal, o por zona</h3>
+          <p>Los precios varían de un local a otro: comparamos al nivel que importa. Las sucursales con la misma lista se cargan juntas.</p>
         </div>
         <div class="lp-card lp-mini lp-rv">
           <div class="lp-ic"><i class="bi-graph-up" aria-hidden="true"></i></div>
           <h3>Historial de precios</h3>
           <p>Cómo se movió cada producto en el tiempo. Desde el plan Inicial.</p>
+        </div>
+        <!-- 2-nov-2026: lo que esta en prod y la landing no decia. Planes segun PlanLimits.cs: NearbyOffers desde Pyme,
+             MayoristasCerca en Avanzado y Cadena; los carteles (BP-190) no tienen control de plan. -->
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-tag" aria-hidden="true"></i></div>
+          <h3>Ofertas de la competencia</h3>
+          <p>Las de los súper a 5 km de cada sucursal, calificadas: si son reales, si subieron el precio antes o si hay más barato cerca. Desde Pyme.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-truck" aria-hidden="true"></i></div>
+          <h3>Mayoristas cerca</h3>
+          <p>Los mayoristas de tu zona que venden más barato que tu proveedor, contra tu costo. Desde Avanzado.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-printer" aria-hidden="true"></i></div>
+          <h3>Carteles de góndola</h3>
+          <p>Para imprimir, como pide la Resolución 4/2025: precio sin impuestos nacionales y precio por kilo o litro. En todos los planes.</p>
+        </div>
+        <div class="lp-card lp-mini lp-rv">
+          <div class="lp-ic"><i class="bi-file-earmark-spreadsheet" aria-hidden="true"></i></div>
+          <h3>Lo que vende tu zona y vos no</h3>
+          <p>El reporte en Excel separa tus productos de los que solo vende la competencia cerca.</p>
         </div>
       </div>
     </div>
@@ -187,7 +211,7 @@
           <span class="lp-eyebrow">Si tenés una cadena</span>
           <h3>Cada sucursal contra su competencia, no contra un promedio.</h3>
           <p>Con tus costos, el margen por producto. Con tus ventas, la ganancia en pesos por mes.</p>
-          <div class="lp-tags"><span>Sucursal por sucursal</span><span>Margen</span><span>Ganancia en pesos</span></div>
+          <div class="lp-tags"><span>Sucursal por sucursal</span><span>Zonas de precio</span><span>Productos testigo</span><span>Margen</span><span>Ganancia en pesos</span></div>
         </div>
       </div>
     </div>
@@ -233,6 +257,7 @@
             <li>Comparación contra las cadenas de tu zona</li>
             <li>Sucursal por sucursal</li>
             <li>Tus precios en la app BuscaPrecios</li>
+            <li>Carteles de góndola para imprimir</li>
           </ul>
           <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezá gratis</a>
         </div>
@@ -245,7 +270,7 @@
           <ng-container *ngTemplateOutlet="precio; context: { $implicit: 'inicial' }" />
           <ul class="lp-plan-list">
             <li class="lp-plan-prev">Todo lo del plan Gratis, más:</li>
-            <li>Tu tienda online en misuper.app, con pedidos por WhatsApp</li>
+            <li>Tu tienda online en misuper.app, con pedidos por WhatsApp, envío a domicilio y cobro directo</li>
             <li>Historial de precios</li>
           </ul>
           <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezar</a>
@@ -261,6 +286,8 @@
             <li class="lp-plan-prev">Todo lo del plan Inicial, más:</li>
             <li>Dashboard completo</li>
             <li>Informe del Asesor de Precios</li>
+            <li>Ofertas de la competencia cerca, calificadas</li>
+            <li>Estadísticas de 30 días de tu tienda</li>
           </ul>
           <a class="lp-btn lp-btn-sm lp-btn-orange" routerLink="/registrarme">Empezar</a>
         </div>
@@ -276,7 +303,7 @@
             <li>Análisis de margen por producto</li>
             <li class="lp-plan-req">Requiere cargar tus costos</li>
             <li>Formación de precios: tu costo y tu margen contra la competencia</li>
-            <li>Asistente con IA en tu tienda</li>
+            <li>Mayoristas cerca más baratos que tu proveedor</li>
           </ul>
           <a class="lp-btn lp-btn-sm lp-btn-ghost" routerLink="/registrarme">Empezar</a>
         </div>
@@ -297,7 +324,7 @@
       </div>
 
       <p class="lp-plan-note">
-        Precios en pesos, por cuenta, IVA incluido. En el plan anual pagás 10 meses y usás 12. Cambiás o cancelás cuando quieras.
+        Precios en pesos, por cuenta, IVA incluido. En el plan anual pagás 10 meses y usás 12. Para contratar un plan pago, consultanos.
       </p>
       <div class="lp-center">
         <a class="lp-btn lp-btn-ghost" href="#demo" (click)="irADemo($event)">Hablemos de tu caso</a>
@@ -322,6 +349,7 @@
           <ul>
             <li>Tus precios contra los de tu zona</li>
             <li>Dónde estás caro y dónde barato</li>
+            <li>Las ofertas de la competencia cerca</li>
             <li>Qué te suma cada plan</li>
           </ul>
         }

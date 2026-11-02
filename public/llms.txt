@@ -11,8 +11,13 @@ PreciosIQ (https://preciosiq.com) es una plataforma B2B (SaaS) para supermercado
 - Carga de precios propios: manual, por CSV con mapeo de columnas, o por historial de importaciones. Sin límite de productos en ningún plan.
 - Categorización automática del catálogo.
 - Historial de precio por producto y dashboard de benchmarking.
+- Ofertas de la competencia cerca (desde el plan Pyme): las ofertas de los súper a 5 km de cada sucursal, calificadas: si son reales, si subieron el precio antes o si hay más barato en otra cadena cerca.
+- Mayoristas cerca (planes Avanzado y Cadena): los mayoristas a 50 km que venden más barato que tu proveedor, contra tu costo.
+- Carteles de góndola para imprimir según la Resolución 4/2025, con el precio sin impuestos nacionales y el precio por kilo o litro (todos los planes).
+- Promos por cantidad (2x1, 3x2, segunda al 50 %, llevando N a $X) en la carga por CSV y en la tienda.
+- Zonas de precio: sucursales que comparten lista, con carga a una zona o a todas de una vez, y productos testigo.
 - Tus precios en la app BuscaPrecios: cada sucursal puede mostrarse a los consumidores en la app (en todos los planes).
-- Tienda online en misuper.app (desde el plan Inicial): con los mismos precios y promociones cargados, el comercio publica su tienda en https://misuper.app/<slug>, con pedido por WhatsApp y cartel A5 con QR para la vidriera.
+- Tienda online en misuper.app (desde el plan Inicial): con los mismos precios y promociones cargados, el comercio publica su tienda en https://misuper.app/<slug>, con pedido por WhatsApp, envío a domicilio por zona, cobro directo con alias, CVU o QR sin comisiones, y cartel A5 con QR para la vidriera.
 - Formación de precios (planes Avanzado y Cadena): precio sugerido a partir de tu costo y tu margen, acotado por los precios de la competencia.
 - Asesor de Precios: informe escrito (generado con un modelo de lenguaje sobre un resumen determinístico de tus datos) con sugerencias concretas de ajuste; con las unidades vendidas cargadas, estima el impacto en ganancia.
 
@@ -27,10 +32,10 @@ Cinco planes. La carga de datos es libre en todos (catálogo completo por CSV, s
 - Gratis ($0, para siempre, sin tarjeta) — tu posición: carga libre por CSV, comparación contra las cadenas de tu zona, sucursal por sucursal, y tus precios visibles en la app BuscaPrecios. No incluye la tienda online.
 - Inicial ($80.000/mes o $800.000/año) — tu vidriera: suma tu tienda online en misuper.app (pedidos por WhatsApp, cobro directo con tu alias, CVU o QR, cartel con QR para la vidriera) e historial de precios.
 - Pyme ($160.000/mes o $1.600.000/año, el recomendado) — tu competitividad: suma dashboard completo, informe del Asesor de Precios y estadísticas de 30 días de la tienda.
-- Avanzado ($320.000/mes o $3.200.000/año) — tu rentabilidad: suma análisis de margen por producto (requiere cargar tus costos), formación de precios y asistente con IA en la tienda.
+- Avanzado ($320.000/mes o $3.200.000/año) — tu rentabilidad: suma análisis de margen por producto (requiere cargar tus costos), formación de precios y los mayoristas cerca que venden más barato que tu proveedor.
 - Cadena ($640.000/mes o $6.400.000/año) — tu ganancia: suma la ganancia en pesos por mes (requiere cargar tus ventas).
 
-Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 meses y se usan 12. Se cambia o se cancela cuando se quiera. Pago con link de pago (Nave, de Banco Galicia). Precios vigentes desde el 23/10/2026. Detalle vigente en https://preciosiq.com/#planes.
+Precios en pesos argentinos, por cuenta, IVA incluido. El plan anual cuesta 10 meses y se usan 12. Para contratar un plan pago, consultanos. Detalle vigente en https://preciosiq.com/#planes.
 
 ## Páginas
 
