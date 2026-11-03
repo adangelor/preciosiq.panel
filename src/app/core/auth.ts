@@ -3,6 +3,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   GoogleLoginRequest,
@@ -24,6 +26,8 @@ import {
 // que el interceptor (ver auth-interceptor.ts) lo agregue como Bearer.
 const ACCESS_TOKEN_KEY = 'retailiq.accessToken';
 const REFRESH_TOKEN_KEY = 'retailiq.refreshToken';
+// BP-282 -- "tiene que cambiar la contraseña" (la blanqueo el admin). La pone el login o el perfil; la saca el cambio.
+const DEBE_CAMBIAR_KEY = 'retailiq.debeCambiarContrasena';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -73,7 +77,26 @@ export class AuthService {
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<ResetPasswordResponse> {
-    return this.http.post<ResetPasswordResponse>(`${this.identityUrl}/reset-password`, request);
+    return this.http
+      .post<ResetPasswordResponse>(`${this.identityUrl}/reset-password`, request)
+      .pipe(tap(() => this.marcarDebeCambiar(false)));
+  }
+
+  // BP-282 (3-nov-2026) -- cambiar la contraseña sabiendo la actual, sin mail.
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http
+      .post<ChangePasswordResponse>(`${this.identityUrl}/change-password`, request)
+      .pipe(tap(() => this.marcarDebeCambiar(false)));
+  }
+
+  /** BP-282 -- true: el admin le blanqueo la contraseña y el panel no deja pasar de "Cambiar contraseña". */
+  debeCambiarContrasena(): boolean {
+    return localStorage.getItem(DEBE_CAMBIAR_KEY) === '1';
+  }
+
+  marcarDebeCambiar(debe: boolean): void {
+    if (debe) localStorage.setItem(DEBE_CAMBIAR_KEY, '1');
+    else localStorage.removeItem(DEBE_CAMBIAR_KEY);
   }
 
   getAccessToken(): string | null {
@@ -130,6 +153,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(DEBE_CAMBIAR_KEY);
     this.isAuthenticated.set(false);
     this.isAdmin.set(false);
   }
@@ -137,6 +161,7 @@ export class AuthService {
   private storeSession(response: VerifyOtpResponse | GoogleLoginResponse): void {
     localStorage.setItem(ACCESS_TOKEN_KEY, response.accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+    this.marcarDebeCambiar(response.user?.debeCambiarContrasena === true);   // BP-282
     this.isAuthenticated.set(true);
     this.isAdmin.set(this.hasRole('Admins'));
   }

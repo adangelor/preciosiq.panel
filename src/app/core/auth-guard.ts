@@ -20,3 +20,14 @@ export const authGuard: CanActivateFn = () => {
 
   return router.createUrlTree(['/login']);
 };
+
+// BP-282 (3-nov-2026) -- si el admin le blanqueo la contraseña, no deja pasar de "Cambiar contraseña" hasta que elija
+// una propia. Va como canActivate (la primera entrada) y canActivateChild del shell (la navegacion entre pantallas).
+// Es una ayuda de la interfaz: la API no frena nada mientras tanto.
+export const RUTA_CAMBIAR_CONTRASENA = '/perfil/cambiar-contrasena';
+
+export const cambioObligadoGuard: CanActivateFn = (_route, state) => {
+  const authService = inject(AuthService);
+  if (!authService.debeCambiarContrasena() || state.url.startsWith(RUTA_CAMBIAR_CONTRASENA)) return true;
+  return inject(Router).createUrlTree([RUTA_CAMBIAR_CONTRASENA], { queryParams: { volver: state.url } });
+};

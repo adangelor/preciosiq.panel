@@ -18,6 +18,10 @@ export interface UserProfileResponse {
   totalPoints: number | null;
   // BP-196 (22-oct-2026) -- false: el panel pide confirmar el mail. Opcional: un backend viejo no lo manda.
   emailConfirmado?: boolean;
+  // BP-282 (3-nov-2026) -- false: nacio por codigo o Google, no tiene contraseña. debeCambiarContrasena: la blanqueo
+  // el admin y hay que elegir una nueva. Opcionales: un backend viejo no los manda.
+  tieneContrasena?: boolean;
+  debeCambiarContrasena?: boolean;
 }
 
 // BP-196 -- respuesta de POST /api/identity/confirmar-email/enviar.

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/admin-guard';
-import { authGuard } from './core/auth-guard';
+import { authGuard, cambioObligadoGuard } from './core/auth-guard';
 import { guestGuard } from './core/guest-guard';
 
 export const routes: Routes = [
@@ -44,7 +44,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/business-signup/business-signup').then((m) => m.BusinessSignupComponent),
     title: 'PreciosIQ — Alta de comercio',
-    canActivate: [authGuard],
+    canActivate: [authGuard, cambioObligadoGuard],
   },
   {
     // BP-71 (08-oct-2026) -- el cartel A5 para la vidriera, FUERA del shell (sin menu) para que se
@@ -84,7 +84,8 @@ export const routes: Routes = [
     // aparte del shell mismo.
     path: '',
     loadComponent: () => import('./layout/panel-header/panel-header').then((m) => m.PanelHeaderComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, cambioObligadoGuard],
+    canActivateChild: [cambioObligadoGuard],   // BP-282: tambien al moverse entre pantallas
     children: [
       {
         path: 'sucursales/nueva',

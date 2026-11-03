@@ -27,6 +27,20 @@ export interface UserProfileResponse {
   locationId?: number | null;
   roles?: string[];
   totalPoints?: number;
+  // BP-282 (3-nov-2026) -- el admin le blanqueo la contraseña: el panel le pide elegir una nueva al entrar.
+  debeCambiarContrasena?: boolean;
+  tieneContrasena?: boolean;
+}
+
+// BP-282 -- POST /api/identity/change-password: cambiar sabiendo la actual, sin mail.
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  success: boolean;
 }
 
 export interface VerifyOtpResponse {
