@@ -35,7 +35,11 @@ const CLAVE_TAMANO = 'preciosiq.carteles.tamano';
   imports: [RouterLink],
   template: `
     <div class="barra no-imprimir">
-      <a routerLink="/precios/importaciones">← Importaciones</a>
+      @if (deUnaSeleccion()) {
+        <a routerLink="/carteles">← Carteles de góndola</a>
+      } @else {
+        <a routerLink="/precios/importaciones">← Importaciones</a>
+      }
       @if (datos(); as d) {
         <span class="barra__titulo">{{ d.titulo }} · {{ d.items.length }} {{ d.items.length === 1 ? 'cartel' : 'carteles' }}</span>
         @if (d.sucursales.length > 1) {
@@ -194,6 +198,8 @@ export class CartelesGondolaComponent implements OnInit {
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly datos = signal<CartelesResponse | null>(null);
+  /** Vino de "Carteles de góndola" (una lista de códigos): el enlace de volver lleva ahí, no a Importaciones. */
+  protected readonly deUnaSeleccion = signal(false);
   protected readonly tamano = signal<TamanoDeCartel>(leerTamano());
   protected readonly hojas = computed(() => enHojas(this.datos()?.items ?? [], TAMANOS[this.tamano()].porHoja));
   protected readonly tamanos = (Object.keys(TAMANOS) as TamanoDeCartel[]).map((clave) => ({ clave, etiqueta: TAMANOS[clave].etiqueta }));
@@ -213,7 +219,11 @@ export class CartelesGondolaComponent implements OnInit {
           return;
         }
         this.cuenta = ctx.account.businessAccountId;
-        this.route.queryParamMap.subscribe((q) => this.cargar(origenDe(q.get('batchId'), q.get('groupId'), q.get('eans'), q.get('branchId'))));
+        this.route.queryParamMap.subscribe((q) => {
+          const o = origenDe(q.get('batchId'), q.get('groupId'), q.get('eans'), q.get('branchId'));
+          this.deUnaSeleccion.set(!!o?.eans?.length);
+          this.cargar(o);
+        });
       },
       error: () => {
         this.cargando.set(false);
@@ -226,7 +236,7 @@ export class CartelesGondolaComponent implements OnInit {
     if (this.cuenta == null) return;
     if (!o) {
       this.cargando.set(false);
-      this.error.set('Abrí los carteles desde Importaciones (una carga) o desde la formación de precios.');
+      this.error.set('Elegí los productos en Carteles de góndola, o abrí los de una carga desde Importaciones.');
       return;
     }
     this.cargando.set(true);

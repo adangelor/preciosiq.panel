@@ -124,6 +124,18 @@
             <span class="shell__link-text">Historial de precio</span>
           </a>
         </li>
+        <!-- 5-nov-2026 -- los carteles tenían que tener su lugar en el menú: antes solo se llegaba desde Importaciones. -->
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/carteles"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Carteles de góndola' : null"
+          >
+            <mat-icon>print</mat-icon>
+            <span class="shell__link-text">Carteles de góndola</span>
+          </a>
+        </li>
 
         <!-- 24-oct-2026 -- Gestión escondida hasta tener 20-30 clientes (GESTION_VISIBLE en core/gestion-contexto.ts). -->
         @if (gestionVisible) {

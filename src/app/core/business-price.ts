@@ -47,6 +47,13 @@ export class BusinessPriceService {
     });
   }
 
+  // 5-nov-2026 -- busca en los productos propios de UNA sucursal por nombre, marca o código (pantalla de carteles).
+  searchOwnProducts(businessAccountId: number, branchId: string, q: string, pageSize = 30): Observable<PagedBusinessAccountProductsResponse> {
+    return this.http.get<PagedBusinessAccountProductsResponse>(`${this.baseUrl}/products`, {
+      params: { businessAccountId, branchId, q, page: 1, pageSize },
+    });
+  }
+
   // E10.6 -- borra un EAN cargado (libera un cupo del plan).
   deleteProduct(businessAccountId: number, branchId: string, ean: string): Observable<void> {
     return this.http.delete<void>(this.baseUrl, { params: { businessAccountId, branchId, ean } });

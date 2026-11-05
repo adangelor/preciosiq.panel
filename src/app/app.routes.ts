@@ -167,6 +167,13 @@ export const routes: Routes = [
           import('./features/price-history/price-history').then((m) => m.PriceHistoryComponent),
         title: 'PreciosIQ — Historial de precio',
       },
+      // 5-nov-2026 -- elegir productos sueltos para sus carteles (la hoja para imprimir sigue siendo precios/carteles).
+      {
+        path: 'carteles',
+        loadComponent: () =>
+          import('./features/carteles-elegir/carteles-elegir').then((m) => m.CartelesElegirComponent),
+        title: 'PreciosIQ — Carteles de góndola',
+      },
       // BP-178 (21-oct-2026) -- Gestión: la ficha de artículo de la cuenta, rubros y proveedores (ERP para cadenas).
       {
         path: 'gestion/articulos',

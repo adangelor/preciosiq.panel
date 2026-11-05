@@ -1,0 +1,146 @@
+// 5-nov-2026 -- "Carteles de góndola": elegir productos sueltos. Mismo lenguaje que Productos testigo (barra de
+// filtros, buscador con lupa, paneles con borde); botones, pills y tablas salen del tema compartido.
+.carteles {
+  max-width: 1000px;
+}
+
+.subtitle {
+  color: var(--text-2);
+  margin-bottom: 1rem;
+  max-width: 52rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.carteles__nota {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-2);
+
+  i {
+    color: var(--info);
+  }
+}
+
+.carteles__barra {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.25rem;
+
+  .btn {
+    height: 2.5rem;
+  }
+}
+
+.carteles__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+
+  .select {
+    height: 2.5rem;
+    min-width: 11rem;
+    padding: 0 0.75rem;
+    font-weight: 400;
+  }
+}
+
+.carteles__buscar {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 20rem;
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 2.5rem;
+    padding-left: 2.25rem;
+  }
+}
+
+.carteles__lupa {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.carteles__panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+
+  p {
+    margin: 0.4rem 0 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+.carteles__cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.carteles__acciones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.carteles__pegado {
+  width: 100%;
+  min-height: 7rem;
+  margin-bottom: 0.6rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.carteles__scroll {
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+.carteles__ean {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.carteles__quitar {
+  padding: 0.3rem 0.7rem;
+}
+
+.carteles__pie {
+  margin-top: 0.75rem !important;
+  font-size: 0.8125rem;
+}
+
+table.data th,
+table.data td {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}

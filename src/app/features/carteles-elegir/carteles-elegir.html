@@ -1,0 +1,156 @@
+<div class="carteles card--page">
+  <h1>Carteles de góndola</h1>
+  <p class="subtitle">
+    Elegí los productos y te armamos los carteles para imprimir en A4, con lo que pide la Resolución 4/2025:
+    el precio sin impuestos nacionales y el precio por kilo o litro.
+  </p>
+
+  @if (loadingContext()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (noAccountYet()) {
+    <p class="muted">
+      Todavía no tenés un comercio dado de alta.
+      <a routerLink="/alta">Dar de alta mi comercio →</a>
+    </p>
+  } @else if (contextErrorMessage()) {
+    <p class="alert alert--danger">{{ contextErrorMessage() }}</p>
+  } @else {
+    <p class="carteles__nota">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <span>
+        ¿Subiste una lista nueva? En <a routerLink="/precios/importaciones">Importaciones</a>, el botón
+        <strong>Carteles</strong> de cada carga arma los de todo lo que cambió de precio.
+      </span>
+    </p>
+
+    @if (errorMessage()) {
+      <p class="alert alert--danger">{{ errorMessage() }}</p>
+    }
+    @if (aviso()) {
+      <p class="alert alert--warning">{{ aviso() }}</p>
+    }
+
+    <div class="carteles__barra">
+      @if (branches().length > 1) {
+        <label class="carteles__campo">
+          <span>Precios de</span>
+          <select class="select" (change)="onSucursal($event)">
+            @for (b of branches(); track b.branchId) {
+              <option [value]="b.branchId" [selected]="b.branchId === branchId()">{{ b.branchName }}</option>
+            }
+          </select>
+        </label>
+      }
+      <form class="carteles__buscar" (submit)="buscar(); $event.preventDefault()">
+        <i class="fa-solid fa-magnifying-glass carteles__lupa" aria-hidden="true"></i>
+        <input
+          class="input"
+          type="search"
+          placeholder="Buscar en tus productos por nombre, marca o código"
+          aria-label="Buscar un producto para su cartel"
+          [value]="texto()"
+          (input)="onTexto($event)"
+        />
+        <button type="submit" class="btn btn--ghost" [disabled]="buscando() || texto().trim().length < 2">
+          {{ buscando() ? 'Buscando…' : 'Buscar' }}
+        </button>
+      </form>
+      <button type="button" class="btn btn--ghost carteles__pegar-btn" (click)="pegadoAbierto.set(!pegadoAbierto())">
+        <i class="fa-solid fa-paste" aria-hidden="true"></i> Pegar códigos
+      </button>
+    </div>
+
+    @if (pegadoAbierto()) {
+      <section class="carteles__panel" aria-label="Pegar códigos">
+        <h2>Pegar códigos</h2>
+        <p class="muted">Pegá una columna de códigos de barras (de Excel o de tu sistema), uno por renglón o separados por coma.</p>
+        <textarea class="input carteles__pegado" rows="5" [value]="pegado()" (input)="onPegado($event)"
+          aria-label="Códigos de barras para los carteles"></textarea>
+        <div class="carteles__acciones">
+          <button type="button" class="btn" (click)="agregarPegados()" [disabled]="!pegado().trim() || llena()">Agregar los códigos</button>
+          <button type="button" class="btn btn--ghost" (click)="pegadoAbierto.set(false)">Cerrar</button>
+        </div>
+      </section>
+    }
+
+    @if (resultados(); as rs) {
+      <section class="carteles__panel" aria-label="Resultados de la búsqueda">
+        <div class="carteles__cab">
+          <h2>Resultados <span class="muted">en {{ nombreSucursal() }}</span></h2>
+          @if (rs.length > 1) {
+            <button type="button" class="btn btn--ghost" (click)="agregarTodos()" [disabled]="llena()">Agregar los {{ rs.length }}</button>
+          }
+        </div>
+        @if (rs.length === 0) {
+          <p class="muted">No encontramos ese producto entre los que cargaste en {{ nombreSucursal() }}.</p>
+        } @else {
+          <div class="table-wrap carteles__scroll">
+            <table class="data">
+              <tbody>
+                @for (p of rs; track p.ean) {
+                  <tr>
+                    <td class="strong">
+                      {{ p.description }}
+                      <span class="muted carteles__ean">{{ p.brand ? p.brand + ' · ' : '' }}{{ presentacion(p) ? presentacion(p) + ' · ' : '' }}{{ p.ean }}</span>
+                    </td>
+                    <td class="num">{{ precio(p.listPrice) }}</td>
+                    <td class="num">
+                      @if (elegidos().has(p.ean)) {
+                        <span class="pill pill--success">Agregado</span>
+                      } @else {
+                        <button type="button" class="btn btn--ghost" (click)="agregar(p)" [disabled]="llena()">Agregar</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <section class="carteles__panel carteles__panel--seleccion" aria-label="Carteles para imprimir">
+      <div class="carteles__cab">
+        <h2>Para imprimir <span class="muted">({{ seleccion().length }} de {{ max }})</span></h2>
+        @if (seleccion().length > 0) {
+          <div class="carteles__acciones">
+            <a class="btn" routerLink="/precios/carteles" [queryParams]="paramsCarteles()" target="_blank">
+              <i class="fa-solid fa-print" aria-hidden="true"></i>
+              Ver e imprimir {{ seleccion().length === 1 ? 'el cartel' : 'los ' + seleccion().length + ' carteles' }}
+            </a>
+            <button type="button" class="btn btn--ghost" (click)="vaciar()">Vaciar</button>
+          </div>
+        }
+      </div>
+      @if (seleccion().length === 0) {
+        <div class="empty">
+          Todavía no elegiste productos. Buscalos arriba o pegá sus códigos.
+        </div>
+      } @else {
+        <div class="table-wrap carteles__scroll">
+          <table class="data">
+            <tbody>
+              @for (p of seleccion(); track p.ean) {
+                <tr>
+                  <td class="strong">
+                    {{ p.descripcion ?? p.ean }}
+                    <span class="muted carteles__ean">{{ p.marca ? p.marca + ' · ' : '' }}{{ p.descripcion ? p.ean : 'código pegado' }}</span>
+                  </td>
+                  <td class="num">
+                    <button type="button" class="btn btn--ghost carteles__quitar" (click)="quitar(p.ean)"
+                      [attr.aria-label]="'Quitar ' + (p.descripcion ?? p.ean)">Quitar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="muted carteles__pie">
+          Los carteles salen con el precio y la promo vigentes en {{ nombreSucursal() || 'la sucursal elegida' }}; en la hoja
+          podés cambiar de sucursal y de tamaño.
+        </p>
+      }
+    </section>
+  }
+</div>
