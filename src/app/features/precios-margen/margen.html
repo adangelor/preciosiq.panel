@@ -1,0 +1,206 @@
+<!-- BP-219 (8-nov-2026) -- la cascada de margen. -->
+<div class="gestion margen card--page">
+  <h1>Margen real</h1>
+  <p class="subtitle">
+    Del costo al precio de góndola y a lo que de verdad cobraste (con las promos y los descuentos): cuánto te queda de
+    cada artículo y de cada rubro, y qué promos se están comiendo el margen.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>El margen real viene con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>, junto con la formación de precios. <a routerLink="/plan">Ver planes →</a></span>
+    </div>
+  } @else {
+    <!-- ------------------------------------------------------------ destino y período -->
+    <div class="gestion__filtros margen__destino">
+      @if (branches().length > 1) {
+        <select (change)="onSucursal($event)" aria-label="Sucursal">
+          <option value="">Todas las sucursales</option>
+          @for (b of branches(); track b.branchId) { <option [value]="b.branchId">{{ b.branchName }}</option> }
+        </select>
+      }
+      <span class="gestion__chips">
+        @for (d of [7, 30, 90]; track d) {
+          <button type="button" class="chip" [class.chip--on]="dias() === d" (click)="elegirDias(d)">Últimos {{ d }} días</button>
+        }
+      </span>
+    </div>
+
+    @if (error()) { <p class="alert alert--danger">{{ error() }}</p> }
+
+    @if (cargando() && !datos()) {
+      <app-loading-bar label="Calculando el margen…" />
+    } @else if (datos(); as d) {
+      <!-- ------------------------------------------------------------ qué falta (decisión F) -->
+      @if (faltaAlgo()) {
+        <section class="margen__falta">
+          <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Para ver tu margen real faltan datos</h2>
+          <div class="margen__pasos">
+            <article class="margen__paso" [class.margen__paso--hecho]="d.tieneCostos">
+              <span class="margen__numero">1</span>
+              <div>
+                <strong>Tus costos</strong>
+                @if (d.tieneCostos) {
+                  <p class="muted">Listo: {{ num(d.conCosto) }} artículos con costo.</p>
+                } @else {
+                  <p>En la <a routerLink="/precios/carga-masiva">carga masiva</a>, sumale a tu planilla una columna con el <strong>costo sin IVA</strong> de cada artículo y elegila como «Costo» en el mapeo.</p>
+                  <button type="button" class="btn btn--ghost btn--small" (click)="bajarEjemplo('costos')"><i class="fa-solid fa-download" aria-hidden="true"></i> Planilla de ejemplo</button>
+                }
+              </div>
+            </article>
+            <article class="margen__paso" [class.margen__paso--hecho]="d.tieneVentas">
+              <span class="margen__numero">2</span>
+              <div>
+                <strong>Tus ventas</strong>
+                @if (d.tieneVentas) {
+                  <p class="muted">Listo: {{ d.tieneCaja ? 'tenés ventas de la caja.' : 'tenés ventas cargadas.' }}</p>
+                } @else {
+                  <p>En <a routerLink="/ventas/cargar">Cargar ventas</a>, el export de ventas de tu sistema: código, unidades e importe de un período (una semana o un mes alcanza).</p>
+                  <button type="button" class="btn btn--ghost btn--small" (click)="bajarEjemplo('ventas')"><i class="fa-solid fa-download" aria-hidden="true"></i> Planilla de ejemplo</button>
+                }
+              </div>
+            </article>
+          </div>
+          @if (d.tieneCostos && !d.tieneVentas) {
+            <p class="muted">Mientras tanto, abajo ves el margen de góndola y el <strong>teórico</strong> de los que tienen promo.</p>
+          }
+        </section>
+      }
+
+      <!-- ------------------------------------------------------------ el resumen -->
+      @if (d.conCostoYVentas > 0) {
+        <div class="margen__tarjetas">
+          <div class="margen__tarjeta">
+            <span class="kpi-icono tono-azul margen__icono"><i class="fa-solid fa-tag" aria-hidden="true"></i></span>
+            <span class="margen__texto"><span class="margen__etiqueta">Margen de góndola</span><span class="margen__valor">{{ pct(d.margenGondola) }}</span><span class="margen__detalle">lo que marca el precio</span></span>
+          </div>
+          <div class="margen__tarjeta">
+            <span class="kpi-icono margen__icono" [class.tono-verde]="(d.margenReal ?? 0) >= (d.margenGondola ?? 0) - 1" [class.tono-naranja]="(d.margenReal ?? 0) < (d.margenGondola ?? 0) - 1"><i class="fa-solid fa-coins" aria-hidden="true"></i></span>
+            <span class="margen__texto"><span class="margen__etiqueta">Margen real</span><span class="margen__valor">{{ pct(d.margenReal) }}</span><span class="margen__detalle">lo que de verdad quedó</span></span>
+          </div>
+          <div class="margen__tarjeta">
+            <span class="kpi-icono tono-info margen__icono"><i class="fa-solid fa-percent" aria-hidden="true"></i></span>
+            <span class="margen__texto"><span class="margen__etiqueta">Se fue en promos</span><span class="margen__valor">{{ pesos(d.plataEnPromos) }}</span><span class="margen__detalle">del {{ d.desde.slice(8, 10) }}/{{ d.desde.slice(5, 7) }} al {{ d.hasta.slice(8, 10) }}/{{ d.hasta.slice(5, 7) }}</span></span>
+          </div>
+          <div class="margen__tarjeta">
+            <span class="kpi-icono margen__icono" [class.tono-rojo]="d.marcados > 0" [class.tono-verde]="d.marcados === 0"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+            <span class="margen__texto"><span class="margen__etiqueta">Para mirar</span><span class="margen__valor">{{ d.marcados }}</span><span class="margen__detalle">promos que se comen el margen</span></span>
+          </div>
+        </div>
+        <p class="muted margen__nota">{{ d.destino }} · {{ num(d.conCostoYVentas) }} artículos con costo y ventas · ponderado por unidades vendidas.</p>
+      }
+
+      <!-- ------------------------------------------------------------ rubros -->
+      @if (d.rubros.length > 0) {
+        <section class="gestion__seccion">
+          <h2>Por rubro</h2>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Rubro</th><th class="num">Artículos</th><th class="num">Unidades</th><th class="num">Margen de góndola</th><th class="num">Margen real</th><th class="num">Se fue en promos</th><th class="num">Para mirar</th></tr></thead>
+              <tbody>
+                @for (r of d.rubros; track r.nombre) {
+                  <tr class="clickable" [class.margen__fila--elegida]="rubro() === r.nombre" (click)="elegirRubro(r.nombre)">
+                    <td class="strong">{{ r.nombre }}</td>
+                    <td class="num">{{ r.articulos }}</td>
+                    <td class="num">{{ num(r.unidades) }}</td>
+                    <td class="num">{{ pct(r.margenGondola) }}</td>
+                    <td class="num" [class.margen__malo]="(r.margenReal ?? 0) < 0">{{ pct(r.margenReal) }}</td>
+                    <td class="num">{{ pesos(r.plataEnPromos) }}</td>
+                    <td class="num">@if (r.marcados > 0) { <span class="pill pill--warning">{{ r.marcados }}</span> }</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <!-- ------------------------------------------------------------ artículos -->
+      <div class="gestion__filtros">
+        <select (change)="elegirFiltro($any($event.target).value)" aria-label="Qué mostrar">
+          @for (f of FILTROS; track f.valor) { <option [value]="f.valor" [selected]="filtro() === f.valor">{{ f.texto }}</option> }
+        </select>
+        <input type="search" placeholder="Buscar por código o nombre" [value]="q()" (input)="onBuscar($event)" />
+        @if (rubro()) { <button type="button" class="chip chip--on" (click)="elegirRubro(null)">{{ rubro() }} ✕</button> }
+        <button type="button" class="btn btn--ghost btn--small" (click)="exportar()" [disabled]="!d.total"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Exportar a Excel</button>
+      </div>
+      <p class="muted gestion__total">
+        {{ num(d.total) }} {{ d.total === 1 ? 'artículo' : 'artículos' }}
+        @if (filtro() === 'marcados') { · la promo se lleva más del {{ d.umbral }} % del margen, o el margen real es negativo }
+        @if (cargando()) { · actualizando… }
+      </p>
+
+      @if (d.total === 0) {
+        <p class="gestion__vacia">
+          @if (filtro() === 'marcados' && d.conCostoYVentas > 0) { Ninguna promo se está comiendo el margen. }
+          @else { No hay artículos con este filtro. }
+        </p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data margen__tabla">
+            <thead><tr><th>Artículo</th><th class="num">Góndola</th><th class="num">Cobrado</th><th class="num">Costo s/IVA</th><th class="num">Margen góndola</th><th class="num">Margen real</th><th class="num">Unidades</th><th></th></tr></thead>
+            <tbody>
+              @for (i of d.items; track clave(i)) {
+                <tr class="clickable" (click)="alternar(i)" [class.margen__fila--marcada]="i.marcado">
+                  <td class="strong">
+                    {{ i.descripcion || i.ean }}
+                    <div class="muted gestion__sub"><span class="gestion__codigo">{{ i.ean }}</span>@if (i.rubro) { · {{ i.rubro }} }@if (i.branchId) { · {{ sucursal(i.branchId) }} } · {{ FUENTES[i.fuente] }}@if (i.promo) { · {{ i.promo }} }</div>
+                    @if (i.frase) { <div class="margen__frase">{{ i.frase }}</div> }
+                  </td>
+                  <td class="num">{{ pesos(i.precioGondola) }}</td>
+                  <td class="num">{{ pesos(i.cobrado) }}</td>
+                  <td class="num">{{ pesos(i.costoNeto) }}</td>
+                  <td class="num">{{ pct(i.margenGondola) }}</td>
+                  <td class="num strong" [class.margen__malo]="(i.margenReal ?? 0) < 0">{{ pct(i.margenReal) }}</td>
+                  <td class="num">{{ i.unidades ? num(i.unidades) : '' }}</td>
+                  <td>@if (i.marcado) { <span class="pill pill--warning">para mirar</span> }</td>
+                </tr>
+                @if (abierto() === clave(i)) {
+                  <tr class="margen__detalle-fila">
+                    <td colspan="8">
+                      <div class="margen__cascada" [attr.aria-label]="'Cascada de ' + (i.descripcion || i.ean)">
+                        @for (e of escalones(i); track e.texto) {
+                          <div class="margen__escalon">
+                            <span class="margen__escalon-texto">{{ e.texto }}</span>
+                            <span class="margen__barra-fondo"><span class="margen__barra margen__barra--{{ e.tono }}" [style.width.%]="e.ancho"></span></span>
+                            <span class="margen__escalon-monto">{{ pesos(e.monto) }}</span>
+                          </div>
+                        }
+                        <p class="muted">Montos por unidad, sin IVA (como cuenta el margen la formación de precios).</p>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (paginas() > 1) {
+          <div class="gestion__paginas">
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(d.page - 1)" [disabled]="d.page <= 1 || cargando()">Anterior</button>
+            <span>Página {{ d.page }} de {{ paginas() }}</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="irA(d.page + 1)" [disabled]="d.page >= paginas() || cargando()">Siguiente</button>
+          </div>
+        }
+      }
+
+      <!-- ------------------------------------------------------------ el umbral (decisión E) -->
+      @if (d.umbralGuardable) {
+        <div class="margen__umbral">
+          <label>
+            Marcar las promos que se llevan más del
+            <input type="text" inputmode="decimal" class="margen__num" [value]="umbralEditado() ?? d.umbral" (input)="onUmbral($event)" aria-label="Umbral en %" />
+            % del margen
+          </label>
+          @if (umbralEditado() != null && umbralEditado() !== d.umbral) {
+            <button type="button" class="btn btn--small" (click)="guardarUmbral()" [disabled]="guardandoUmbral()">{{ guardandoUmbral() ? 'Guardando…' : 'Guardar' }}</button>
+          }
+        </div>
+      }
+    }
+  }
+</div>

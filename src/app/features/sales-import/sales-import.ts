@@ -48,6 +48,7 @@ export class SalesImportComponent implements OnInit {
     eanColumn: ['', [Validators.required]],
     unitsColumn: ['', [Validators.required]],
     revenueColumn: [''],
+    importeSinIva: [false],   // BP-219
     decimalSeparator: [',' as ',' | '.'],
     periodMode: ['fixed' as 'fixed' | 'columns'],
     periodFrom: [''],
@@ -150,6 +151,7 @@ export class SalesImportComponent implements OnInit {
         eanColumn: v.eanColumn,
         unitsColumn: v.unitsColumn,
         revenueColumn: v.revenueColumn || null,
+        importeSinIva: !!v.revenueColumn && v.importeSinIva,
         decimalSeparator: v.decimalSeparator,
         periodMode: v.periodMode,
         periodFrom: v.periodFrom,

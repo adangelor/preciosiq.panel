@@ -265,7 +265,15 @@
                   {{ pesos(i.costoNeto, true) }}
                   @if (i.costoDesde) { <div class="muted gestion__sub">desde {{ i.costoDesde.slice(8, 10) }}/{{ i.costoDesde.slice(5, 7) }}</div> }
                 </td>
-                <td class="formacion__margen">{{ margenUsado(i) }}</td>
+                <td class="formacion__margen">
+                  {{ margenUsado(i) }}
+                  <!-- BP-219 -- lo que de verdad quedó en los últimos 30 días; el detalle, en Margen real. -->
+                  @if (i.margenReal != null) {
+                    <div class="muted gestion__sub">
+                      <a routerLink="/precios/margen" [queryParams]="{ q: i.codigo }" title="Lo que de verdad quedó en 30 días, con las promos">real {{ i.margenReal.toLocaleString('es-AR', { maximumFractionDigits: 1 }) }} %</a>
+                    </div>
+                  }
+                </td>
                 <td class="num">
                   {{ pesos(i.precioActual) }}
                   @if (i.preciosDistintos) { <div><span class="pill pill--neutral" title="No todas las sucursales del destino tienen el mismo precio: este es el más repetido">difieren</span></div> }

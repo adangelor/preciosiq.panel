@@ -105,6 +105,13 @@
                 <option value="">(ninguna)</option>
                 @for (h of p.headers; track h) { <option [value]="h">{{ h }}</option> }
               </select>
+              <!-- BP-219 -- el margen real cuenta el importe con IVA (como la caja); si el export viene sin, se le suma. -->
+              @if (mappingForm.controls.revenueColumn.value) {
+                <span class="checkbox-inline">
+                  <input type="checkbox" formControlName="importeSinIva" id="importe-sin-iva" />
+                  <label for="importe-sin-iva">El importe es sin IVA</label>
+                </span>
+              }
             </label>
             <label>
               Separador decimal

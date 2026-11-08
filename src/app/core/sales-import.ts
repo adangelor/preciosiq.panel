@@ -35,6 +35,7 @@ export interface SalesImportRunRequest {
   eanColumn: string;
   unitsColumn: string;
   revenueColumn: string | null;
+  importeSinIva?: boolean;   // BP-219: el importe se guarda con IVA; si viene sin, el servidor se lo suma
   decimalSeparator: ',' | '.';
   periodMode: SalesPeriodMode;
   // periodMode = 'fixed'
@@ -65,6 +66,7 @@ export class SalesImportService {
     form.append('eanColumn', req.eanColumn);
     form.append('unitsColumn', req.unitsColumn);
     if (req.revenueColumn) form.append('revenueColumn', req.revenueColumn);
+    if (req.importeSinIva) form.append('importeSinIva', 'true');   // BP-219
     form.append('decimalSeparator', req.decimalSeparator);
     form.append('periodMode', req.periodMode);
     if (req.periodMode === 'fixed') {

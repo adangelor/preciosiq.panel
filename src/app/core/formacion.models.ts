@@ -60,6 +60,8 @@ export interface SugeridoItem {
   mayorista?: MayoristaCerca | null;
   /** BP-221 -- "guía de «X» (+N)" o "en «X»": la familia de precio del artículo. */
   familia?: string | null;
+  /** BP-219 -- el margen de lo cobrado en 30 días (caja o ventas cargadas), ponderado por unidades. */
+  margenReal?: number | null;
 }
 
 export interface SugeridosResumen {

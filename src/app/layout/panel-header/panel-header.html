@@ -69,6 +69,19 @@
               @if (faltaFormacion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</span>
           </a>
         </li>
+        <!-- BP-219 (8-nov-2026) -- el margen real (con el mismo plan que la formación). -->
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/precios/margen"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Margen real' : null"
+          >
+            <mat-icon>savings</mat-icon>
+            <span class="shell__link-text">Margen real
+              @if (faltaFormacion()) { <span class="shell__plan-tag" title="Desde el plan Avanzado">Avanzado</span> }</span>
+          </a>
+        </li>
         <!-- BP-221 (8-nov-2026) -- familias de precio (con el mismo plan que la formación). -->
         <li>
           <a

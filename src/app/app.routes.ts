@@ -125,6 +125,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/precios-formacion/formacion').then((m) => m.FormacionPreciosComponent),
         title: 'PreciosIQ — Formación de precios',
       },
+      // BP-219 (8-nov-2026) -- el margen real: del costo a lo que de verdad se cobró (Avanzado y Cadena).
+      {
+        path: 'precios/margen',
+        loadComponent: () => import('./features/precios-margen/margen').then((m) => m.MargenComponent),
+        title: 'PreciosIQ — Margen real',
+      },
       // BP-221 (8-nov-2026) -- familias de precio: todos los sabores al mismo precio, o atados al guía (Avanzado y Cadena).
       {
         path: 'precios/familias',

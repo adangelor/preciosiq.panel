@@ -1,0 +1,198 @@
+// BP-219 (8-nov-2026) -- la cascada de margen. La base sale de gestion.scss; las tarjetas, del estilo tablero.
+.margen__destino {
+  align-items: center;
+}
+
+.margen__falta {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 0.5rem 0 1.25rem;
+  background: var(--bg-card);
+
+  h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+  }
+}
+
+.margen__pasos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.margen__paso {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  p {
+    margin: 0.3rem 0 0.5rem;
+  }
+}
+
+.margen__paso--hecho {
+  opacity: 0.65;
+}
+
+.margen__numero {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-tono, #fff);
+  font-weight: 700;
+}
+
+.margen__tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 2rem 1.25rem;
+  margin: 2rem 0 0.75rem;
+}
+
+.margen__tarjeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.2rem 1rem;
+  border-radius: 6px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+}
+
+.margen__icono {
+  margin-top: -1.25rem;
+}
+
+.margen__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 0.2rem;
+  padding-top: 0.75rem;
+}
+
+.margen__etiqueta,
+.margen__detalle {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.margen__valor {
+  font-size: 1.7rem;
+  font-weight: 300;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.margen__nota {
+  font-size: 0.85rem;
+}
+
+.margen__malo {
+  color: var(--danger, #b91c1c);
+}
+
+.margen__fila--elegida td {
+  background: color-mix(in srgb, var(--primary, #4f46e5) 7%, transparent);
+}
+
+.margen__fila--marcada td:first-child {
+  box-shadow: inset 3px 0 0 var(--warning, #b45309);
+}
+
+.margen__frase {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--warning, #b45309);
+}
+
+.margen__tabla td.num {
+  white-space: nowrap;
+}
+
+.margen__detalle-fila > td {
+  background: var(--bg-elevated, transparent);
+}
+
+.margen__cascada {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 44rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.margen__escalon {
+  display: grid;
+  grid-template-columns: 11rem 1fr 7.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.margen__escalon-monto {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.margen__barra-fondo {
+  display: block;
+  height: 0.9rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.margen__barra {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.margen__barra--gondola {
+  background: var(--tono-azul-b, #1a73e8);
+}
+
+.margen__barra--cobrado {
+  background: var(--tono-info-b, #0097a7);
+}
+
+.margen__barra--costo {
+  background: var(--text-3, #888);
+}
+
+.margen__barra--queda {
+  background: var(--tono-verde-b, #43a047);
+}
+
+.margen__barra--pierde {
+  background: var(--tono-rojo-b, #e53935);
+}
+
+.margen__umbral {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.margen__num {
+  width: 4rem;
+  text-align: right;
+}
+
+@media (max-width: 48rem) {
+  .margen__escalon {
+    grid-template-columns: 7rem 1fr 6rem;
+  }
+}
