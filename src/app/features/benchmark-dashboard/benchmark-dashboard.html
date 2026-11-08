@@ -113,14 +113,14 @@
               <span class="card-label">Subcategorías con datos suficientes</span>
               <span class="card-value">{{ s.categoriesWithData }} / {{ leafRows().length }}</span>
             </div>
-            <span class="card-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+            <span class="card-icon kpi-icono tono-azul"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
           </div>
           <div class="card" [class.card--bad]="s.avgDeltaPct > 0" [class.card--good]="s.avgDeltaPct < 0">
             <div class="card-text">
               <span class="card-label">Diferencia promedio vs. zona (productos coincidentes)</span>
               <span class="card-value">{{ s.avgDeltaPct > 0 ? '+' : '' }}{{ s.avgDeltaPct.toFixed(1) }}%</span>
             </div>
-            <span class="card-icon">
+            <span class="card-icon kpi-icono" [class.tono-rojo]="s.avgDeltaPct > 0" [class.tono-verde]="s.avgDeltaPct < 0">
               <i
                 class="fa-solid"
                 [class.fa-arrow-trend-up]="s.avgDeltaPct > 0"
@@ -134,7 +134,7 @@
               <span class="card-label">Más caro / más barato que la zona</span>
               <span class="card-value">{{ s.above }} / {{ s.below }}</span>
             </div>
-            <span class="card-icon"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span>
+            <span class="card-icon kpi-icono tono-naranja"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span>
           </div>
         </div>
       } @else {

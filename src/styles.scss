@@ -9,7 +9,7 @@
    va como token en el tema compartido, no acá y menos en un componente.
 */
 @use '@angular/material' as mat;
-@use '../../shared-theme/theme';
+@use '../../shared-theme/theme-tablero' as theme; // estilo tablero: ver la nota arriba de shared-theme/_theme-tablero.scss
 
 /* E18.6 (26-ago-2026) -- la marca al lado de la descripcion del producto. Va global y no
    en cada componente porque son cuatro pantallas mostrando lo mismo, que es justo lo que

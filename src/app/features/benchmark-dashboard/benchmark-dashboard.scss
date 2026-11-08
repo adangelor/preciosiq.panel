@@ -63,74 +63,62 @@ button:disabled {
   margin: 1rem 0;
 }
 
+// 1.25rem de más arriba: el cuadrado de color de cada card sobresale.
 .summary-cards {
   display: flex;
-  gap: 1rem;
+  gap: 2rem 1.25rem;
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  margin: 1.25rem 0 1.5rem;
 }
 
 // 19-ago-2026 -- pedido de Andres: cards estilo SB Admin 2 (borde de color a la
-// izquierda + icono grande y tenue del lado derecho, en vez del bloque plano de
-// antes). border-left en vez de todo el fondo de color -- mas sobrio, mismo lenguaje
-// visual que el admin template que puso de referencia.
+// izquierda + icono grande y tenue del lado derecho).
+// 8-nov-2026 -- estilo tablero (Material Dashboard), pedido de Andres: el ícono pasa a
+// ser el cuadrado de color del tema (.kpi-icono, con el tono en el HTML) y sobresale
+// arriba a la izquierda; nombre y número van a la derecha. El color ya no va en un
+// borde: va en el cuadrado. row-reverse porque en el HTML el ícono va después del texto.
 .card {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--primary);
-  border-radius: 8px;
-  padding: 1rem 1.2rem;
+  border-radius: 6px;
+  padding: 0 1.2rem 1rem;
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: row-reverse;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  gap: 1rem;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+  // el .card del tema corta lo que sale (overflow: hidden): el cuadrado sale a propósito
+  overflow: visible;
 }
 
 .card-text {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
   gap: 0.3rem;
   min-width: 0;
+  padding-top: 0.75rem;
 }
 
 .card-icon {
-  font-size: 1.9rem;
-  opacity: 0.35;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.card--blue {
-  border-left-color: var(--primary);
-}
-
-.card--yellow {
-  border-left-color: var(--warning);
-}
-
-.card--bad {
-  border-left-color: var(--danger);
-}
-
-.card--good {
-  border-left-color: var(--success);
+  margin-top: -1.25rem;
+  font-size: 1.6rem;
 }
 
 .card-label {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .card-value {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 300;
+  line-height: 1.1;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
 .cat-table {
