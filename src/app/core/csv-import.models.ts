@@ -213,6 +213,8 @@ export interface CsvImportResult {
   articulosCreados?: number;
   articulosActualizados?: number;
   articulosAvisos?: CsvImportRowError[] | null;
+  /** BP-221 -- seguidores de familias de precio que se movieron con su guía (sumando sucursales). */
+  actualizadosPorFamilias?: number;
 }
 
 // BP-169 -- una promo de la carga "para confirmar". reglaPropuesta: la que se pudo armar (null = ninguna).
@@ -270,6 +272,7 @@ export interface CsvImportChunkOptions {
   batchId: number | null;
   groupId?: number | null;   // BP-132: desde la segunda tanda de una carga agrupada
   simulacionId?: number | null;   // BP-220: "Confirmar" una simulación (en /run) o seguirla (en /simular)
+  aplicarReglaDeFamilias?: boolean;   // BP-221: los seguidores que vienen con su guía van al precio de la regla
 }
 
 // BP-220 (8-nov-2026) -- simular la carga por planilla antes de aplicarla (BusinessCsvImportEndpoints.Simulacion.cs).
@@ -299,6 +302,9 @@ export interface SimulacionResumen {
   vencida: boolean;
   venceAtUtc: string;
   confirmadaAtUtc: string | null;
+  /** BP-221 -- seguidores que se mueven con su guía, y los que la planilla saca de la regla de su familia. */
+  porFamilias?: number;
+  rompenFamilia?: number;
 }
 
 export interface SimularTandaResponse {
@@ -328,6 +334,7 @@ export interface SimulacionFila {
   ean: string | null;
   descripcion: string | null;
   tipo: SimulacionTipo;
+  origen?: 'planilla' | 'familia';   // BP-221
   precioAntes: number | null;
   precioNuevo: number | null;
   difPct: number | null;

@@ -103,6 +103,16 @@
         <span class="field-error">Ingresá un precio mayor a cero.</span>
       }
     </label>
+    <!-- BP-221 -- es el guía de una familia de precio: al guardar se mueven los demás en esta sucursal. -->
+    @if (avisoFamilia(); as af) {
+      <p class="alert alert--info">
+        <span>
+          Es el guía de la familia <strong>«{{ af.familia }}»</strong>: al guardar se
+          {{ af.movimientos.length === 1 ? 'mueve 1 más' : 'mueven ' + af.movimientos.length + ' más' }} en esta sucursal
+          @for (m of af.movimientos.slice(0, 3); track m.ean) { · {{ m.descripcion || m.ean }} a ${{ m.despues }} }
+          @if (af.movimientos.length > 3) { · y {{ af.movimientos.length - 3 }} más }</span>
+      </p>
+    }
 
     <!--
       BP-38 (16-sep-2026) -- la promo es una REGLA: la misma que cobra la caja y la que se

@@ -1,0 +1,148 @@
+// BP-221 (8-nov-2026) -- familias de precio. La base (chips, tabla, secciones) sale de gestion.scss.
+.familias__vistas {
+  align-items: center;
+}
+
+.familias__nueva {
+  margin-left: auto;
+}
+
+.familias__editor {
+  margin-bottom: 1.25rem;
+}
+
+.familias__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-width: 32rem;
+  margin: 0 0 0.9rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  input {
+    font-weight: 400;
+  }
+}
+
+.familias__tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin: 0 0 0.9rem;
+
+  legend {
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0 0.3rem;
+  }
+}
+
+.familias__resultados {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 18rem;
+  overflow-y: auto;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.familias__num {
+  width: 6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.familias__guia td {
+  background: color-mix(in srgb, var(--primary, #4f46e5) 6%, transparent);
+}
+
+.familias__error {
+  color: var(--danger, #b91c1c);
+}
+
+.familias__nota {
+  font-size: 0.85rem;
+}
+
+.familias__detalle > td {
+  background: var(--bg-elevated, transparent);
+  padding: 0.5rem 0.75rem 0.9rem;
+}
+
+.familias__igualar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  ul {
+    margin: 0.4rem 0;
+    padding-left: 1.1rem;
+  }
+}
+
+.familias__sugeridas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.familias__sugerida {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-card);
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
+
+.familias__sugerida--hecha {
+  opacity: 0.6;
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}

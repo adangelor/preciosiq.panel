@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, model, output, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CsvImportService } from '../../../core/csv-import';
 import {
@@ -21,6 +21,7 @@ export const ALERTAS: Record<string, { texto: string; tono: 'danger' | 'warning'
   dejas_margen: { texto: 'dejás margen', tono: 'info', ayuda: 'Queda más barato que la cadena más barata de la zona: podrías cobrar más.' },
   deja_de_ser_mas_barato: { texto: 'deja de ser el más barato', tono: 'warning', ayuda: 'Hoy sos el más barato de la zona y con el precio nuevo dejás de serlo.' },
   dudosa: { texto: 'comparación dudosa', tono: 'neutral', ayuda: 'El nombre o la categoría no cierran con el resto de la zona: no se compara.' },
+  rompe_familia: { texto: 'rompe la familia', tono: 'warning', ayuda: 'La planilla trae este artículo con un precio distinto al de la regla de su familia: gana la planilla, salvo que pidas aplicar la regla.' },
 };
 
 const FILTROS = [
@@ -30,6 +31,7 @@ const FILTROS = [
   { valor: 'nuevo', texto: 'Nuevos' },
   { valor: 'igual', texto: 'Quedan igual' },
   { valor: 'error', texto: 'Con error' },
+  { valor: 'familia', texto: 'Por familias de precio' },
   { valor: 'alertas', texto: 'Con algún aviso' },
   { valor: 'todas', texto: 'Todos' },
 ] as const;
@@ -60,6 +62,8 @@ export class SimulacionCargaComponent implements OnInit {
   readonly confirmar = output<boolean>();   // true = "cargar igual" aunque algo haya cambiado entretanto
   readonly volver = output<void>();
   readonly resimular = output<void>();
+  /** BP-221 -- "aplicar la regla" a los que la planilla saca de su familia (decisión C). */
+  readonly aplicarRegla = model(false);
 
   protected readonly ALERTAS = ALERTAS;
   protected readonly FILTROS = FILTROS;

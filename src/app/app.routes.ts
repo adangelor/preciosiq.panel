@@ -125,6 +125,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/precios-formacion/formacion').then((m) => m.FormacionPreciosComponent),
         title: 'PreciosIQ — Formación de precios',
       },
+      // BP-221 (8-nov-2026) -- familias de precio: todos los sabores al mismo precio, o atados al guía (Avanzado y Cadena).
+      {
+        path: 'precios/familias',
+        loadComponent: () => import('./features/precios-familias/familias').then((m) => m.FamiliasPrecioComponent),
+        title: 'PreciosIQ — Familias de precio',
+      },
       {
         // BP-209 (28-oct-2026) -- lo que un mayorista cerca vende más barato que el proveedor (Avanzado y Cadena).
         path: 'precios/mayoristas',

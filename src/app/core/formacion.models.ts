@@ -58,6 +58,8 @@ export interface SugeridoItem {
   motivoDudosa: string | null;
   /** BP-209: el mayorista más barato a 50 km (Avanzado y Cadena). Null = no hay o el servidor no lo tiene. */
   mayorista?: MayoristaCerca | null;
+  /** BP-221 -- "guía de «X» (+N)" o "en «X»": la familia de precio del artículo. */
+  familia?: string | null;
 }
 
 export interface SugeridosResumen {

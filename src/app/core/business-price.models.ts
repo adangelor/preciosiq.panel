@@ -84,6 +84,9 @@ export interface BusinessPriceResponse {
   /** BP-38 -- regla activa que quedó para esa sucursal (la de la sucursal gana sobre la de la cuenta). */
   promoRule?: PromoRule | null;
   promoRuleTexto?: string | null;
+  /** BP-221 -- seguidores de la familia de precio que se movieron con este guía, y su familia. */
+  movidosPorFamilia?: number;
+  familia?: string | null;
 }
 
 export interface ProductSearchResult {

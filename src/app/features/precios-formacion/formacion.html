@@ -307,6 +307,10 @@
                   @for (a of avisosDe(i); track a) {
                     <span [class]="'pill ' + AVISOS[a].clase" [title]="tituloDeAviso(i, a)">{{ AVISOS[a].texto }}</span>
                   }
+                  <!-- BP-221 -- al mover un guía se mueven los de su familia (también al aplicar acá). -->
+                  @if (i.familia) {
+                    <a class="pill pill--primary" routerLink="/precios/familias" title="Familia de precio: al cambiar el guía se mueven los demás">{{ i.familia }}</a>
+                  }
                 </td>
               </tr>
             } @empty {

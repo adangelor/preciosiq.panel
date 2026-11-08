@@ -498,6 +498,7 @@
         [sucursales]="sucursalesDelDestino()"
         [ocupado]="loading() || confirmando()"
         [verificacion]="verificacion()"
+        [(aplicarRegla)]="aplicarReglaDeFamilias"
         (confirmar)="confirmarSimulacion($event)"
         (volver)="volverDeLaSimulacion()"
         (resimular)="resimular()"
@@ -527,6 +528,12 @@
       <p>
         {{ r.totalRows }} filas procesadas — {{ r.created }} productos nuevos,
         {{ r.updated }} precios actualizados, {{ r.failed }} con error.
+        <!-- BP-221 -- los que se movieron con su guía. -->
+        @if ((r.actualizadosPorFamilias ?? 0) > 0) {
+          <br />
+          <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+          + {{ r.actualizadosPorFamilias }} {{ r.actualizadosPorFamilias === 1 ? 'precio se movió' : 'precios se movieron' }} con su familia de precio.
+        }
         @if (r.costsLoaded > 0) {
           <br />
           <i class="fa-solid fa-coins" aria-hidden="true"></i>

@@ -82,6 +82,7 @@ export class CsvImportComponent implements OnInit {
   protected readonly simulacion = signal<SimulacionResumen | null>(null);
   protected readonly verificacion = signal<VerificarSimulacionResponse | null>(null);
   protected readonly confirmando = signal(false);
+  protected readonly aplicarReglaDeFamilias = signal(false);   // BP-221: el botón de la simulación
   private cargaPendiente: {
     businessAccountId: number;
     destino: CsvImportDestino;
@@ -607,6 +608,7 @@ export class CsvImportComponent implements OnInit {
     this.cargaPendiente = { businessAccountId, destino, cantidadDeSucursales, mappingId, file, catalogoCompleto };
     this.simulacion.set(null);
     this.verificacion.set(null);
+    this.aplicarReglaDeFamilias.set(false);
     this.loading.set(true);
     this.simulando.set(true);
     this.errorMessage.set(null);
@@ -693,7 +695,8 @@ export class CsvImportComponent implements OnInit {
     if (!c || !s) return;
     this.verificacion.set(null);
     this.loading.set(true);
-    this.runInChunks(c.businessAccountId, c.destino, c.cantidadDeSucursales, c.mappingId, c.file, c.catalogoCompleto, s.simulacionId);
+    this.runInChunks(c.businessAccountId, c.destino, c.cantidadDeSucursales, c.mappingId, c.file, c.catalogoCompleto, s.simulacionId,
+      this.aplicarReglaDeFamilias());
   }
 
   protected volverDeLaSimulacion(): void {
@@ -738,6 +741,7 @@ export class CsvImportComponent implements OnInit {
     file: File,
     catalogoCompleto = false,
     simulacionId: number | null = null,   // BP-220: confirmar esta simulación
+    aplicarReglaDeFamilias = false,       // BP-221
   ): void {
     this.catalogo.set(null);
     this.catalogoGrupo.set(null);
@@ -764,12 +768,13 @@ export class CsvImportComponent implements OnInit {
     let articulosCreados = 0;
     let articulosActualizados = 0;
     const articulosAvisos: CsvImportRowError[] = [];
+    let porFamilias = 0;   // BP-221
 
     this.progress.set({ done: 0, total: 0, created: 0, updated: 0, failed: 0 });
 
     const runChunk = (offset: number): void => {
       this.csvImportService
-        .run(businessAccountId, destino, mappingId, file, { offset, limit, batchId, groupId, simulacionId })
+        .run(businessAccountId, destino, mappingId, file, { offset, limit, batchId, groupId, simulacionId, aplicarReglaDeFamilias })
         .pipe(
           // Reintentos solo ante cortes de red/proxy (status 0, 502/503/504) -- no ante
           // un 4xx, que es un error real. Reprocesar una tanda es seguro: el upsert es
@@ -805,6 +810,7 @@ export class CsvImportComponent implements OnInit {
             articulosCreados += r.articulosCreados ?? 0;
             articulosActualizados += r.articulosActualizados ?? 0;
             articulosAvisos.push(...(r.articulosAvisos ?? []));
+            porFamilias += r.actualizadosPorFamilias ?? 0;
 
             const finished = r.nextOffset === null;
             this.progress.set({
@@ -844,6 +850,7 @@ export class CsvImportComponent implements OnInit {
               articulosCreados,
               articulosActualizados,
               articulosAvisos,
+              actualizadosPorFamilias: porFamilias,
               errors,
               // Mismo tope que el backend (MaxAnomalyExamples): 6 ejemplos alcanzan como
               // sanity-check, mas es otra tabla para escanear.

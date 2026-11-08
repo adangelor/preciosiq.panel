@@ -1,0 +1,275 @@
+<!-- BP-221 (8-nov-2026) -- familias de precio. -->
+<div class="gestion familias card--page">
+  <h1>Familias de precio</h1>
+  <p class="subtitle">
+    Cuando cambia el artículo guía (por la carga masiva, Formación de precios o Cargar precio), los demás de su familia se
+    mueven con él en la misma carga: todos los sabores al <strong>mismo precio</strong>, o <strong>atados</strong> al guía
+    («la 1,5 l = la 2,25 l × 0,7»). Armar una familia no cambia ningún precio.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        Las familias de precio vienen con los planes <strong>Avanzado</strong> y <strong>Cadena</strong>, junto con la
+        formación de precios. <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else {
+    <div class="gestion__chips familias__vistas" role="tablist">
+      <button type="button" class="chip" [class.chip--on]="vista() === 'familias'" (click)="verVista('familias')">
+        Mis familias @if (familias(); as f) { ({{ f.length }}) }
+      </button>
+      <button type="button" class="chip" [class.chip--on]="vista() === 'sugeridas'" (click)="verVista('sugeridas')">Sugeridas</button>
+      @if (vista() === 'familias' && !editando()) {
+        <button type="button" class="btn btn--small familias__nueva" (click)="nueva()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva familia</button>
+      }
+    </div>
+
+    @if (aviso()) {
+      <p class="alert alert--success"><span>{{ aviso() }}</span></p>
+    }
+    @if (error()) {
+      <p class="alert alert--danger">{{ error() }}</p>
+    }
+
+    <!-- ================================================================ editor -->
+    @if (editando(); as ed) {
+      <section class="gestion__seccion familias__editor">
+        <h2>{{ ed.id ? 'Editar la familia' : 'Nueva familia' }}</h2>
+        <label class="familias__campo">
+          Nombre
+          <input type="text" maxlength="120" placeholder="Ej: Gaseosa Cola 500 ml" [value]="nombre()" (input)="onNombre($event)" />
+        </label>
+        <fieldset class="familias__tipo">
+          <legend>¿Cómo se mueven?</legend>
+          <label class="gestion__check"><input type="radio" name="tipo" [checked]="tipo() === 'mismo'" (change)="onTipo('mismo')" /> Todos al mismo precio que el guía</label>
+          <label class="gestion__check"><input type="radio" name="tipo" [checked]="tipo() === 'atado'" (change)="onTipo('atado')" /> Atados al guía: guía × factor + ajuste, redondeado como en Formación</label>
+        </fieldset>
+
+        <label class="familias__campo">
+          Buscar un artículo para sumar
+          <input type="search" placeholder="Código o nombre (3 letras o más)" [value]="busqueda()" (input)="onBuscar($event)" />
+        </label>
+        @if (resultados().length > 0) {
+          <ul class="familias__resultados">
+            @for (p of resultados(); track p.ean) {
+              <li>
+                <span><span class="gestion__codigo">{{ p.ean }}</span> {{ p.description }} <span class="muted">{{ p.brand }}</span></span>
+                <span class="gestion__acciones">
+                  <button type="button" class="btn btn--ghost btn--small" (click)="agregar(p, true)">Es el guía</button>
+                  <button type="button" class="btn btn--small" (click)="agregar(p, false)">Sumar</button>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Artículo</th>
+                <th class="num">Precio hoy</th>
+                @if (tipo() === 'atado') { <th class="num">Factor</th><th class="num">Ajuste $</th> }
+                <th class="num">Con la regla</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (guia(); as g) {
+                <tr class="familias__guia">
+                  <td class="strong">{{ g.descripcion || g.ean }} <div class="muted gestion__sub"><span class="gestion__codigo">{{ g.ean }}</span> · <span class="pill pill--primary">guía</span></div></td>
+                  <td class="num">{{ pesos(g.precio) }}</td>
+                  @if (tipo() === 'atado') { <td class="num">1</td><td class="num">0</td> }
+                  <td class="num">{{ pesos(g.precio) }}</td>
+                  <td></td>
+                </tr>
+              } @else {
+                <tr><td colspan="6" class="muted">Buscá el artículo guía y tocá «Es el guía».</td></tr>
+              }
+              @for (m of miembros(); track m.ean) {
+                <tr>
+                  <td class="strong">{{ m.descripcion || m.ean }} <div class="muted gestion__sub"><span class="gestion__codigo">{{ m.ean }}</span>
+                    @if (m.precio == null) { · <span class="familias__error">no está cargado en tus sucursales</span> }</div></td>
+                  <td class="num">{{ pesos(m.precio) }}</td>
+                  @if (tipo() === 'atado') {
+                    <td class="num"><input type="text" inputmode="decimal" class="familias__num" [value]="m.factor ?? ''" (change)="onFactor(m, $event)" [attr.aria-label]="'Factor de ' + (m.descripcion || m.ean)" /></td>
+                    <td class="num"><input type="text" inputmode="decimal" class="familias__num" [value]="m.ajuste ?? 0" (change)="onAjuste(m, $event)" [attr.aria-label]="'Ajuste de ' + (m.descripcion || m.ean)" /></td>
+                  }
+                  <td class="num">{{ pesos(reglaHoy(m)) }}</td>
+                  <td class="gestion__nowrap">
+                    <button type="button" class="link-btn" (click)="hacerGuia(m)">Hacer guía</button> ·
+                    <button type="button" class="link-btn" (click)="quitar(m)">Sacar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (tipo() === 'atado') {
+          <p class="muted familias__nota">El factor arranca en el de hoy (precio del artículo ÷ precio del guía): así la familia no cambia ningún precio hasta que se mueva el guía.</p>
+        }
+        <div class="gestion__acciones">
+          <button type="button" class="btn" (click)="guardar()" [disabled]="guardando() || !guia() || miembros().length === 0 || !nombre().trim()">
+            {{ guardando() ? 'Guardando…' : 'Guardar la familia' }}
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="cerrarEditor()" [disabled]="guardando()">Cancelar</button>
+        </div>
+      </section>
+    }
+
+    <!-- ================================================================ mis familias -->
+    @if (vista() === 'familias' && !editando()) {
+      @if (cargando() && !familias()) {
+        <app-loading-bar label="Leyendo tus familias…" />
+      } @else if (familias(); as lista) {
+        @if (lista.length === 0) {
+          <div class="gestion__vacia">
+            <p>Todavía no armaste ninguna familia.</p>
+            <p>
+              <button type="button" class="btn" (click)="verVista('sugeridas')">Ver las sugeridas</button>
+              <button type="button" class="btn btn--ghost" (click)="nueva()">Armar una a mano</button>
+            </p>
+          </div>
+        } @else {
+          @if (totalFuera() > 0) {
+            <p class="alert alert--warning"><span>{{ totalFuera() }} {{ totalFuera() === 1 ? 'precio está' : 'precios están' }} fuera de la regla de su familia (cambiaron por la caja, por otra carga o desde antes de armarla). Usá «Igualar al guía» en cada familia.</span></p>
+          }
+          @if (sucursalDeReferencia()) { <p class="muted gestion__total">Precios de hoy en {{ sucursalDeReferencia() }}.</p> }
+          <div class="table-wrap">
+            <table class="data familias__tabla">
+              <thead>
+                <tr><th>Familia</th><th>Tipo</th><th>Guía</th><th class="num">Artículos</th><th class="num">Fuera de la regla</th><th></th></tr>
+              </thead>
+              <tbody>
+                @for (f of lista; track f.id) {
+                  <tr class="clickable" (click)="alternar(f.id)">
+                    <td class="strong">{{ f.nombre }}</td>
+                    <td><span class="pill" [class.pill--info]="f.tipo === 'mismo'" [class.pill--primary]="f.tipo === 'atado'">{{ f.tipo === 'mismo' ? 'mismo precio' : 'atado al guía' }}</span></td>
+                    <td>
+                      @for (m of f.miembros; track m.ean) { @if (m.esGuia) { {{ m.descripcion || m.ean }} <span class="muted">{{ pesos(m.precio) }}</span> } }
+                    </td>
+                    <td class="num">{{ f.miembros.length }}</td>
+                    <td class="num">@if (f.fueraDeRegla > 0) { <span class="pill pill--warning">{{ f.fueraDeRegla }}</span> } @else { <span class="muted">0</span> }</td>
+                    <td class="gestion__nowrap" (click)="$event.stopPropagation()">
+                      @if (f.fueraDeRegla > 0) { <button type="button" class="btn btn--small" (click)="verIgualar(f)">Igualar al guía</button> }
+                      <button type="button" class="link-btn" (click)="editar(f)">Editar</button> ·
+                      <button type="button" class="link-btn" (click)="borrar(f)">Borrar</button>
+                    </td>
+                  </tr>
+                  @if (abierta() === f.id) {
+                    <tr class="familias__detalle">
+                      <td colspan="6">
+                        <table class="data">
+                          <thead><tr><th>Artículo</th><th class="num">Precio hoy</th>@if (f.tipo === 'atado') { <th class="num">Factor</th><th class="num">Ajuste</th> }<th class="num">Sucursales fuera de la regla</th></tr></thead>
+                          <tbody>
+                            @for (m of f.miembros; track m.ean) {
+                              <tr>
+                                <td>{{ m.descripcion || m.ean }} <span class="muted gestion__codigo">{{ m.ean }}</span> @if (m.esGuia) { <span class="pill pill--primary">guía</span> }</td>
+                                <td class="num">{{ pesos(m.precio) }}</td>
+                                @if (f.tipo === 'atado') { <td class="num">{{ m.factor }}</td><td class="num">{{ pesos(m.ajuste) }}</td> }
+                                <td class="num">@if (m.fueraDeRegla > 0) { <span class="pill pill--warning">{{ m.fueraDeRegla }}</span> }</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @if (igualando(); as ig) {
+        <div class="alert alert--warning familias__igualar" role="alertdialog" aria-label="Igualar al guía">
+          @if (ig.cambios.length === 0) {
+            <span>En «{{ ig.familia.nombre }}» ya están todos con el precio de la regla.</span>
+            <button type="button" class="btn btn--ghost btn--small" (click)="igualando.set(null)">Cerrar</button>
+          } @else {
+            <div>
+              <strong>Igualar «{{ ig.familia.nombre }}» al guía: {{ ig.cambios.length }} {{ ig.cambios.length === 1 ? 'precio' : 'precios' }}</strong>
+              <ul>
+                @for (c of ig.cambios.slice(0, 12); track c.branchId + c.ean) {
+                  <li>{{ c.descripcion || c.ean }}@if (c.sucursal) { ({{ c.sucursal }}) }: {{ pesos(c.antes) }} → <strong>{{ pesos(c.despues) }}</strong></li>
+                }
+                @if (ig.cambios.length > 12) { <li class="muted">y {{ ig.cambios.length - 12 }} más</li> }
+              </ul>
+              <p class="muted">Queda como una carga más en Importaciones, desde donde se deshace.</p>
+            </div>
+            <span class="gestion__acciones">
+              <button type="button" class="btn" (click)="igualar()" [disabled]="aplicandoIgualar()">{{ aplicandoIgualar() ? 'Igualando…' : 'Sí, igualar' }}</button>
+              <button type="button" class="btn btn--ghost" (click)="igualando.set(null)" [disabled]="aplicandoIgualar()">Cancelar</button>
+            </span>
+          }
+        </div>
+      }
+    }
+
+    <!-- ================================================================ sugeridas -->
+    @if (vista() === 'sugeridas' && !editando()) {
+      @if (cargandoSugeridas()) {
+        <app-loading-bar label="Buscando familias en tu catálogo (marca, nombre y tamaño)…" />
+      } @else if (sugeridas(); as s) {
+        <section class="gestion__seccion">
+          <h2>Ya las tratás como familia ({{ s.totalYa }})</h2>
+          <p class="muted">Misma marca, tipo y tamaño, y hoy con el mismo precio (o a 2 % o menos). Aceptarlas no cambia ningún precio.</p>
+          @if (s.yaConElMismoPrecio.length === 0) { <p class="muted">No encontramos ninguna.</p> }
+          <div class="familias__sugeridas">
+            @for (x of s.yaConElMismoPrecio; track x.nombre + x.guiaEan) {
+              <article class="familias__sugerida" [class.familias__sugerida--hecha]="aceptada(x)">
+                <header>
+                  <strong>{{ x.nombre }}</strong>
+                  @if (aceptada(x)) { <span class="pill pill--success">aceptada</span> }
+                  @else { <button type="button" class="btn btn--small" (click)="aceptar(x)">Aceptar</button> }
+                </header>
+                <ul>
+                  @for (m of x.miembros; track m.ean) { <li>{{ m.descripcion || m.ean }} <span class="muted">{{ pesos(m.precio) }}</span></li> }
+                </ul>
+              </article>
+            }
+          </div>
+          @if (s.totalYa > s.yaConElMismoPrecio.length) { <p class="muted">Se muestran {{ s.yaConElMismoPrecio.length }} de {{ s.totalYa }}: al aceptar, aparecen las que siguen.</p> }
+        </section>
+
+        <section class="gestion__seccion">
+          <h2>Posibles, con precios distintos hoy ({{ s.totalPosibles }})</h2>
+          <p class="muted">
+            Revisalas: a veces son productos distintos (cachorro y adulto, común y con masa madre). Elegí el guía y aceptá:
+            los precios no cambian hasta que se mueva el guía o uses «Igualar al guía».
+          </p>
+          @if (s.posibles.length === 0) { <p class="muted">No encontramos ninguna.</p> }
+          <div class="familias__sugeridas">
+            @for (x of s.posibles; track x.nombre + x.guiaEan) {
+              <article class="familias__sugerida" [class.familias__sugerida--hecha]="aceptada(x)">
+                <header>
+                  <strong>{{ x.nombre }}</strong>
+                  <span class="muted">{{ distintos(x) }} precios distintos</span>
+                  @if (aceptada(x)) { <span class="pill pill--success">aceptada</span> }
+                  @else { <button type="button" class="btn btn--small" (click)="aceptar(x)">Aceptar</button> }
+                </header>
+                <ul>
+                  @for (m of x.miembros; track m.ean) {
+                    <li>
+                      <label class="gestion__check">
+                        <input type="radio" [name]="'guia-' + x.nombre + x.guiaEan" [checked]="guiaDe(x) === m.ean" (change)="elegirGuia(x, m.ean)" [disabled]="aceptada(x)" />
+                        {{ m.descripcion || m.ean }} <span class="muted">{{ pesos(m.precio) }}</span>
+                        @if (guiaDe(x) === m.ean) { <span class="pill pill--primary">guía</span> }
+                      </label>
+                    </li>
+                  }
+                </ul>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    }
+  }
+</div>

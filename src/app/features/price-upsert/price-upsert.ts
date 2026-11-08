@@ -2,7 +2,8 @@ import { Component, ElementRef, OnDestroy, OnInit, inject, signal, viewChild } f
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import { CambioDeFamilia, FamiliasService } from '../../core/familias';   // BP-221
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BusinessPriceService } from '../../core/business-price';
 import {
@@ -193,7 +194,26 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     this.form.controls.branchId.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.loadOwnProduct());
     this.form.controls.promo.controls.tipo.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.onPromoTipoChange());
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.recomputePromo());
+
+    // BP-221 -- si el código es el guía de una familia de precio, antes de guardar se avisa qué más se mueve.
+    this.form.valueChanges
+      .pipe(
+        debounceTime(400),
+        map((v) => ({ cuenta: v.businessAccountId, sucursal: v.branchId ?? '', ean: (v.ean ?? '').trim(), precio: Number(v.listPrice) })),
+        distinctUntilChanged((a, b) => a.cuenta === b.cuenta && a.sucursal === b.sucursal && a.ean === b.ean && a.precio === b.precio),
+        switchMap((v) =>
+          v.cuenta && v.sucursal && v.ean.length >= 3 && v.precio > 0
+            ? this.familias.seguidores(v.cuenta, v.sucursal, v.ean, v.precio).pipe(catchError(() => of(null)))
+            : of(null),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((r) => this.avisoFamilia.set(r && r.movimientos.length > 0 ? { familia: r.familia ?? '', movimientos: r.movimientos } : null));
   }
+
+  // BP-221 -- lo que se mueve con este precio si el código es el guía de una familia.
+  private readonly familias = inject(FamiliasService);
+  protected readonly avisoFamilia = signal<{ familia: string; movimientos: CambioDeFamilia[] } | null>(null);
 
   protected pickSuggestion(result: ProductSearchResult): void {
     this.form.patchValue({ ean: result.ean, description: result.description, brand: result.brand });
@@ -407,6 +427,7 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
     if (r.previousListPrice) detalle.push(`antes $${r.previousListPrice}`);
     if (r.promoRuleTexto) detalle.push(`promo: ${r.promoRuleTexto}`);
 
+    if (r.movidosPorFamilia) detalle.push(`+ ${r.movidosPorFamilia} de la familia «${r.familia ?? ''}»`);   // BP-221
     const base = `${accion} — ${r.ean}: $${r.listPrice}`;
     return detalle.length ? `${base} (${detalle.join(' · ')})` : base;
   }

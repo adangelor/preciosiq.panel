@@ -101,6 +101,7 @@ export class CsvImportService {
       if (chunk.groupId != null) form.append('groupId', String(chunk.groupId));
       else if (chunk.batchId !== null) form.append('batchId', String(chunk.batchId));
       if (chunk.simulacionId != null) form.append('simulacionId', String(chunk.simulacionId));   // BP-220
+      if (chunk.aplicarReglaDeFamilias) form.append('aplicarReglaDeFamilias', 'true');            // BP-221
     }
     return this.http.post<CsvImportResult>(`${this.baseUrl}/run`, form);
   }

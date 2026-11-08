@@ -59,6 +59,26 @@
       </span>
     </button>
   </div>
+  <!-- BP-221 -- las familias de precio: los que se mueven con su guía y los que la planilla saca de la regla. -->
+  @if ((resumen().porFamilias ?? 0) > 0 || (resumen().rompenFamilia ?? 0) > 0) {
+    <div class="alert alert--info sim__familias">
+      <span>
+        <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+        @if ((resumen().porFamilias ?? 0) > 0) {
+          + <button type="button" class="link-btn" (click)="elegirFiltro('familia')">{{ num(resumen().porFamilias ?? 0) }}</button>
+          {{ resumen().porFamilias === 1 ? 'precio se mueve' : 'precios se mueven' }} con su familia de precio (no vienen en la planilla).
+        }
+        @if ((resumen().rompenFamilia ?? 0) > 0) {
+          <button type="button" class="link-btn" (click)="elegirFiltro('alerta:rompe_familia')">{{ num(resumen().rompenFamilia ?? 0) }}</button>
+          {{ resumen().rompenFamilia === 1 ? 'viene' : 'vienen' }} con un precio distinto al de su familia: gana la planilla, salvo que marques
+          <label class="gestion__check sim__regla">
+            <input type="checkbox" [checked]="aplicarRegla()" (change)="aplicarRegla.set($any($event.target).checked)" [disabled]="ocupado()" />
+            aplicar la regla de la familia a esos
+          </label>
+        }
+      </span>
+    </div>
+  }
   @if (varias()) {
     <p class="muted sim__nota">Cada fila cuenta una vez por sucursal ({{ resumen().sucursales }} sucursales); las filas con error, una sola vez.</p>
   }
@@ -200,7 +220,7 @@
                 <td class="strong">
                   {{ f.descripcion || f.ean || '(sin nombre)' }}
                   <div class="muted gestion__sub">
-                    fila {{ f.rowNumber }}@if (f.ean) { · <span class="gestion__codigo">{{ f.ean }}</span> }
+                    @if (f.origen === 'familia') { <span class="pill pill--primary">por familia</span> } @else { fila {{ f.rowNumber }} }@if (f.ean) { · <span class="gestion__codigo">{{ f.ean }}</span> }
                     @if (varias() && f.sucursal) { · {{ f.sucursal }} }
                     @if (f.promo) { · promo {{ f.promo }} }
                   </div>
