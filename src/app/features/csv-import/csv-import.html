@@ -434,7 +434,7 @@
 
           <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
           <button type="submit" [disabled]="loading()">
-            {{ loading() ? 'Procesando…' : 'Guardar mapeo y cargar' }}
+            {{ loading() ? (simulando() ? 'Simulando…' : 'Procesando…') : 'Guardar mapeo y ver qué cambia' }}
           </button>
         </form>
       } @else {
@@ -447,9 +447,15 @@
         }
         <ng-container *ngTemplateOutlet="progressBlock"></ng-container>
         <button type="button" (click)="runImport()" [disabled]="loading()">
-          {{ loading() ? 'Procesando…' : 'Cargar con este mapeo' }}
+          {{ loading() ? (simulando() ? 'Simulando…' : 'Procesando…') : 'Ver qué cambia antes de cargar' }}
         </button>
       }
+      <!-- BP-220 -- antes de cargar se simula: nada se toca hasta "Confirmar y cargar". -->
+      <p class="hint">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        Antes de cargar te mostramos cuántos precios suben, bajan o quedan igual, contra tu costo y contra la competencia
+        de cerca. No se cambia nada hasta que confirmes.
+      </p>
 
       <!-- E5.7 (25-ago-2026) -- avance de la carga por lotes (ver runInChunks en el .ts).
            Es un template porque se muestra en los dos caminos (mapeo nuevo / guardado). -->
@@ -462,6 +468,12 @@
             <p class="import-progress__text">
               @if (p.total === 0) {
                 <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Leyendo el archivo…
+              } @else if (simulando()) {
+                <strong>{{ p.done }} / {{ p.total }}</strong> filas simuladas ({{ progressPct() }}%)
+                @if (sucursalesDelDestino().length > 1) {
+                  en {{ sucursalesDelDestino().length }} sucursales
+                }
+                — todavía no se cambia ningún precio
               } @else {
                 <strong>{{ p.done }} / {{ p.total }}</strong> filas ({{ progressPct() }}%)
                 @if (sucursalesDelDestino().length > 1) {
@@ -474,6 +486,38 @@
           </div>
         }
       </ng-template>
+    </div>
+  }
+
+  <!-- BP-220 (8-nov-2026) -- la simulación: así quedaría la lista. "Confirmar y cargar" corre la carga de siempre. -->
+  @if (step() === 'simulacion' && simulacion(); as s) {
+    <div class="map-step">
+      <app-simulacion-carga
+        [businessAccountId]="uploadForm.getRawValue().businessAccountId!"
+        [resumen]="s"
+        [sucursales]="sucursalesDelDestino()"
+        [ocupado]="loading() || confirmando()"
+        [verificacion]="verificacion()"
+        (confirmar)="confirmarSimulacion($event)"
+        (volver)="volverDeLaSimulacion()"
+        (resimular)="resimular()"
+      />
+      @if (progress(); as p) {
+        <div class="import-progress" role="status" aria-live="polite">
+          <div class="import-progress__bar" [attr.aria-valuenow]="progressPct()" aria-valuemin="0" aria-valuemax="100" role="progressbar">
+            <div class="import-progress__fill" [style.width.%]="progressPct()"></div>
+          </div>
+          <p class="import-progress__text">
+            @if (p.total === 0) {
+              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Empezando la carga…
+            } @else {
+              <strong>{{ p.done }} / {{ p.total }}</strong> filas cargadas ({{ progressPct() }}%)
+              — {{ p.created }} nuevos, {{ p.updated }} actualizados, {{ p.failed }} con error
+            }
+          </p>
+          <p class="hint">No cierres esta pestaña hasta que termine: la carga va en tandas.</p>
+        </div>
+      }
     </div>
   }
 

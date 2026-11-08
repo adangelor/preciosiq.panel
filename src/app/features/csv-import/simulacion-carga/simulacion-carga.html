@@ -1,0 +1,285 @@
+<!-- BP-220 (8-nov-2026) -- así quedaría la lista antes de cargarla. Nada se cambió todavía. -->
+<section class="sim">
+  <header class="sim__cabecera">
+    <div>
+      <h2>Antes de cargar: así quedaría tu lista</h2>
+      <p class="muted">
+        {{ resumen().destinoNombre }}
+        @if (resumen().fileName) { · {{ resumen().fileName }} }
+        · {{ num(resumen().totalRows) }} filas en el archivo
+      </p>
+    </div>
+    <span class="pill pill--info"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Todavía no se cambió ningún precio</span>
+  </header>
+
+  @if (resumen().vencida) {
+    <p class="alert alert--warning">
+      <span>Esta simulación venció (dura 24 horas). Volvé a simular para ver los precios de hoy.</span>
+      <button type="button" class="btn btn--small" (click)="resimular.emit()" [disabled]="ocupado()">Volver a simular</button>
+    </p>
+  }
+
+  <!-- ------------------------------------------------------------ el resumen -->
+  <div class="sim__tarjetas">
+    <button type="button" class="sim__tarjeta" [class.sim__tarjeta--on]="filtro() === 'cambian'" (click)="elegirFiltro('cambian')">
+      <span class="kpi-icono tono-azul sim__icono"><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i></span>
+      <span class="sim__texto">
+        <span class="sim__etiqueta">Cambian de precio</span>
+        <span class="sim__valor">{{ num(cambian()) }}</span>
+        <span class="sim__detalle">
+          {{ num(resumen().suben) }} suben @if (resumen().medianaSubaPct != null) { (típico {{ pct(resumen().medianaSubaPct) }}) }
+          · {{ num(resumen().bajan) }} bajan @if (resumen().medianaBajaPct != null) { (típico {{ pct(resumen().medianaBajaPct) }}) }
+        </span>
+      </span>
+    </button>
+    <button type="button" class="sim__tarjeta" [class.sim__tarjeta--on]="filtro() === 'igual'" (click)="elegirFiltro('igual')">
+      <span class="kpi-icono tono-verde sim__icono"><i class="fa-solid fa-equals" aria-hidden="true"></i></span>
+      <span class="sim__texto">
+        <span class="sim__etiqueta">Quedan igual</span>
+        <span class="sim__valor">{{ num(resumen().iguales) }}</span>
+        <span class="sim__detalle">no se tocan</span>
+      </span>
+    </button>
+    <button type="button" class="sim__tarjeta" [class.sim__tarjeta--on]="filtro() === 'nuevo'" (click)="elegirFiltro('nuevo')">
+      <span class="kpi-icono tono-info sim__icono"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+      <span class="sim__texto">
+        <span class="sim__etiqueta">Productos nuevos</span>
+        <span class="sim__valor">{{ num(resumen().nuevos) }}</span>
+        <span class="sim__detalle">se dan de alta</span>
+      </span>
+    </button>
+    <button type="button" class="sim__tarjeta" [class.sim__tarjeta--on]="filtro() === 'error'" (click)="elegirFiltro('error')">
+      <span class="kpi-icono sim__icono" [class.tono-rojo]="resumen().errores > 0" [class.tono-verde]="resumen().errores === 0">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      </span>
+      <span class="sim__texto">
+        <span class="sim__etiqueta">Filas con error</span>
+        <span class="sim__valor">{{ num(resumen().errores) }}</span>
+        <span class="sim__detalle">no se cargan</span>
+      </span>
+    </button>
+  </div>
+  @if (varias()) {
+    <p class="muted sim__nota">Cada fila cuenta una vez por sucursal ({{ resumen().sucursales }} sucursales); las filas con error, una sola vez.</p>
+  }
+  @if (resumen().margenAntes != null && resumen().margenDespues != null) {
+    <p class="sim__margen">
+      <i class="fa-solid fa-coins" aria-hidden="true"></i>
+      Margen típico de los que cambian: <strong>{{ pct(resumen().margenAntes, false) }}</strong> →
+      <strong>{{ pct(resumen().margenDespues, false) }}</strong>
+      <span class="muted">({{ num(resumen().conCosto) }} con costo cargado)</span>
+    </p>
+  }
+
+  <!-- ------------------------------------------------------------ contra la competencia y las alertas -->
+  <div class="sim__bloques">
+    <div class="sim__bloque">
+      <h3><i class="fa-solid fa-store" aria-hidden="true"></i> Contra la competencia de cerca</h3>
+      @if (cargandoCompetencia()) {
+        <app-loading-bar label="Comparando con las cadenas de la zona…" [slowAfterSeconds]="20" />
+      } @else if (competencia(); as c) {
+        @if (!c.disponible) {
+          <p class="muted">{{ c.sinCompetencia }}</p>
+        } @else if (c.comparables === 0) {
+          <p class="muted">Ninguno de los productos que cambian tiene competencia a {{ c.radioMetros / 1000 }} km para comparar.</p>
+        } @else {
+          <ul class="sim__lista">
+            <li>
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:caro')">{{ num(c.porArribaDelMaximo) }}</button>
+              quedan más caros que la cadena más cara de la zona
+            </li>
+            <li>
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:deja_de_ser_mas_barato')">{{ num(c.dejanDeSerLosMasBaratos) }}</button>
+              dejan de ser los más baratos de la zona
+            </li>
+            <li>
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:dejas_margen')">{{ num(c.debajoDelMinimo) }}</button>
+              quedan más baratos que la más barata (podrías cobrar más)
+            </li>
+            @if (c.testigosQueSeMueven > 0) {
+              <li>
+                <button type="button" class="link-btn" (click)="elegirFiltro('alerta:testigo')">{{ num(c.testigosQueSeMueven) }}</button>
+                productos testigo cambian de precio
+              </li>
+            }
+          </ul>
+          <p class="muted sim__nota">{{ num(c.comparables) }} de los que cambian tienen competencia a {{ c.radioMetros / 1000 }} km; tolerancia {{ c.avisoPct }} %.</p>
+        }
+      } @else {
+        <p class="muted">No se pudo comparar con la competencia ahora. Igual podés revisar la tabla y cargar.</p>
+      }
+    </div>
+    <div class="sim__bloque">
+      <h3><i class="fa-solid fa-bell" aria-hidden="true"></i> Para mirar antes de cargar</h3>
+      @if (resumen().debajoDelCosto + resumen().multiplicados + resumen().subenMucho + resumen().bajanMucho === 0) {
+        <p class="muted">Nada raro: ningún precio queda debajo del costo ni se mueve más del {{ resumen().avisoPct }} %.</p>
+      } @else {
+        <ul class="sim__lista">
+          @if (resumen().multiplicados > 0) {
+            <li class="sim__grave">
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:x3')">{{ num(resumen().multiplicados) }}</button>
+              se multiplican o se dividen por 3 o más: revisá el separador decimal del mapeo
+            </li>
+          }
+          @if (resumen().debajoDelCosto > 0) {
+            <li class="sim__grave">
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:debajo_costo')">{{ num(resumen().debajoDelCosto) }}</button>
+              quedan debajo del costo
+            </li>
+          }
+          @if (resumen().subenMucho > 0) {
+            <li>
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:sube_mucho')">{{ num(resumen().subenMucho) }}</button>
+              suben más del {{ resumen().avisoPct }} %
+            </li>
+          }
+          @if (resumen().bajanMucho > 0) {
+            <li>
+              <button type="button" class="link-btn" (click)="elegirFiltro('alerta:baja_mucho')">{{ num(resumen().bajanMucho) }}</button>
+              bajan más del {{ resumen().avisoPct }} %
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------------------ la tabla -->
+  <div class="gestion__filtros sim__filtros">
+    <select (change)="onFiltro($event)" aria-label="Qué mostrar">
+      @for (f of FILTROS; track f.valor) {
+        <option [value]="f.valor" [selected]="filtro() === f.valor">{{ f.texto }}</option>
+      }
+      @if (filtro().startsWith('alerta:')) {
+        <option [value]="filtro()" selected>Aviso: {{ ALERTAS[filtro().slice(7)]?.texto ?? filtro().slice(7) }}</option>
+      }
+    </select>
+    @if (varias()) {
+      <select (change)="onSucursal($event)" aria-label="Sucursal">
+        <option value="">Todas las sucursales</option>
+        @for (s of sucursales(); track s.branchId) {
+          <option [value]="s.branchId" [selected]="sucursal() === s.branchId">{{ s.nombre }}</option>
+        }
+      </select>
+    }
+    <input type="search" placeholder="Buscar por código o descripción" [value]="q()" (input)="onBuscar($event)" />
+    <button type="button" class="btn btn--ghost btn--small" (click)="exportar()" [disabled]="exportando() || !datos()?.total">
+      <i class="fa-solid fa-file-excel" aria-hidden="true"></i> {{ exportando() ? 'Exportando…' : 'Exportar a Excel' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="alert alert--danger">{{ error() }}</p>
+  }
+
+  @if (datos(); as d) {
+    <p class="muted gestion__total">
+      {{ num(d.total) }} {{ d.total === 1 ? 'renglón' : 'renglones' }}
+      @if (d.total > d.pageSize) { — página {{ d.page }} de {{ paginas() }} }
+      @if (cargando()) { · actualizando… }
+    </p>
+    @if (d.total === 0) {
+      <p class="gestion__vacia">No hay renglones con este filtro.</p>
+    } @else {
+      <div class="table-wrap">
+        <table class="data sim__tabla">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="num">Antes</th>
+              <th class="num">Nuevo</th>
+              <th class="num">Dif.</th>
+              <th class="num">Margen</th>
+              @if (d.conCompetencia) { <th>Competencia (mín – ref – máx)</th> }
+              <th>Avisos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of d.items; track f.branchId + '|' + f.rowNumber) {
+              <tr>
+                <td class="strong">
+                  {{ f.descripcion || f.ean || '(sin nombre)' }}
+                  <div class="muted gestion__sub">
+                    fila {{ f.rowNumber }}@if (f.ean) { · <span class="gestion__codigo">{{ f.ean }}</span> }
+                    @if (varias() && f.sucursal) { · {{ f.sucursal }} }
+                    @if (f.promo) { · promo {{ f.promo }} }
+                  </div>
+                  @if (f.error) { <div class="sim__error">{{ f.error }}</div> }
+                </td>
+                <td class="num">{{ pesos(f.precioAntes) }}</td>
+                <td class="num strong">
+                  {{ pesos(f.precioNuevo) }}
+                  @if (f.tipo === 'nuevo') { <div><span class="pill pill--info">nuevo</span></div> }
+                </td>
+                <td class="num" [class.sim__sube]="(f.difPct ?? 0) > 0" [class.sim__baja]="(f.difPct ?? 0) < 0">{{ f.difPct == null ? '' : pct(f.difPct) }}</td>
+                <td class="num">
+                  @if (f.margenDespues != null) {
+                    @if (f.margenAntes != null && f.margenAntes !== f.margenDespues) { <span class="muted">{{ pct(f.margenAntes, false) }} →</span> }
+                    {{ pct(f.margenDespues, false) }}
+                  } @else {
+                    <span class="muted" title="Sin costo cargado">—</span>
+                  }
+                </td>
+                @if (d.conCompetencia) {
+                  <td class="sim__comp">
+                    @if (f.competencia && f.competencia.cadenas > 0) {
+                      {{ competenciaTexto(f) }}
+                      <div class="muted gestion__sub">
+                        {{ f.competencia.cadenas }} {{ f.competencia.cadenas === 1 ? 'cadena' : 'cadenas' }}
+                        @if (f.competencia.cadenaMasBarata) { · la más barata: {{ f.competencia.cadenaMasBarata }} }
+                      </div>
+                    }
+                  </td>
+                }
+                <td>
+                  @for (a of avisos(f); track a) {
+                    <span class="pill pill--{{ ALERTAS[a]?.tono ?? 'neutral' }}" [title]="ALERTAS[a]?.ayuda ?? ''">{{ ALERTAS[a]?.texto ?? a }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (paginas() > 1) {
+        <div class="gestion__paginas">
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(d.page - 1)" [disabled]="d.page <= 1 || cargando()">Anterior</button>
+          <span>Página {{ d.page }} de {{ paginas() }}</span>
+          <button type="button" class="btn btn--ghost btn--small" (click)="irA(d.page + 1)" [disabled]="d.page >= paginas() || cargando()">Siguiente</button>
+        </div>
+      }
+    }
+  } @else if (cargando()) {
+    <app-loading-bar label="Leyendo la simulación…" />
+  }
+
+  <!-- ------------------------------------------------------------ confirmar (barra fija abajo) -->
+  <div class="sim__acciones">
+    <!-- Lo que se encontró al verificar va acá, en la barra fija: se ve sin bajar hasta el final de la tabla. -->
+    @if (verificacion()?.cambiaronEntretanto; as cuantos) {
+      <div class="alert alert--warning sim__entretanto" role="alertdialog" aria-label="Cambiaron precios">
+        <span>
+          Desde que simulaste, <strong>{{ num(cuantos) }}</strong>
+          {{ cuantos === 1 ? 'precio cambió' : 'precios cambiaron' }} por otro camino (la caja, Cargar precio u otra carga).
+          Si cargás igual, la planilla los pisa.
+          @for (e of verificacion()!.ejemplos; track e.branchId + e.ean) {
+            <br /><span class="muted">{{ e.ean }}@if (varias() && e.sucursal) { en {{ e.sucursal }} }: simulado con {{ pesos(e.antes) }}, hoy {{ pesos(e.hoy) }}</span>
+          }
+        </span>
+        <span class="gestion__acciones">
+          <button type="button" class="btn" (click)="confirmar.emit(true)" [disabled]="ocupado()">Cargar igual</button>
+          <button type="button" class="btn btn--ghost" (click)="resimular.emit()" [disabled]="ocupado()">Volver a simular</button>
+        </span>
+      </div>
+    } @else {
+      <button type="button" class="btn" (click)="confirmar.emit(false)" [disabled]="ocupado() || resumen().vencida">
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+        {{ ocupado() ? 'Cargando…' : 'Confirmar y cargar' }}
+      </button>
+    }
+    <button type="button" class="btn btn--ghost" (click)="volver.emit()" [disabled]="ocupado()">Volver<span class="sim__ancho"> al mapeo</span></button>
+    <span class="muted sim__nota">
+      Se carga con el mismo archivo y el mismo mapeo. Después se deshace desde Importaciones, como siempre. La simulación vale hasta el {{ venceTexto() }}.
+    </span>
+  </div>
+</section>

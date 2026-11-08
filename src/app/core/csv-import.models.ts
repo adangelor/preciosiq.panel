@@ -269,6 +269,111 @@ export interface CsvImportChunkOptions {
   limit: number;
   batchId: number | null;
   groupId?: number | null;   // BP-132: desde la segunda tanda de una carga agrupada
+  simulacionId?: number | null;   // BP-220: "Confirmar" una simulación (en /run) o seguirla (en /simular)
+}
+
+// BP-220 (8-nov-2026) -- simular la carga por planilla antes de aplicarla (BusinessCsvImportEndpoints.Simulacion.cs).
+export interface SimulacionResumen {
+  simulacionId: number;
+  destino: 'sucursal' | 'zona' | 'todas';
+  destinoNombre: string;
+  sucursales: number;
+  fileName: string | null;
+  totalRows: number;
+  filasLeidas: number;
+  suben: number;
+  bajan: number;
+  iguales: number;
+  nuevos: number;
+  errores: number;
+  debajoDelCosto: number;
+  multiplicados: number;
+  subenMucho: number;
+  bajanMucho: number;
+  avisoPct: number;
+  medianaSubaPct: number | null;   // la mediana: un x10 no mueve el número de toda la carga
+  medianaBajaPct: number | null;
+  conCosto: number;
+  margenAntes: number | null;      // mediana del margen de los que cambian
+  margenDespues: number | null;
+  vencida: boolean;
+  venceAtUtc: string;
+  confirmadaAtUtc: string | null;
+}
+
+export interface SimularTandaResponse {
+  simulacionId: number;
+  totalRows: number;
+  processedRows: number;
+  nextOffset: number | null;
+  resumen: SimulacionResumen | null;
+}
+
+export type SimulacionTipo = 'sube' | 'baja' | 'igual' | 'nuevo' | 'error';
+
+export interface SimulacionCompetencia {
+  minimo: number | null;
+  referencia: number | null;
+  maximo: number | null;
+  cadenas: number;
+  nacionalMasBarata: number | null;
+  cadenaMasBarata: string | null;
+  avisos: string[];
+}
+
+export interface SimulacionFila {
+  branchId: string;
+  sucursal: string | null;
+  rowNumber: number;
+  ean: string | null;
+  descripcion: string | null;
+  tipo: SimulacionTipo;
+  precioAntes: number | null;
+  precioNuevo: number | null;
+  difPct: number | null;
+  costoGondola: number | null;
+  margenAntes: number | null;
+  margenDespues: number | null;
+  alertas: string[];
+  error: string | null;
+  promo: string | null;
+  esTestigo: boolean;
+  competencia: SimulacionCompetencia | null;
+}
+
+export interface SimulacionFilasResponse {
+  total: number;
+  page: number;
+  pageSize: number;
+  conCompetencia: boolean;
+  items: SimulacionFila[];
+}
+
+export interface SimulacionCompetenciaResumen {
+  disponible: boolean;
+  sinCompetencia: string | null;
+  comparables: number;
+  porArribaDelMaximo: number;
+  debajoDelMinimo: number;
+  dejanDeSerLosMasBaratos: number;
+  testigosQueSeMueven: number;
+  avisoPct: number;
+  radioMetros: number;
+}
+
+export interface VerificarSimulacionResponse {
+  vencida: boolean;
+  cambiaronEntretanto: number;
+  ejemplos: { branchId: string; sucursal: string | null; ean: string; antes: number | null; hoy: number | null }[];
+}
+
+export interface SimulacionFiltros {
+  filtro: string;
+  sucursal: string | null;
+  q: string;
+  page: number;
+  pageSize: number;
+  conCompetencia: boolean;
 }
 
 // E5.5 (16-ago-2026) -- pedido de Andres tras el incidente real de import con separador

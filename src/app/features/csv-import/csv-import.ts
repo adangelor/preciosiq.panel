@@ -15,8 +15,11 @@ import {
   CsvMapping,
   CsvPreviewResponse,
   PromoParaConfirmar,
+  SimulacionResumen,
+  VerificarSimulacionResponse,
 } from '../../core/csv-import.models';
 import { PromosParaConfirmarComponent } from '../../shared/promos-para-confirmar/promos-para-confirmar';
+import { SimulacionCargaComponent } from './simulacion-carga/simulacion-carga';
 import { BusinessPriceService } from '../../core/business-price';
 import { BusinessAccountProductItem, UpsertBusinessPriceRequest } from '../../core/business-price.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
@@ -27,7 +30,7 @@ import { AdvisorService } from '../../core/advisor';
 import { PriceZoneItem } from '../../core/advisor.models';
 import { environment } from '../../../environments/environment';
 
-type Step = 'upload' | 'map' | 'result';
+type Step = 'upload' | 'map' | 'simulacion' | 'result';
 
 // E5 -- carga masiva por CSV con mapeo de columnas configurable (no se fuerza el
 // formato SEPA). Flujo en 3 pasos: subir archivo -> mapear columnas (o reusar un
@@ -39,7 +42,7 @@ type Step = 'upload' | 'map' | 'result';
 @Component({
   selector: 'app-csv-import',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgTemplateOutlet, PromosParaConfirmarComponent],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgTemplateOutlet, PromosParaConfirmarComponent, SimulacionCargaComponent],
   templateUrl: './csv-import.html',
   styleUrl: './csv-import.scss',
 })
@@ -69,6 +72,24 @@ export class CsvImportComponent implements OnInit {
   // avance. 300 filas son unos segundos por llamada, lejos de cualquier timeout de
   // IIS/proxy; con 5600 filas son ~19 llamadas. Los valores viven en environment.ts.
   protected readonly chunkRows = environment.csvImport.chunkRows;
+
+  // BP-220 (8-nov-2026) -- antes de cargar, la carga se SIMULA: el mismo archivo y el mismo mapeo pasan por /simular
+  // (no escribe precios) y se muestra cuántos suben, bajan o quedan igual, contra el costo y la competencia. "Confirmar"
+  // corre la carga de siempre (runInChunks) con el simulacionId. Si el servidor no tiene el script de BP-220, contesta
+  // 503 "sin_script" y se carga directo, como antes. La simulación no escribe: tandas más grandes que la carga.
+  private readonly simulacionRows = 3000;
+  protected readonly simulando = signal(false);
+  protected readonly simulacion = signal<SimulacionResumen | null>(null);
+  protected readonly verificacion = signal<VerificarSimulacionResponse | null>(null);
+  protected readonly confirmando = signal(false);
+  private cargaPendiente: {
+    businessAccountId: number;
+    destino: CsvImportDestino;
+    cantidadDeSucursales: number;
+    mappingId: number;
+    file: File;
+    catalogoCompleto: boolean;
+  } | null = null;
   protected readonly progress = signal<{
     done: number;
     total: number;
@@ -518,8 +539,9 @@ export class CsvImportComponent implements OnInit {
 
     const nullIfEmpty = (s: string) => (s?.trim() ? s.trim() : null);
 
+    // BP-220 -- primero se simula; la carga se corre desde la pantalla de la simulación ("Confirmar y cargar").
     const proceedWithMapping = (mappingId: number, catalogoCompleto: boolean) =>
-      this.runInChunks(businessAccountId!, destino, sucursales.length, mappingId, file, catalogoCompleto);
+      this.simulateInChunks(businessAccountId!, destino, sucursales.length, mappingId, file, catalogoCompleto);
 
     if (value.savedMappingId) {
       proceedWithMapping(value.savedMappingId, this.mapeoEsCatalogoCompleto());
@@ -571,7 +593,127 @@ export class CsvImportComponent implements OnInit {
       });
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // BP-220 -- simular en tandas (como runInChunks, sin escribir nada) y mostrar la simulación.
+  // ─────────────────────────────────────────────────────────────
+  private simulateInChunks(
+    businessAccountId: number,
+    destino: CsvImportDestino,
+    cantidadDeSucursales: number,
+    mappingId: number,
+    file: File,
+    catalogoCompleto: boolean,
+  ): void {
+    this.cargaPendiente = { businessAccountId, destino, cantidadDeSucursales, mappingId, file, catalogoCompleto };
+    this.simulacion.set(null);
+    this.verificacion.set(null);
+    this.loading.set(true);
+    this.simulando.set(true);
+    this.errorMessage.set(null);
+    this.progress.set({ done: 0, total: 0, created: 0, updated: 0, failed: 0 });
+    const limit = Math.max(1, Math.ceil(this.simulacionRows / Math.max(1, cantidadDeSucursales)));
+    let simulacionId: number | null = null;
+
+    const terminar = () => {
+      this.loading.set(false);
+      this.simulando.set(false);
+      this.progress.set(null);
+    };
+    const tanda = (offset: number): void => {
+      this.csvImportService
+        .simular(businessAccountId, destino, mappingId, file, offset, limit, simulacionId)
+        .pipe(
+          retry({
+            count: environment.csvImport.retryCount,
+            delay: (err) => {
+              const status = err?.status as number | undefined;
+              if (status === 0 || status === 502 || status === 504) return timer(environment.csvImport.retryDelayMs);
+              throw err;
+            },
+          }),
+        )
+        .subscribe({
+          next: (r) => {
+            simulacionId = r.simulacionId;
+            const done = r.nextOffset ?? r.totalRows;
+            this.progress.set({ done, total: r.totalRows, created: 0, updated: 0, failed: 0 });
+            if (r.nextOffset !== null) {
+              tanda(r.nextOffset);
+              return;
+            }
+            terminar();
+            this.simulacion.set(r.resumen);
+            this.step.set('simulacion');
+          },
+          error: (err) => {
+            terminar();
+            // Sin el script de BP-220 en el servidor: la carga va directo, como antes.
+            if (err?.status === 503 && err?.error?.codigo === 'sin_script') {
+              this.runInChunks(businessAccountId, destino, cantidadDeSucursales, mappingId, file, catalogoCompleto);
+              return;
+            }
+            this.errorMessage.set(planGateErrorMessage(err) ?? err?.error?.error ?? 'No se pudo simular la carga.');
+          },
+        });
+    };
+    tanda(0);
+  }
+
+  /** "Confirmar y cargar": se mira si la simulación venció o si algún precio cambió entretanto; después, la carga. */
+  protected confirmarSimulacion(cargarIgual: boolean): void {
+    const c = this.cargaPendiente;
+    const s = this.simulacion();
+    if (!c || !s) return;
+    if (cargarIgual) {
+      this.cargarSimulacion();
+      return;
+    }
+    this.confirmando.set(true);
+    this.errorMessage.set(null);
+    this.csvImportService.verificarSimulacion(s.simulacionId, c.businessAccountId).subscribe({
+      next: (v) => {
+        this.confirmando.set(false);
+        if (v.vencida) {
+          this.simulacion.set({ ...s, vencida: true });
+          return;
+        }
+        this.verificacion.set(v);
+        if (v.cambiaronEntretanto === 0) this.cargarSimulacion();
+      },
+      error: (err) => {
+        this.confirmando.set(false);
+        this.errorMessage.set(err?.error?.error ?? 'No se pudo verificar la simulación. Probá de nuevo.');
+      },
+    });
+  }
+
+  private cargarSimulacion(): void {
+    const c = this.cargaPendiente;
+    const s = this.simulacion();
+    if (!c || !s) return;
+    this.verificacion.set(null);
+    this.loading.set(true);
+    this.runInChunks(c.businessAccountId, c.destino, c.cantidadDeSucursales, c.mappingId, c.file, c.catalogoCompleto, s.simulacionId);
+  }
+
+  protected volverDeLaSimulacion(): void {
+    this.simulacion.set(null);
+    this.verificacion.set(null);
+    this.errorMessage.set(null);
+    this.step.set('map');
+  }
+
+  protected resimular(): void {
+    const c = this.cargaPendiente;
+    if (!c) return;
+    this.step.set('map');
+    this.simulateInChunks(c.businessAccountId, c.destino, c.cantidadDeSucursales, c.mappingId, c.file, c.catalogoCompleto);
+  }
+
   protected startOver(): void {
+    this.simulacion.set(null);
+    this.verificacion.set(null);
+    this.cargaPendiente = null;
     this.step.set('upload');
     this.preview.set(null);
     this.result.set(null);
@@ -595,6 +737,7 @@ export class CsvImportComponent implements OnInit {
     mappingId: number,
     file: File,
     catalogoCompleto = false,
+    simulacionId: number | null = null,   // BP-220: confirmar esta simulación
   ): void {
     this.catalogo.set(null);
     this.catalogoGrupo.set(null);
@@ -626,7 +769,7 @@ export class CsvImportComponent implements OnInit {
 
     const runChunk = (offset: number): void => {
       this.csvImportService
-        .run(businessAccountId, destino, mappingId, file, { offset, limit, batchId, groupId })
+        .run(businessAccountId, destino, mappingId, file, { offset, limit, batchId, groupId, simulacionId })
         .pipe(
           // Reintentos solo ante cortes de red/proxy (status 0, 502/503/504) -- no ante
           // un 4xx, que es un error real. Reprocesar una tanda es seguro: el upsert es

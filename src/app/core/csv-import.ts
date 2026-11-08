@@ -21,6 +21,12 @@ import {
   UndoCsvImportGroupResult,
   RevisionAplicada,
   RevisionProductos,
+  SimulacionCompetenciaResumen,
+  SimulacionFilasResponse,
+  SimulacionFiltros,
+  SimulacionResumen,
+  SimularTandaResponse,
+  VerificarSimulacionResponse,
 } from './csv-import.models';
 
 // Cliente de BusinessCsvImportEndpoints.cs (E5).
@@ -94,8 +100,62 @@ export class CsvImportService {
       form.append('limit', String(chunk.limit));
       if (chunk.groupId != null) form.append('groupId', String(chunk.groupId));
       else if (chunk.batchId !== null) form.append('batchId', String(chunk.batchId));
+      if (chunk.simulacionId != null) form.append('simulacionId', String(chunk.simulacionId));   // BP-220
     }
     return this.http.post<CsvImportResult>(`${this.baseUrl}/run`, form);
+  }
+
+  // BP-220 (8-nov-2026) -- simular la carga antes de aplicarla. Mismo cuerpo que run (el archivo viaja entero en cada
+  // tanda); desde la segunda va el simulacionId de la primera. No escribe ningún precio.
+  simular(
+    businessAccountId: number,
+    destino: CsvImportDestino,
+    mappingId: number,
+    file: File,
+    offset: number,
+    limit: number,
+    simulacionId: number | null,
+  ): Observable<SimularTandaResponse> {
+    const form = new FormData();
+    form.append('businessAccountId', String(businessAccountId));
+    if (destino.tipo === 'sucursal') form.append('branchId', destino.branchId);
+    else if (destino.tipo === 'zona') form.append('priceZoneId', String(destino.priceZoneId));
+    else form.append('todasLasSucursales', 'true');
+    form.append('mappingId', String(mappingId));
+    form.append('file', file);
+    form.append('offset', String(offset));
+    form.append('limit', String(limit));
+    if (simulacionId !== null) form.append('simulacionId', String(simulacionId));
+    return this.http.post<SimularTandaResponse>(`${this.baseUrl}/simular`, form);
+  }
+
+  simulacion(simulacionId: number, businessAccountId: number): Observable<SimulacionResumen> {
+    return this.http.get<SimulacionResumen>(`${this.baseUrl}/simulaciones/${simulacionId}`, {
+      params: { businessAccountId: String(businessAccountId) },
+    });
+  }
+
+  simulacionFilas(simulacionId: number, businessAccountId: number, f: SimulacionFiltros): Observable<SimulacionFilasResponse> {
+    const params: Record<string, string> = {
+      businessAccountId: String(businessAccountId),
+      filtro: f.filtro,
+      page: String(f.page),
+      pageSize: String(f.pageSize),
+      conCompetencia: String(f.conCompetencia),
+    };
+    if (f.sucursal) params['sucursal'] = f.sucursal;
+    if (f.q.trim()) params['q'] = f.q.trim();
+    return this.http.get<SimulacionFilasResponse>(`${this.baseUrl}/simulaciones/${simulacionId}/filas`, { params });
+  }
+
+  simulacionCompetencia(simulacionId: number, businessAccountId: number): Observable<SimulacionCompetenciaResumen> {
+    return this.http.get<SimulacionCompetenciaResumen>(`${this.baseUrl}/simulaciones/${simulacionId}/competencia`, {
+      params: { businessAccountId: String(businessAccountId) },
+    });
+  }
+
+  verificarSimulacion(simulacionId: number, businessAccountId: number): Observable<VerificarSimulacionResponse> {
+    return this.http.post<VerificarSimulacionResponse>(`${this.baseUrl}/simulaciones/${simulacionId}/verificar`, { businessAccountId });
   }
 
   // E5.5 -- historial de importaciones + deshacer.

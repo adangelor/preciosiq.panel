@@ -1,0 +1,206 @@
+// BP-220 (8-nov-2026) -- la simulación de la carga. La base (filtros, tabla, paginado) sale de gestion.scss; las
+// tarjetas siguen el estilo tablero (el cuadrado de color del tema, .kpi-icono, sobresale arriba a la izquierda).
+.sim {
+  margin-top: 0.5rem;
+}
+
+.sim__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+  }
+}
+
+.sim__tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem 1.25rem;
+  margin: 2rem 0 1rem;
+}
+
+.sim__tarjeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.2rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border);
+  }
+}
+
+.sim__tarjeta--on {
+  border-color: var(--primary);
+}
+
+.sim__icono {
+  margin-top: -1.25rem;
+}
+
+.sim__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  padding-top: 0.75rem;
+  min-width: 0;
+}
+
+.sim__etiqueta {
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+.sim__valor {
+  font-size: 1.9rem;
+  font-weight: 300;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim__detalle {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.sim__nota {
+  font-size: 0.85rem;
+}
+
+.sim__margen {
+  margin: 0.5rem 0 0;
+}
+
+.sim__bloques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.sim__bloque {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+}
+
+.sim__lista {
+  margin: 0;
+  padding-left: 1.1rem;
+  line-height: 1.7;
+}
+
+.sim__grave {
+  color: var(--danger, #b91c1c);
+}
+
+.sim__filtros {
+  align-items: center;
+}
+
+.sim__tabla td.num,
+.sim__comp {
+  white-space: nowrap;
+}
+
+.sim__tabla .pill {
+  margin: 0 0.25rem 0.2rem 0;
+  white-space: nowrap;
+}
+
+.sim__sube {
+  color: var(--danger, #b91c1c);
+}
+
+.sim__baja {
+  color: var(--success, #15803d);
+}
+
+.sim__error {
+  color: var(--danger, #b91c1c);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.sim__entretanto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.sim__acciones {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg, var(--bg-card));
+}
+
+// En el teléfono la barra fija no puede tapar media pantalla: sin el texto de ayuda y los dos botones en una fila
+// (visto en el navegador a 375 px el 8-nov).
+@media (max-width: 48rem) {
+  .sim__acciones {
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+
+    > .sim__nota,
+    .sim__ancho {
+      display: none;
+    }
+  }
+
+  .sim__tarjetas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 0.75rem;
+  }
+
+  .sim__tarjeta {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .sim__icono {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.2rem;
+  }
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
