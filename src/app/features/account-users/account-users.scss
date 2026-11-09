@@ -134,3 +134,35 @@
   --mat-form-field-container-height: 40px;
   --mat-form-field-container-vertical-padding: 8px;
 }
+
+// BP-226 (8-nov-2026) -- las sucursales del Encargado.
+.sucursales-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.1rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  legend {
+    padding: 0 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+.sucursales-picker__acciones {
+  flex-basis: 100%;
+}
+
+.sucursales-de {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-3);
+}

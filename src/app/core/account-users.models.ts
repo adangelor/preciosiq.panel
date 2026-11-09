@@ -9,18 +9,24 @@ export interface AccountMemberResponse {
   email: string;
   firstName: string | null;
   lastName: string | null;
-  role: 'Owner' | 'Manager';
+  role: RolDeCuenta;
   createdAt: string;
   isCurrentUser: boolean;
+  /** BP-226 -- las sucursales (BranchId) de un Encargado. */
+  sucursales?: string[] | null;
 }
+
+/** BP-226 (8-nov-2026) -- 'Encargado' de sucursal: ve y responde las tareas de sus sucursales (plan Cadena). */
+export type RolDeCuenta = 'Owner' | 'Manager' | 'Encargado';
 
 export interface AccountInvitationResponse {
   id: number;
   email: string;
-  role: 'Owner' | 'Manager';
+  role: RolDeCuenta;
   createdAt: string;
   expiresAt: string;
   expired: boolean;
+  sucursales?: string[] | null;
 }
 
 export interface AccountUsersResponse {
@@ -30,7 +36,9 @@ export interface AccountUsersResponse {
 
 export interface InviteMemberRequest {
   email: string;
-  role: 'Owner' | 'Manager';
+  role: RolDeCuenta;
+  /** BP-226 -- obligatorio para el Encargado. */
+  sucursales?: string[];
 }
 
 // GET /api/business/invitations/{token} -- AllowAnonymous del lado del backend, se

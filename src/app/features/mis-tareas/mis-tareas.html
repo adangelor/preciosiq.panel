@@ -1,0 +1,119 @@
+<!-- BP-226 bloque 5 (8-nov-2026) -- Mis tareas, pensada para el teléfono del encargado. -->
+<div class="mis">
+  <header class="mis__cab">
+    <h1>Mis tareas</h1>
+    <button type="button" class="mis__recargar" (click)="cargar()" [disabled]="cargando()" aria-label="Actualizar">
+      <i class="fa-solid fa-rotate" [class.fa-spin]="cargando()" aria-hidden="true"></i>
+    </button>
+  </header>
+
+  @if (fuera()) {
+    <p class="alert alert--info"><span>Esa pantalla la maneja la casa central. Acá tenés tus tareas y los carteles de tu sucursal.</span></p>
+  }
+  @if (aviso()) {
+    <p class="alert alert--success" role="status"><span>{{ aviso() }}</span></p>
+  }
+  @if (error()) {
+    <p class="alert alert--danger">{{ error() }}</p>
+  }
+  @if (sinPlan()) {
+    <p class="alert alert--info"><span>Las tareas a sucursales vienen con el plan Cadena.</span></p>
+  }
+
+  @if (cargando() && items().length === 0) {
+    <p class="muted">Trayendo tus tareas…</p>
+  } @else if (!error() && !sinPlan()) {
+    @if (encargado() && sucursales() === 0) {
+      <p class="mis__vacia">Todavía no tenés una sucursal asignada. Pedile a la casa central que te la asigne en Usuarios.</p>
+    } @else if (pendientes().length === 0) {
+      <p class="mis__vacia"><i class="fa-regular fa-circle-check" aria-hidden="true"></i> No tenés tareas pendientes.</p>
+    }
+
+    @for (t of pendientes(); track clave(t)) {
+      <article class="mis__tarea" [class.mis__tarea--pedida]="t.estado === 'pedida'" [class.mis__tarea--atrasada]="t.atrasada">
+        @if (t.estado === 'pedida') {
+          <p class="mis__pedida"><strong>Te la pidieron de nuevo:</strong> {{ t.comentarioRevision }}</p>
+        }
+        <h2>{{ t.titulo }}</h2>
+        <p class="mis__meta">
+          <span [class.mis__rojo]="t.atrasada">{{ textoVencimiento(t.venceUtc) }}</span>
+          @if (variasSucursales()) { · {{ t.sucursal || t.branchId }} }
+        </p>
+        @if (t.instrucciones) {
+          <button type="button" class="mis__link" (click)="alternarInstrucciones(t)">
+            {{ abiertas().has(clave(t)) ? 'Ocultar instrucciones' : 'Ver instrucciones' }}
+          </button>
+          @if (abiertas().has(clave(t))) { <p class="mis__instrucciones">{{ t.instrucciones }}</p> }
+        }
+        @if (t.productos.length > 0) {
+          <p class="mis__productos">
+            {{ t.productos.length === 1 ? '1 producto' : t.productos.length + ' productos' }} ·
+            <a routerLink="/precios/carteles" [queryParams]="paramsCarteles(t)" target="_blank"><i class="fa-solid fa-print" aria-hidden="true"></i> Ver los carteles</a>
+          </p>
+        }
+
+        @let bb = b(t);
+        @if (bb.modo === 'foto') {
+          @if (bb.fotos.length > 0) {
+            <div class="mis__fotos">
+              @for (f of bb.fotos; track f.url; let i = $index) {
+                <div class="mis__foto">
+                  <img [src]="f.url" [alt]="'Foto ' + (i + 1)" />
+                  @if (!bb.enviando) {
+                    <button type="button" class="mis__quitar" (click)="quitarFoto(t, i)" [attr.aria-label]="'Quitar la foto ' + (i + 1)">×</button>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (bb.fotos.length < MAX_FOTOS && !bb.enviando) {
+            <label class="mis__sacar" [class.mis__sacar--chico]="bb.fotos.length > 0">
+              <input type="file" accept="image/*" capture="environment" (change)="elegirFotos(t, $event)" [disabled]="bb.achicando" />
+              <i class="fa-solid fa-camera" aria-hidden="true"></i>
+              {{ bb.achicando ? 'Preparando la foto…' : bb.fotos.length === 0 ? 'Sacar foto' : 'Sacar otra (' + bb.fotos.length + ' de ' + MAX_FOTOS + ')' }}
+            </label>
+          }
+          @if (bb.fotos.length > 0) {
+            <textarea class="mis__texto" rows="2" maxlength="1000" [value]="bb.comentario" (input)="setComentario(t, $event)"
+              placeholder="Comentario (opcional)" [disabled]="bb.enviando"></textarea>
+          }
+        } @else {
+          <textarea class="mis__texto" rows="3" maxlength="500" [value]="bb.motivo" (input)="setMotivo(t, $event)"
+            placeholder="¿Por qué no se pudo? (por ejemplo: no llegaron los carteles)" [disabled]="bb.enviando"></textarea>
+        }
+
+        @if (bb.enviando) {
+          <div class="mis__progreso" role="progressbar" [attr.aria-valuenow]="bb.progreso" aria-valuemin="0" aria-valuemax="100">
+            <span [style.width.%]="bb.progreso"></span>
+          </div>
+        }
+        @if (bb.error) {
+          <p class="mis__error">{{ bb.error }}</p>
+        }
+
+        @if ((bb.modo === 'foto' && bb.fotos.length > 0) || bb.modo === 'nosepudo') {
+          <button type="button" class="mis__enviar" (click)="enviar(t)" [disabled]="bb.enviando || bb.achicando">
+            {{ bb.enviando ? (bb.progreso < 100 ? 'Enviando… ' + bb.progreso + ' %' : 'Guardando…') : 'Enviar' }}
+          </button>
+        }
+        @if (!bb.enviando) {
+          @if (bb.modo === 'foto') {
+            <button type="button" class="mis__link mis__nosepudo" (click)="modo(t, 'nosepudo')">No se pudo hacer</button>
+          } @else {
+            <button type="button" class="mis__link mis__nosepudo" (click)="modo(t, 'foto')">Volver a la foto</button>
+          }
+        }
+      </article>
+    }
+
+    @if (hechas().length > 0) {
+      <h2 class="mis__sub">Ya respondidas</h2>
+      @for (t of hechas(); track clave(t)) {
+        <div class="mis__hecha">
+          <span class="mis__estado mis__estado--{{ t.estado }}">{{ ESTADOS[t.estado] }}</span>
+          <span>{{ t.titulo }}@if (variasSucursales()) { <span class="muted"> · {{ t.sucursal || t.branchId }}</span> }</span>
+        </div>
+      }
+    }
+  }
+</div>

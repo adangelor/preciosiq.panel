@@ -46,6 +46,11 @@ export class CartelesElegirComponent implements OnInit {
   protected readonly elegidos = computed(() => new Set(this.seleccion().map((p) => p.ean)));
   protected readonly llena = computed(() => this.seleccion().length >= MAX_CARTELES);
   protected readonly nombreSucursal = computed(() => this.branches().find((b) => b.branchId === this.branchId())?.branchName ?? '');
+  /** BP-226 -- la tarea "colgá estos carteles" con estos productos, a todas las sucursales (se puede cambiar en el alta). */
+  protected readonly paramsTarea = computed(() => ({
+    eans: this.seleccion().map((p) => p.ean).join(','),
+    origen: 'carteles',
+  }));
   /** Los parámetros de la hoja de carteles. */
   protected readonly paramsCarteles = computed(() => ({
     eans: this.seleccion().map((p) => p.ean).join(','),

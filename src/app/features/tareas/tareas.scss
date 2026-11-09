@@ -1,0 +1,112 @@
+// BP-226 (8-nov-2026) -- Tareas a sucursales. La base sale de gestion.scss.
+.tareas__barra {
+  align-items: center;
+}
+
+.tareas__nueva {
+  margin-left: auto;
+}
+
+.tareas__alta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 44rem;
+  margin: 1rem 0 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.tareas__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  input,
+  textarea {
+    width: 100%;
+  }
+}
+
+.tareas__campo--corto {
+  max-width: 16rem;
+}
+
+.tareas__destino {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+
+  legend {
+    margin-bottom: 0.4rem;
+    font-size: inherit;
+    font-weight: 600;
+  }
+}
+
+.tareas__zona {
+  flex-basis: 100%;
+  max-width: 20rem;
+}
+
+.tareas__sucursales {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.3rem 1rem;
+  flex-basis: 100%;
+}
+
+.tareas__productos .gestion__chips {
+  margin-top: 0.5rem;
+}
+
+.tareas__quitar {
+  margin-left: 0.25rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.tareas__tabla td {
+  vertical-align: top;
+}
+
+.tareas__fila--cerrada td {
+  opacity: 0.6;
+}
+
+.tareas__avance-celda {
+  min-width: 9rem;
+}
+
+.tareas__avance {
+  height: 0.5rem;
+  margin: 0.35rem 0 0.25rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  overflow: hidden;
+}
+
+.tareas__avance-barra {
+  display: block;
+  height: 100%;
+  background: var(--tono-verde-b, #43a047);
+}
+
+.tareas__rojo {
+  color: var(--danger, #b91c1c);
+  font-weight: 600;
+}

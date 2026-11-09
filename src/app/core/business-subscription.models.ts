@@ -65,6 +65,8 @@ export interface SubscriptionStatusResponse {
   cobro?: EstadoCobro | null;
   // 23-oct-2026 -- la tienda va desde Inicial (con el trial incluido). Opcional: un backend viejo no lo manda.
   hasTiendaOnline?: boolean;
+  /** BP-226 -- tareas con foto para las sucursales (Cadena). */
+  hasTareasSucursales?: boolean;
 }
 
 // BP-196 (22-oct-2026) -- espejo de EstadoCobroDto / CobroPendienteDto (Services/Cobro/CobroService.cs).

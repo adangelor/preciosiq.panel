@@ -1,0 +1,226 @@
+// BP-226 (8-nov-2026) -- el detalle de una tarea. La base sale de gestion.scss.
+.detalle__cab {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+
+  > div:first-child {
+    flex: 1 1 20rem;
+  }
+
+  h1 {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.detalle__instrucciones {
+  max-width: 48rem;
+  white-space: pre-line;
+}
+
+.detalle__productos {
+  margin: 0.5rem 0 1rem;
+
+  ul {
+    margin: 0.5rem 0;
+    padding-left: 1.2rem;
+  }
+}
+
+.detalle__resumen {
+  margin: 1rem 0 0.75rem;
+}
+
+.detalle__rojo {
+  color: var(--danger, #b91c1c);
+  font-weight: 600;
+}
+
+.detalle__grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.9rem;
+}
+
+.detalle__tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+}
+
+.detalle__tarjeta--abierta {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.detalle__foto {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-elevated, #eee);
+}
+
+:host ::ng-deep .detalle__mini {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detalle__mas {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.detalle__sin {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 1.6rem;
+  color: var(--text-3);
+}
+
+.detalle__nombre {
+  font-weight: 600;
+}
+
+.detalle__estado {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.detalle__estado--respondida {
+  background: color-mix(in srgb, var(--tono-azul-b, #1a73e8) 18%, transparent);
+  color: var(--tono-azul-b, #1a73e8);
+}
+
+.detalle__estado--aprobada {
+  background: color-mix(in srgb, var(--tono-verde-b, #43a047) 18%, transparent);
+  color: var(--tono-verde-b, #2e7d32);
+}
+
+.detalle__estado--nosepudo,
+.detalle__estado--pedida {
+  background: color-mix(in srgb, var(--warning, #b45309) 18%, transparent);
+  color: var(--warning, #b45309);
+}
+
+.detalle__estado--atrasada {
+  background: color-mix(in srgb, var(--danger, #b91c1c) 15%, transparent);
+  color: var(--danger, #b91c1c);
+}
+
+.detalle__panel {
+  margin-top: 1.25rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.detalle__panel-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.detalle__motivo {
+  font-style: italic;
+}
+
+.detalle__fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.detalle__grande {
+  flex: 1 1 24rem;
+  max-width: 40rem;
+}
+
+:host ::ng-deep .detalle__img {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #111;
+}
+
+.detalle__tira {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detalle__tira-foto {
+  width: 5.5rem;
+  height: 4.2rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+}
+
+.detalle__tira-foto--on {
+  border-color: var(--primary);
+}
+
+.detalle__revision {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 40rem;
+
+  textarea {
+    width: 100%;
+  }
+}
+
+.detalle__anteriores {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 48rem) {
+  .detalle__tira {
+    flex-direction: row;
+  }
+}

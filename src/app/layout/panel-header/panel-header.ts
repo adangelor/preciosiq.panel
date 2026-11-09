@@ -26,6 +26,7 @@ import { AvisosService } from '../../core/avisos';
 import { CampanitaComponent } from '../campanita/campanita';
 import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
 import { GESTION_VISIBLE } from '../../core/gestion-contexto';
+import { ROL_ENCARGADO } from '../../core/encargado-guard';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -73,6 +74,11 @@ export class PanelHeaderComponent implements OnInit {
   /** 24-oct-2026 -- Gestión escondida hasta tener 20-30 clientes (ver GESTION_VISIBLE). */
   protected readonly gestionVisible = GESTION_VISIBLE;
   protected readonly faltaFormacion = computed(() => this.planStatus()?.hasFormacionPrecios === false);
+  /** BP-226 -- el Encargado de sucursal ve un menú corto (Mis tareas). La seguridad la pone el backend. */
+  protected readonly esEncargado = computed(() => this.cuentas()[0]?.rol === ROL_ENCARGADO);
+  /** BP-226 -- "Tareas a sucursales" aparece con más de una sucursal (decisión F); sin el plan Cadena, con la etiqueta. */
+  protected readonly muestraTareas = computed(() => (this.planStatus()?.currentBranchCount ?? 0) > 1);
+  protected readonly faltaTareas = computed(() => this.planStatus()?.hasTareasSucursales === false);
   protected resolveLogoUrl = resolveLogoUrl;
 
   // E10.5 -- solo para mostrar/ocultar el link "Admin: trials" del menu. La
@@ -174,7 +180,8 @@ export class PanelHeaderComponent implements OnInit {
         this.cuentas.set(accounts);   // BP-88: la elegida viene primera (ver BusinessAccountService.getMine)
         this.razonSocial.set(accounts[0].razonSocial);
         this.logoUrl.set(accounts[0].logoUrl);
-        this.avisos.vigilar(accounts[0].businessAccountId);
+        // BP-226: el Encargado no ve la tienda ni sus pedidos (el backend se los cierra): no se vigilan.
+        if (accounts[0].rol !== ROL_ENCARGADO) this.avisos.vigilar(accounts[0].businessAccountId);
         this.subscriptionService.getStatus(accounts[0].businessAccountId).subscribe({
           next: (s) => this.planStatus.set(s),
           error: () => {},

@@ -1,0 +1,174 @@
+<!-- BP-226 (8-nov-2026) -- Tareas a sucursales (casa central). -->
+<div class="gestion tareas card--page">
+  <h1>Tareas a sucursales</h1>
+  <p class="subtitle">
+    Mandale una tarea a tus sucursales («colgá los carteles de la promo del jueves») y cada encargado la responde desde el
+    teléfono con una foto. Acá ves quién cumplió, quién no y quién está atrasado.
+  </p>
+
+  @if (cargandoCuenta()) {
+    <p class="muted">Cargando tu comercio…</p>
+  } @else if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un comercio dado de alta. <a routerLink="/alta">Dar de alta mi comercio →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        Las tareas a sucursales vienen con el plan <strong>Cadena</strong>, pensado para comercios con varias sucursales.
+        <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else if (unaSola()) {
+    <div class="alert alert--info">
+      <span>
+        Las tareas sirven cuando tenés más de una sucursal: la casa central manda y cada encargado responde.
+        <a routerLink="/sucursales">Ver mis sucursales →</a>
+      </span>
+    </div>
+  } @else {
+    <div class="gestion__chips tareas__barra" role="tablist">
+      <button type="button" class="chip" [class.chip--on]="estado() === 'abiertas'" (click)="verEstado('abiertas')">Abiertas</button>
+      <button type="button" class="chip" [class.chip--on]="estado() === 'cerradas'" (click)="verEstado('cerradas')">Cerradas</button>
+      <button type="button" class="chip" [class.chip--on]="estado() === 'todas'" (click)="verEstado('todas')">Todas</button>
+      @if (!creando()) {
+        <button type="button" class="btn btn--small tareas__nueva" (click)="nueva()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva tarea</button>
+      }
+    </div>
+
+    @if (aviso()) {
+      <p class="alert alert--success"><span>{{ aviso() }}</span></p>
+    }
+    @if (error()) {
+      <p class="alert alert--danger">{{ error() }}</p>
+    }
+
+    <!-- ================================================================ el alta -->
+    @if (creando()) {
+      <section class="tareas__alta" aria-label="Nueva tarea">
+        <h2>Nueva tarea</h2>
+        <label class="tareas__campo">
+          <span>Qué tienen que hacer</span>
+          <input type="text" maxlength="120" [value]="titulo()" (input)="titulo.set(val($event))" placeholder="Colgar los carteles de la promo del jueves" />
+        </label>
+        <label class="tareas__campo">
+          <span>Instrucciones <span class="muted">(opcional)</span></span>
+          <textarea rows="3" maxlength="2000" [value]="instrucciones()" (input)="instrucciones.set(val($event))"
+            placeholder="En la punta de góndola de bebidas. Sacale una foto de frente a cada cartel."></textarea>
+        </label>
+        <label class="tareas__campo tareas__campo--corto">
+          <span>Hasta cuándo</span>
+          <input type="datetime-local" [value]="vence()" (input)="vence.set(val($event))" />
+        </label>
+
+        <fieldset class="tareas__destino">
+          <legend>A qué sucursales</legend>
+          <label class="gestion__check"><input type="radio" name="destino" [checked]="destino() === 'todas'" (change)="destino.set('todas')" /> Todas ({{ branches().length }})</label>
+          @if (zonas().length > 0) {
+            <label class="gestion__check"><input type="radio" name="destino" [checked]="destino() === 'zona'" (change)="destino.set('zona')" /> Una zona de precio</label>
+          }
+          <label class="gestion__check"><input type="radio" name="destino" [checked]="destino() === 'sucursales'" (change)="destino.set('sucursales')" /> Elegir</label>
+          @if (destino() === 'zona') {
+            <select class="tareas__zona" (change)="zonaId.set(+val($event) || null)" aria-label="Zona de precio">
+              <option value="">Elegí la zona…</option>
+              @for (z of zonas(); track z.id) {
+                <option [value]="z.id" [selected]="zonaId() === z.id">{{ z.nombre }} ({{ z.sucursales.length }})</option>
+              }
+            </select>
+          }
+          @if (destino() === 'sucursales') {
+            <div class="tareas__sucursales">
+              @for (b of branches(); track b.branchId) {
+                <label class="gestion__check">
+                  <input type="checkbox" [checked]="elegidas().has(b.branchId)" (change)="alternarSucursal(b.branchId)" />
+                  {{ b.branchName || b.branchId }}
+                </label>
+              }
+            </div>
+          }
+        </fieldset>
+
+        @if (eans().length > 0) {
+          <div class="tareas__productos">
+            <strong>Productos de la tarea ({{ eans().length }})</strong>
+            <span class="muted">— el encargado ve la lista y puede imprimir los carteles desde su teléfono.</span>
+            <div class="gestion__chips">
+              @for (e of eans(); track e) {
+                <span class="chip chip--on">{{ e }} <button type="button" class="tareas__quitar" (click)="quitarEan(e)" [attr.aria-label]="'Quitar ' + e">×</button></span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (errorAlta()) {
+          <p class="alert alert--danger">{{ errorAlta() }}</p>
+        }
+        <div class="gestion__acciones">
+          <button type="button" class="btn" (click)="guardar()" [disabled]="guardando()">
+            {{ guardando() ? 'Mandando…' : 'Mandar a ' + (cuantasVan() === 1 ? '1 sucursal' : cuantasVan() + ' sucursales') }}
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="cancelar()">Cancelar</button>
+        </div>
+      </section>
+    }
+
+    <!-- ================================================================ la lista -->
+    @if (cargando() && !items()) {
+      <app-loading-bar label="Trayendo las tareas…" />
+    } @else if (items(); as lista) {
+      @if (lista.length === 0) {
+        <div class="gestion__vacia">
+          @if (estado() === 'abiertas') {
+            No hay tareas abiertas. Tocá <strong>Nueva tarea</strong>, o mandala desde los
+            <a routerLink="/carteles">carteles de góndola</a> con los productos ya elegidos.
+          } @else {
+            No hay tareas acá.
+          }
+        </div>
+      } @else {
+        <div class="table-wrap">
+          <table class="data tareas__tabla">
+            <thead>
+              <tr>
+                <th>Tarea</th>
+                <th>Vence</th>
+                <th>Avance</th>
+                <th class="num">Para revisar</th>
+                <th class="num">Pendientes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of lista; track t.id) {
+                <tr [class.tareas__fila--cerrada]="t.estado === 'cerrada'">
+                  <td>
+                    <a [routerLink]="['/tareas', t.id]"><strong>{{ t.titulo }}</strong></a>
+                    <div class="muted gestion__sub">
+                      @if (t.origen === 'carteles') { <i class="fa-solid fa-print" aria-hidden="true"></i> desde carteles · }
+                      @if (t.productos > 0) { {{ t.productos }} productos · }
+                      @if (t.estado === 'cerrada') { cerrada · }
+                      {{ t.creadaPor }}
+                    </div>
+                  </td>
+                  <td [class.tareas__rojo]="vencida(t) && t.pendientes > 0">{{ textoVencimiento(t.venceUtc) }}</td>
+                  <td class="tareas__avance-celda">
+                    <div class="tareas__avance" [attr.aria-label]="t.respondidas + ' de ' + t.sucursales + ' respondieron'">
+                      <span class="tareas__avance-barra" [style.width.%]="avance(t)"></span>
+                    </div>
+                    <span class="gestion__nowrap">{{ t.respondidas }} de {{ t.sucursales }}</span>
+                    @if (t.aprobadas > 0) { <span class="muted"> · {{ t.aprobadas }} {{ t.aprobadas === 1 ? 'aprobada' : 'aprobadas' }}</span> }
+                  </td>
+                  <td class="num">{{ t.respondidas - t.aprobadas || '' }}</td>
+                  <td class="num">
+                    @if (t.atrasadas > 0) {
+                      <span class="tareas__rojo" title="Venció y todavía no respondieron">{{ t.pendientes }} {{ t.pendientes === 1 ? 'atrasada' : 'atrasadas' }}</span>
+                    } @else {
+                      {{ t.pendientes || '' }}
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</div>

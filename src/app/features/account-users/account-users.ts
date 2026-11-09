@@ -10,8 +10,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AccountUsersService } from '../../core/account-users';
-import { AccountInvitationResponse, AccountMemberResponse, memberDisplayName } from '../../core/account-users.models';
+import { AccountInvitationResponse, AccountMemberResponse, RolDeCuenta, memberDisplayName } from '../../core/account-users.models';
 import { BusinessAccountService } from '../../core/business-account';
+import { BranchListItem } from '../../core/business-account.models';
+import { GestionContextoService } from '../../core/gestion-contexto';
 
 // E-Cuenta (17-ago-2026) -- pedido de Andres: "necesitamos otro menu lateral que
 // maneje los usuarios" para PreciosIQ tambien. Idéntico al AccountUsersComponent de
@@ -44,6 +46,15 @@ import { BusinessAccountService } from '../../core/business-account';
 export class AccountUsersComponent implements OnInit {
   private readonly businessAccountService = inject(BusinessAccountService);
   private readonly accountUsersService = inject(AccountUsersService);
+  private readonly gestion = inject(GestionContextoService);
+
+  // BP-226 (8-nov-2026) -- el Encargado de sucursal: se ofrece con el plan Cadena y más de una sucursal.
+  protected readonly branches = signal<BranchListItem[]>([]);
+  protected readonly conTareas = signal(false);
+  protected readonly puedeEncargado = computed(() => this.conTareas() && this.branches().length > 1);
+  protected readonly inviteSucursales = signal<Set<string>>(new Set());
+  /** userId del Encargado al que se le están cambiando las sucursales, con la elección en curso. */
+  protected readonly editandoSucursales = signal<{ userId: string; elegidas: Set<string> } | null>(null);
 
   protected readonly loadingAccount = signal(true);
   protected readonly businessAccountId = signal<number | null>(null);
@@ -63,7 +74,7 @@ export class AccountUsersComponent implements OnInit {
 
   // Formulario de invitacion
   protected readonly inviteEmail = signal('');
-  protected readonly inviteRole = signal<'Owner' | 'Manager'>('Manager');
+  protected readonly inviteRole = signal<RolDeCuenta>('Manager');
   protected readonly inviting = signal(false);
   protected readonly inviteError = signal<string | null>(null);
   protected readonly inviteSuccess = signal<string | null>(null);
@@ -87,6 +98,14 @@ export class AccountUsersComponent implements OnInit {
         this.businessAccountId.set(account.businessAccountId);
         this.razonSocial.set(account.razonSocial);
         this.loadUsers(account.businessAccountId);
+        this.gestion.load().subscribe({
+          next: (g) => {
+            if (!g) return;
+            this.branches.set(g.branches);
+            this.conTareas.set(g.tareasSucursales);
+          },
+          error: () => {},
+        });
       },
       error: () => {
         this.loadingAccount.set(false);
@@ -126,11 +145,23 @@ export class AccountUsersComponent implements OnInit {
     this.inviteError.set(null);
     this.inviteSuccess.set(null);
 
-    this.accountUsersService.invite(businessAccountId, { email, role: this.inviteRole() }).subscribe({
+    const esEncargado = this.inviteRole() === 'Encargado';
+    if (esEncargado && this.inviteSucursales().size === 0) {
+      this.inviting.set(false);
+      this.inviteError.set('Elegí la sucursal (o las sucursales) del encargado.');
+      return;
+    }
+    const request = esEncargado
+      ? { email, role: this.inviteRole(), sucursales: [...this.inviteSucursales()] }
+      : { email, role: this.inviteRole() };
+    this.accountUsersService.invite(businessAccountId, request).subscribe({
       next: (invitation) => {
         this.inviting.set(false);
-        this.inviteSuccess.set(`Invitación enviada a ${invitation.email}.`);
+        this.inviteSuccess.set(esEncargado
+          ? `Invitación enviada a ${invitation.email}. Cuando la acepte, va a ver sus tareas en Mis tareas, desde el teléfono.`
+          : `Invitación enviada a ${invitation.email}.`);
         this.inviteEmail.set('');
+        this.inviteSucursales.set(new Set());
         this.pendingInvitations.update((list) => [...list, invitation]);
       },
       error: (err) => {
@@ -170,7 +201,7 @@ export class AccountUsersComponent implements OnInit {
   // Un Owner que se baja a si mismo a Manager pierde los controles en el acto (isOwner se recalcula).
   protected changeRole(member: AccountMemberResponse, event: MatSelectChange): void {
     const businessAccountId = this.businessAccountId();
-    const role = event.value as 'Owner' | 'Manager';
+    const role = event.value as RolDeCuenta;
     if (!businessAccountId || role === member.role) return;
 
     this.errorMessage.set(null);
@@ -178,13 +209,60 @@ export class AccountUsersComponent implements OnInit {
     this.accountUsersService.changeRole(businessAccountId, member.userId, role).subscribe({
       next: () => {
         this.changingRoleUserId.set(null);
-        this.members.update((list) => list.map((m) => (m.userId === member.userId ? { ...m, role } : m)));
+        this.members.update((list) => list.map((m) => (m.userId === member.userId ? { ...m, role, sucursales: role === 'Encargado' ? [] : null } : m)));
+        // BP-226: un Encargado nuevo arranca sin sucursales; se abren para elegirlas.
+        if (role === 'Encargado') this.editandoSucursales.set({ userId: member.userId, elegidas: new Set() });
       },
       error: (err) => {
         this.changingRoleUserId.set(null);
         event.source.value = member.role;
         this.errorMessage.set(err?.error?.error ?? 'No se pudo cambiar el rol. Probá de nuevo.');
       },
+    });
+  }
+
+  // ------------------------------------------------------------------ BP-226: sucursales del Encargado
+  protected nombreSucursal(id: string): string {
+    return this.branches().find((b) => b.branchId === id)?.branchName ?? id;
+  }
+
+  protected nombresSucursales(ids: string[] | null | undefined): string {
+    return (ids ?? []).map((id) => this.nombreSucursal(id)).join(', ');
+  }
+
+  protected alternarInvite(id: string): void {
+    const s = new Set(this.inviteSucursales());
+    if (s.has(id)) s.delete(id); else s.add(id);
+    this.inviteSucursales.set(s);
+  }
+
+  protected editarSucursales(member: AccountMemberResponse): void {
+    this.editandoSucursales.set({ userId: member.userId, elegidas: new Set(member.sucursales ?? []) });
+  }
+
+  protected alternarEdicion(id: string): void {
+    const e = this.editandoSucursales();
+    if (!e) return;
+    const s = new Set(e.elegidas);
+    if (s.has(id)) s.delete(id); else s.add(id);
+    this.editandoSucursales.set({ ...e, elegidas: s });
+  }
+
+  protected guardarSucursales(): void {
+    const businessAccountId = this.businessAccountId();
+    const e = this.editandoSucursales();
+    if (!businessAccountId || !e) return;
+    if (e.elegidas.size === 0) {
+      this.errorMessage.set('Elegí al menos una sucursal para el encargado.');
+      return;
+    }
+    this.errorMessage.set(null);
+    this.accountUsersService.changeSucursales(businessAccountId, e.userId, [...e.elegidas]).subscribe({
+      next: (r) => {
+        this.members.update((list) => list.map((m) => (m.userId === e.userId ? { ...m, sucursales: r.sucursales } : m)));
+        this.editandoSucursales.set(null);
+      },
+      error: (err) => this.errorMessage.set(err?.error?.error ?? 'No se pudieron guardar las sucursales.'),
     });
   }
 

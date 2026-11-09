@@ -34,6 +34,8 @@ export interface BusinessAccountResponse {
   subscriptionTier: string;
   createdAt: string;
   logoUrl: string | null;
+  /** BP-226 -- el rol de quien mira (Owner, Manager, Encargado); solo viene en GET /me. */
+  rol?: string | null;
 }
 
 // E1.6 -- pide el sitio web del comercio para traerle el favicon como logo.

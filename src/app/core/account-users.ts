@@ -8,6 +8,7 @@ import {
   AccountUsersResponse,
   InvitationPreviewResponse,
   InviteMemberRequest,
+  RolDeCuenta,
 } from './account-users.models';
 
 // Cliente de AccountUsersEndpoints.cs (E4.7, generalizado E-Cuenta 17-ago-2026), grupo
@@ -35,7 +36,12 @@ export class AccountUsersService {
   }
 
   // 09-oct-2026 -- el Owner cambia el rol de un miembro. El backend no deja la cuenta sin Owner (409).
-  changeRole(businessAccountId: number, userId: string, role: 'Owner' | 'Manager'): Observable<{ userId: string; role: string }> {
+  /** BP-226 -- las sucursales de un Encargado (solo Owner). */
+  changeSucursales(businessAccountId: number, userId: string, sucursales: string[]): Observable<{ userId: string; sucursales: string[] }> {
+    return this.http.put<{ userId: string; sucursales: string[] }>(`${this.accountsUrl}/${businessAccountId}/users/${userId}/sucursales`, { sucursales });
+  }
+
+  changeRole(businessAccountId: number, userId: string, role: RolDeCuenta): Observable<{ userId: string; role: string }> {
     return this.http.put<{ userId: string; role: string }>(`${this.accountsUrl}/${businessAccountId}/users/${userId}/role`, { role });
   }
 

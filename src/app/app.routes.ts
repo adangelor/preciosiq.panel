@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/admin-guard';
 import { authGuard, cambioObligadoGuard } from './core/auth-guard';
+import { encargadoGuard } from './core/encargado-guard';
 import { guestGuard } from './core/guest-guard';
 
 export const routes: Routes = [
@@ -85,7 +86,8 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./layout/panel-header/panel-header').then((m) => m.PanelHeaderComponent),
     canActivate: [authGuard, cambioObligadoGuard],
-    canActivateChild: [cambioObligadoGuard],   // BP-282: tambien al moverse entre pantallas
+    // BP-282: tambien al moverse entre pantallas. BP-226: el Encargado de sucursal solo ve Mis tareas (encargadoGuard).
+    canActivateChild: [cambioObligadoGuard, encargadoGuard],
     children: [
       {
         path: 'sucursales/nueva',
@@ -124,6 +126,22 @@ export const routes: Routes = [
         path: 'precios/formacion',
         loadComponent: () => import('./features/precios-formacion/formacion').then((m) => m.FormacionPreciosComponent),
         title: 'PreciosIQ — Formación de precios',
+      },
+      // BP-226 (8-nov-2026) -- tareas con foto para las sucursales (Cadena): la casa central y el encargado.
+      {
+        path: 'tareas',
+        loadComponent: () => import('./features/tareas/tareas').then((m) => m.TareasComponent),
+        title: 'PreciosIQ — Tareas a sucursales',
+      },
+      {
+        path: 'tareas/:id',
+        loadComponent: () => import('./features/tareas/tarea-detalle').then((m) => m.TareaDetalleComponent),
+        title: 'PreciosIQ — Tarea',
+      },
+      {
+        path: 'mis-tareas',
+        loadComponent: () => import('./features/mis-tareas/mis-tareas').then((m) => m.MisTareasComponent),
+        title: 'PreciosIQ — Mis tareas',
       },
       // BP-219 (8-nov-2026) -- el margen real: del costo a lo que de verdad se cobró (Avanzado y Cadena).
       {

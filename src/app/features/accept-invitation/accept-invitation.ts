@@ -73,7 +73,10 @@ export class AcceptInvitationComponent implements OnInit {
       next: () => {
         this.accepting.set(false);
         this.accepted.set(true);
-        setTimeout(() => this.router.navigateByUrl('/dashboard'), 1500);
+        // BP-226: el Encargado de sucursal va a Mis tareas, con el panel recargado (el menú y la cuenta guardada
+        // todavía son de antes de aceptar).
+        if (this.role() === 'Encargado') setTimeout(() => window.location.assign('/mis-tareas'), 1500);
+        else setTimeout(() => this.router.navigateByUrl('/dashboard'), 1500);
       },
       error: (err) => {
         this.accepting.set(false);

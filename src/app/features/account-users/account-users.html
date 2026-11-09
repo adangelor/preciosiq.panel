@@ -27,6 +27,9 @@
             <mat-select [ngModel]="inviteRole()" (ngModelChange)="inviteRole.set($event)" name="inviteRole">
               <mat-option value="Manager">Manager</mat-option>
               <mat-option value="Owner">Owner</mat-option>
+              @if (puedeEncargado()) {
+                <mat-option value="Encargado">Encargado de sucursal</mat-option>
+              }
             </mat-select>
           </mat-form-field>
 
@@ -39,6 +42,16 @@
           </button>
         </form>
 
+        <!-- BP-226: las sucursales del encargado. -->
+        @if (inviteRole() === 'Encargado') {
+          <fieldset class="sucursales-picker">
+            <legend>Sus sucursales</legend>
+            @for (b of branches(); track b.branchId) {
+              <label><input type="checkbox" [checked]="inviteSucursales().has(b.branchId)" (change)="alternarInvite(b.branchId)" /> {{ b.branchName || b.branchId }}</label>
+            }
+          </fieldset>
+        }
+
         @if (inviteError()) {
           <p class="form-error">{{ inviteError() }}</p>
         }
@@ -48,6 +61,9 @@
 
         <p class="hint hint--small">
           Owner puede invitar/quitar gente, cambiarles el rol y administrar la cuenta. Manager puede ver todo pero no gestionar usuarios.
+          @if (puedeEncargado()) {
+            Encargado de sucursal ve solo las tareas de sus sucursales y las responde con fotos desde el teléfono.
+          }
         </p>
       </section>
     }
@@ -89,10 +105,36 @@
                       >
                         <mat-option value="Manager">Manager</mat-option>
                         <mat-option value="Owner">Owner</mat-option>
+                        @if (puedeEncargado() || member.role === 'Encargado') {
+                          <mat-option value="Encargado">Encargado de sucursal</mat-option>
+                        }
                       </mat-select>
                     </mat-form-field>
                   } @else {
                     <mat-chip [class.role-chip--owner]="member.role === 'Owner'" class="role-chip">{{ member.role }}</mat-chip>
+                  }
+                  <!-- BP-226: las sucursales del encargado. -->
+                  @if (member.role === 'Encargado') {
+                    @if (editandoSucursales(); as ed) {
+                      @if (ed.userId === member.userId) {
+                        <fieldset class="sucursales-picker">
+                          <legend>Sus sucursales</legend>
+                          @for (b of branches(); track b.branchId) {
+                            <label><input type="checkbox" [checked]="ed.elegidas.has(b.branchId)" (change)="alternarEdicion(b.branchId)" /> {{ b.branchName || b.branchId }}</label>
+                          }
+                          <span class="sucursales-picker__acciones">
+                            <button mat-button color="primary" type="button" (click)="guardarSucursales()">Guardar</button>
+                            <button mat-button type="button" (click)="editandoSucursales.set(null)">Cancelar</button>
+                          </span>
+                        </fieldset>
+                      }
+                    }
+                    @if (editandoSucursales()?.userId !== member.userId) {
+                      <div class="sucursales-de">
+                        {{ member.sucursales?.length ? nombresSucursales(member.sucursales) : 'Sin sucursal asignada' }}
+                        @if (isOwner()) { <button mat-button type="button" (click)="editarSucursales(member)">Cambiar</button> }
+                      </div>
+                    }
                   }
                 </td>
                 <td>{{ member.createdAt | date: 'dd/MM/yyyy' }}</td>
@@ -142,7 +184,10 @@
             @for (invitation of pendingInvitations(); track invitation.id) {
               <tr [class.invitation-row--expired]="invitation.expired">
                 <td>{{ invitation.email }}</td>
-                <td><mat-chip class="role-chip">{{ invitation.role }}</mat-chip></td>
+                <td>
+                  <mat-chip class="role-chip">{{ invitation.role === 'Encargado' ? 'Encargado de sucursal' : invitation.role }}</mat-chip>
+                  @if (invitation.sucursales?.length) { <div class="sucursales-de">{{ nombresSucursales(invitation.sucursales) }}</div> }
+                </td>
                 <td>
                   {{ invitation.expiresAt | date: 'dd/MM/yyyy' }}
                   @if (invitation.expired) {

@@ -119,6 +119,12 @@
               <i class="fa-solid fa-print" aria-hidden="true"></i>
               Ver e imprimir {{ seleccion().length === 1 ? 'el cartel' : 'los ' + seleccion().length + ' carteles' }}
             </a>
+            <!-- BP-226 (8-nov-2026) -- la tarea típica: "colgá estos carteles" a las sucursales, con foto (plan Cadena). -->
+            @if (branches().length > 1) {
+              <a class="btn btn--ghost" routerLink="/tareas" [queryParams]="paramsTarea()">
+                <i class="fa-solid fa-camera" aria-hidden="true"></i> Mandar a las sucursales
+              </a>
+            }
             <button type="button" class="btn btn--ghost" (click)="vaciar()">Vaciar</button>
           </div>
         }

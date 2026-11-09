@@ -16,7 +16,7 @@
     <div class="accept-invitation__card">
       <h1>Te invitaron a sumarte</h1>
       <p>
-        Te invitaron a <b>{{ razonSocial() }}</b> en PreciosIQ como <b>{{ role() }}</b>.
+        Te invitaron a <b>{{ razonSocial() }}</b> en PreciosIQ como <b>{{ role() === 'Encargado' ? 'encargado de sucursal' : role() }}</b>.
       </p>
       @if (invitedEmail()) {
         <p class="hint hint--small">Esta invitación es para {{ invitedEmail() }}.</p>
