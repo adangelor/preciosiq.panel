@@ -43,6 +43,9 @@
           >
             <mat-icon>task_alt</mat-icon>
             <span class="shell__link-text">Mis tareas</span>
+            @if (tareasContador() > 0) {
+              <span class="shell__badge" [attr.aria-label]="tareasContador() + ' tareas por responder'">{{ tareasContador() > 99 ? '99+' : tareasContador() }}</span>
+            }
           </a>
         </li>
         } @else {
@@ -188,6 +191,9 @@
               <mat-icon>task_alt</mat-icon>
               <span class="shell__link-text">Tareas a sucursales
                 @if (faltaTareas()) { <span class="shell__plan-tag" title="Con el plan Cadena">Cadena</span> }</span>
+              @if (tareasContador() > 0) {
+                <span class="shell__badge" [attr.aria-label]="tareasContador() + ' respuestas para revisar'">{{ tareasContador() > 99 ? '99+' : tareasContador() }}</span>
+              }
             </a>
           </li>
         }

@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GestionContextoService } from '../../core/gestion-contexto';
-import { DetalleTarea, ESTADOS, SucursalDeTarea, TareasService, textoVencimiento } from '../../core/tareas';
+import { DetalleTarea, ESTADOS, FotoDeTarea, OCR, SucursalDeTarea, TareasService, textoVencimiento } from '../../core/tareas';
 import { LoadingBarComponent } from '../../layout/loading-bar/loading-bar';
 import { FotoTareaComponent } from './foto-tarea';
 
@@ -22,6 +22,7 @@ export class TareaDetalleComponent implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
 
   protected readonly ESTADOS = ESTADOS;
+  protected readonly OCR = OCR;
   protected readonly textoVencimiento = textoVencimiento;
   protected cuenta = 0;
   private id = 0;
@@ -47,6 +48,22 @@ export class TareaDetalleComponent implements OnInit {
     }
     return c;
   });
+  // Bloque 6: la foto que se ve grande, con su producto y la marca del control del precio.
+  protected readonly fotoActual = computed<FotoDeTarea | null>(() =>
+    this.sucursal()?.respuestas[0]?.fotos.find((f) => f.id === this.fotoGrande()) ?? null);
+
+  protected nombreDe(ean: string | null): string | null {
+    if (!ean) return null;
+    return this.datos()?.productos.find((p) => p.ean === ean)?.descripcion ?? ean;
+  }
+
+  /** La marca de la tarjeta: 'mal' si alguna foto no coincide, 'ok' si todas las controladas coinciden, null si no hay. */
+  protected ocrDe(s: SucursalDeTarea): 'ok' | 'mal' | null {
+    const fotos = (s.respuestas[0]?.fotos ?? []).filter((f) => f.ocrEstado === 'coincide' || f.ocrEstado === 'nocoincide');
+    if (fotos.length === 0) return null;
+    return fotos.some((f) => f.ocrEstado === 'nocoincide') ? 'mal' : 'ok';
+  }
+
   protected readonly paramsCarteles = computed(() => ({ eans: (this.datos()?.productos ?? []).map((p) => p.ean).join(',') }));
 
   ngOnInit(): void {
@@ -61,10 +78,25 @@ export class TareaDetalleComponent implements OnInit {
     });
   }
 
+  // Bloque 6: el precio se controla en el servidor unos segundos después de la respuesta. Si hay fotos recién llegadas
+  // sin controlar, se vuelve a pedir el detalle cada 6 s, como mucho 10 veces.
+  private reintentosOcr = 0;
+  private timerOcr: ReturnType<typeof setTimeout> | null = null;
+  private readonly alSalir = inject(DestroyRef).onDestroy(() => { if (this.timerOcr) clearTimeout(this.timerOcr); });
+
+  private esperandoOcr(d: DetalleTarea): boolean {
+    const hace10min = Date.now() - 10 * 60000;
+    return d.sucursales.some((s) => s.respuestas.some((r) => new Date(r.creadaUtc).getTime() > hace10min
+      && r.fotos.some((f) => !!f.ean && !f.ocrEstado && !f.borrada)));
+  }
+
   protected async cargar(): Promise<void> {
     this.cargando.set(true);
     try {
-      this.datos.set(await firstValueFrom(this.api.detalle(this.cuenta, this.id)));
+      const d = await firstValueFrom(this.api.detalle(this.cuenta, this.id));
+      this.datos.set(d);
+      if (this.timerOcr) clearTimeout(this.timerOcr);
+      if (this.esperandoOcr(d) && this.reintentosOcr++ < 10) this.timerOcr = setTimeout(() => void this.cargar(), 6000);
     } catch (err) {
       this.error.set((err as { error?: { error?: string } })?.error?.error ?? 'No se pudo traer la tarea.');
     } finally {
@@ -96,6 +128,7 @@ export class TareaDetalleComponent implements OnInit {
       await firstValueFrom(aprobar
         ? this.api.aprobar(this.cuenta, this.id, s.branchId, this.comentario().trim() || null)
         : this.api.pedir(this.cuenta, this.id, s.branchId, this.comentario().trim()));
+      this.api.avisarCambio();
       await this.cargar();
       this.siguiente(s.branchId);
     } catch (err) {

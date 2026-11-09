@@ -70,6 +70,10 @@
             {{ s.atrasada ? 'Atrasada' : ESTADOS[s.estado] }}
           </span>
           @if (s.respuestas[0]?.fueraDeTermino) { <span class="muted gestion__sub">fuera de término</span> }
+          @switch (ocrDe(s)) {
+            @case ('ok') { <span class="detalle__ocr detalle__ocr--ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> precios bien</span> }
+            @case ('mal') { <span class="detalle__ocr detalle__ocr--mal"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> revisar precio</span> }
+          }
         </button>
       }
     </div>
@@ -101,11 +105,27 @@
                   <app-foto-tarea [cuenta]="cuenta" [fotoId]="fg" [miniatura]="false" clase="detalle__img" />
                 }
               </div>
+              @if (fotoActual(); as fa) {
+                @if (fa.ean) {
+                  <div class="detalle__control">
+                    <strong>{{ nombreDe(fa.ean) }}</strong>
+                    @if (fa.ocrEstado && OCR[fa.ocrEstado]; as o) {
+                      <span class="detalle__ocr detalle__ocr--{{ o.clase }}"><i class="fa-solid {{ o.icono }}" aria-hidden="true"></i> {{ o.texto }}</span>
+                      @if (fa.ocrDetalle) { <span class="muted">{{ fa.ocrDetalle }}</span> }
+                    } @else if (!fa.borrada) {
+                      <span class="muted">El precio todavía no se controló.</span>
+                    }
+                  </div>
+                }
+              }
               @if (r.fotos.length > 1) {
                 <div class="detalle__tira">
                   @for (f of r.fotos; track f.id) {
                     <button type="button" class="detalle__tira-foto" [class.detalle__tira-foto--on]="fotoGrande() === f.id" (click)="fotoGrande.set(f.id)" [attr.aria-label]="'Foto ' + f.orden">
                       <app-foto-tarea [cuenta]="cuenta" [fotoId]="f.id" clase="detalle__mini" />
+                      @if (f.ocrEstado === 'coincide' || f.ocrEstado === 'nocoincide') {
+                        <span class="detalle__punto detalle__punto--{{ OCR[f.ocrEstado].clase }}" aria-hidden="true"></span>
+                      }
                     </button>
                   }
                 </div>

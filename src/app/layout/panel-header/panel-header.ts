@@ -10,9 +10,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { MatSidenavContainer, MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth';
@@ -27,6 +27,7 @@ import { CampanitaComponent } from '../campanita/campanita';
 import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
 import { GESTION_VISIBLE } from '../../core/gestion-contexto';
 import { ROL_ENCARGADO } from '../../core/encargado-guard';
+import { TareasService } from '../../core/tareas';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -79,6 +80,29 @@ export class PanelHeaderComponent implements OnInit {
   /** BP-226 -- "Tareas a sucursales" aparece con más de una sucursal (decisión F); sin el plan Cadena, con la etiqueta. */
   protected readonly muestraTareas = computed(() => (this.planStatus()?.currentBranchCount ?? 0) > 1);
   protected readonly faltaTareas = computed(() => this.planStatus()?.hasTareasSucursales === false);
+
+  /**
+   * BP-226 bloque 7 (9-nov-2026) -- el globito de las tareas: al Encargado, lo que le falta responder; a la casa central,
+   * las respuestas que esperan su revisión. Se pide al entrar, al cambiar de pantalla (como mucho cada 20 s), cada 2
+   * minutos y apenas alguien responde o revisa. Si falla, no se muestra nada.
+   */
+  private readonly tareas = inject(TareasService);
+  private readonly router = inject(Router);
+  protected readonly tareasContador = signal(0);
+  private tareasPedidoEn = 0;
+
+  private refrescarTareas(forzar = false): void {
+    const cuenta = this.cuentas()[0];
+    if (!cuenta) return;
+    const encargado = cuenta.rol === ROL_ENCARGADO;
+    if (!encargado && !(this.muestraTareas() && this.planStatus()?.hasTareasSucursales)) return;
+    if (!forzar && Date.now() - this.tareasPedidoEn < 20000) return;
+    this.tareasPedidoEn = Date.now();
+    this.tareas.contador(cuenta.businessAccountId).subscribe({
+      next: (c) => this.tareasContador.set(encargado ? c.pendientes : c.paraRevisar),
+      error: () => this.tareasContador.set(0),
+    });
+  }
   protected resolveLogoUrl = resolveLogoUrl;
 
   // E10.5 -- solo para mostrar/ocultar el link "Admin: trials" del menu. La
@@ -183,9 +207,15 @@ export class PanelHeaderComponent implements OnInit {
         // BP-226: el Encargado no ve la tienda ni sus pedidos (el backend se los cierra): no se vigilan.
         if (accounts[0].rol !== ROL_ENCARGADO) this.avisos.vigilar(accounts[0].businessAccountId);
         this.subscriptionService.getStatus(accounts[0].businessAccountId).subscribe({
-          next: (s) => this.planStatus.set(s),
+          next: (s) => { this.planStatus.set(s); this.refrescarTareas(true); },
           error: () => {},
         });
+        // BP-226 bloque 7: el globito de las tareas.
+        if (accounts[0].rol === ROL_ENCARGADO) this.refrescarTareas(true);
+        const sub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => this.refrescarTareas());
+        const cambio = this.tareas.cambios.subscribe(() => this.refrescarTareas(true));
+        const cada = setInterval(() => this.refrescarTareas(true), 120000);
+        this.destroyRef.onDestroy(() => { sub.unsubscribe(); cambio.unsubscribe(); clearInterval(cada); });
       },
       error: () => {},
     });

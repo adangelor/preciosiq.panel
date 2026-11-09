@@ -239,3 +239,86 @@
   background: color-mix(in srgb, var(--warning, #b45309) 18%, transparent);
   color: var(--warning, #b45309);
 }
+
+// Bloque 6 (9-nov-2026) -- una foto por producto: la lista con su botón de cámara al lado de cada uno.
+.mis__ayuda {
+  margin: 0;
+  color: var(--text-2, inherit);
+}
+
+.mis__porproducto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mis__prod {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.mis__prod--lista {
+  border-color: var(--tono-verde-b, #2e7d32);
+}
+
+.mis__foto--chica {
+  flex: 0 0 3.5rem;
+  width: 3.5rem;
+
+  .mis__quitar {
+    top: 0.1rem;
+    right: 0.1rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    font-size: 0.95rem;
+  }
+}
+
+.mis__prod-nombre {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.mis__prod-foto {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-tono, #fff);
+  font-weight: 700;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.mis__prod-foto--otra {
+  background: transparent;
+  border: 2px dashed var(--primary);
+  color: var(--primary);
+}
+
+.mis__faltan {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--warning, #b45309);
+}

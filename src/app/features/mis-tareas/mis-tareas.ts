@@ -5,10 +5,9 @@ import { firstValueFrom, lastValueFrom, tap } from 'rxjs';
 import { BusinessContextService } from '../../core/business-context';
 import { ESTADOS, MiTarea, TareasService, achicarFoto, textoVencimiento } from '../../core/tareas';
 
-const MAX_FOTOS = 3;
-
 interface Borrador {
-  fotos: { blob: Blob; url: string }[];
+  /** ean: de qué producto es la foto (bloque 6, tareas de 1 a 10 productos); null = foto general. */
+  fotos: { blob: Blob; url: string; ean: string | null }[];
   comentario: string;
   modo: 'foto' | 'nosepudo';
   motivo: string;
@@ -25,6 +24,8 @@ const vacio = (): Borrador => ({ fotos: [], comentario: '', modo: 'foto', motivo
 // un botón grande "Sacar foto": <input type="file" accept="image/*" capture="environment"> abre la cámara en Android y
 // en iPhone sin plugins. Las fotos se achican en el teléfono (1600 px, JPEG 80) antes de subir, con barra de progreso y
 // reintento si se corta la señal. "No se pudo" pide el motivo. También la ve la casa central (todas las sucursales).
+// Bloque 6 (9-nov): si la tarea trae de 1 a 10 productos, cada producto tiene su botón de foto, y la casa central ve si el
+// precio del cartel coincide con el cargado (el OCR corre en el servidor después; el encargado no espera nada).
 @Component({
   selector: 'app-mis-tareas',
   standalone: true,
@@ -38,7 +39,6 @@ export class MisTareasComponent implements OnInit {
   private readonly ruta = inject(ActivatedRoute);
 
   protected readonly ESTADOS = ESTADOS;
-  protected readonly MAX_FOTOS = MAX_FOTOS;
   protected readonly textoVencimiento = textoVencimiento;
   protected readonly fuera = signal(false);
   protected readonly cargando = signal(true);
@@ -119,20 +119,39 @@ export class MisTareasComponent implements OnInit {
   }
 
   // ------------------------------------------------------------------ las fotos
-  protected async elegirFotos(t: MiTarea, e: Event): Promise<void> {
+  /** ean: la foto de ese producto (reemplaza la que hubiera). Sin ean: fotos generales, hasta maxFotos. */
+  protected async elegirFotos(t: MiTarea, e: Event, ean: string | null = null): Promise<void> {
     const input = e.target as HTMLInputElement;
     const archivos = Array.from(input.files ?? []);
     input.value = '';   // para poder sacar otra foto igual
     if (archivos.length === 0) return;
-    const lugar = MAX_FOTOS - this.b(t).fotos.length;
+    const actuales = this.b(t).fotos.filter((f) => ean === null || f.ean !== ean);
+    const lugar = ean !== null ? 1 : t.maxFotos - actuales.length;
     if (lugar <= 0) return;
     this.cambiar(t, () => ({ achicando: true, error: null }));
-    const nuevas: { blob: Blob; url: string }[] = [];
+    const nuevas: Borrador['fotos'] = [];
     for (const a of archivos.slice(0, lugar)) {
       const blob = await achicarFoto(a);
-      nuevas.push({ blob, url: URL.createObjectURL(blob) });
+      nuevas.push({ blob, url: URL.createObjectURL(blob), ean });
     }
-    this.cambiar(t, (b) => ({ fotos: [...b.fotos, ...nuevas], achicando: false, modo: 'foto' }));
+    this.cambiar(t, (b) => {
+      const reemplazada = ean === null ? undefined : b.fotos.find((f) => f.ean === ean);
+      if (reemplazada) URL.revokeObjectURL(reemplazada.url);
+      return { fotos: [...b.fotos.filter((f) => f !== reemplazada), ...nuevas], achicando: false, modo: 'foto' };
+    });
+  }
+
+  protected fotoDe(t: MiTarea, ean: string): { url: string; i: number } | null {
+    const fotos = this.b(t).fotos;
+    const i = fotos.findIndex((f) => f.ean === ean);
+    return i < 0 ? null : { url: fotos[i].url, i };
+  }
+
+  /** Productos de la tarea que todavía no tienen foto (solo en las tareas de foto por producto). */
+  protected faltan(t: MiTarea): number {
+    if (!t.porProducto) return 0;
+    const con = new Set(this.b(t).fotos.map((f) => f.ean));
+    return t.productos.filter((p) => !con.has(p.ean)).length;
   }
 
   protected quitarFoto(t: MiTarea, i: number): void {
@@ -173,7 +192,7 @@ export class MisTareasComponent implements OnInit {
     for (let intento = 1; ; intento++) {
       try {
         await lastValueFrom(this.api.responder(this.cuenta, t.tareaId, t.branchId, {
-          fotos: noSePudo ? [] : b.fotos.map((f) => f.blob),
+          fotos: noSePudo ? [] : b.fotos.map((f) => ({ blob: f.blob, ean: f.ean })),
           comentario: noSePudo ? null : b.comentario.trim() || null,
           noSePudo,
           motivo: noSePudo ? b.motivo.trim() : null,
@@ -206,6 +225,7 @@ export class MisTareasComponent implements OnInit {
     const { [this.clave(t)]: _, ...resto } = this.borradores();
     this.borradores.set(resto);
     this.aviso.set(noSePudo ? 'Listo: la casa central ya sabe que no se pudo.' : '¡Listo! La casa central ya tiene tus fotos.');
+    this.api.avisarCambio();
     await this.cargar();
   }
 

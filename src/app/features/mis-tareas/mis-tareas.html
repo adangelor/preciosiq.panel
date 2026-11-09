@@ -53,7 +53,40 @@
         }
 
         @let bb = b(t);
-        @if (bb.modo === 'foto') {
+        @if (bb.modo === 'foto' && t.porProducto) {
+          <!-- Bloque 6: una foto de cada cartel, para que la casa central vea si el precio coincide. -->
+          <p class="mis__ayuda">Sacale una foto de frente a cada cartel, que se lea el precio.</p>
+          <ul class="mis__porproducto">
+            @for (p of t.productos; track p.ean) {
+              @let f = fotoDe(t, p.ean);
+              <li class="mis__prod" [class.mis__prod--lista]="!!f">
+                @if (f) {
+                  <div class="mis__foto mis__foto--chica">
+                    <img [src]="f.url" [alt]="'Foto de ' + (p.descripcion || p.ean)" />
+                    @if (!bb.enviando) {
+                      <button type="button" class="mis__quitar" (click)="quitarFoto(t, f.i)" [attr.aria-label]="'Quitar la foto de ' + (p.descripcion || p.ean)">×</button>
+                    }
+                  </div>
+                }
+                <span class="mis__prod-nombre">{{ p.descripcion || p.ean }}</span>
+                @if (!bb.enviando) {
+                  <label class="mis__prod-foto" [class.mis__prod-foto--otra]="!!f">
+                    <input type="file" accept="image/*" capture="environment" (change)="elegirFotos(t, $event, p.ean)" [disabled]="bb.achicando" />
+                    <i class="fa-solid fa-camera" aria-hidden="true"></i> {{ f ? 'Otra' : 'Foto' }}
+                  </label>
+                }
+              </li>
+            }
+          </ul>
+          @if (bb.achicando) { <p class="muted">Preparando la foto…</p> }
+          @if (bb.fotos.length > 0) {
+            @if (faltan(t) > 0) {
+              <p class="mis__faltan">{{ faltan(t) === 1 ? 'Falta la foto de 1 producto' : 'Faltan las fotos de ' + faltan(t) + ' productos' }}. Podés mandar igual.</p>
+            }
+            <textarea class="mis__texto" rows="2" maxlength="1000" [value]="bb.comentario" (input)="setComentario(t, $event)"
+              placeholder="Comentario (opcional)" [disabled]="bb.enviando"></textarea>
+          }
+        } @else if (bb.modo === 'foto') {
           @if (bb.fotos.length > 0) {
             <div class="mis__fotos">
               @for (f of bb.fotos; track f.url; let i = $index) {
@@ -66,11 +99,11 @@
               }
             </div>
           }
-          @if (bb.fotos.length < MAX_FOTOS && !bb.enviando) {
+          @if (bb.fotos.length < t.maxFotos && !bb.enviando) {
             <label class="mis__sacar" [class.mis__sacar--chico]="bb.fotos.length > 0">
               <input type="file" accept="image/*" capture="environment" (change)="elegirFotos(t, $event)" [disabled]="bb.achicando" />
               <i class="fa-solid fa-camera" aria-hidden="true"></i>
-              {{ bb.achicando ? 'Preparando la foto…' : bb.fotos.length === 0 ? 'Sacar foto' : 'Sacar otra (' + bb.fotos.length + ' de ' + MAX_FOTOS + ')' }}
+              {{ bb.achicando ? 'Preparando la foto…' : bb.fotos.length === 0 ? 'Sacar foto' : 'Sacar otra (' + bb.fotos.length + ' de ' + t.maxFotos + ')' }}
             </label>
           }
           @if (bb.fotos.length > 0) {

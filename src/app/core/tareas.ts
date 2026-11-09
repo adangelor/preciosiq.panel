@@ -1,6 +1,6 @@
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 // BP-226 (8-nov-2026) -- tareas con foto para las sucursales: cliente de BusinessTareasEndpoints.cs.
@@ -90,6 +90,9 @@ export interface MiTarea {
   respondidaUtc: string | null;
   atrasada: boolean;
   productos: ProductoDeTarea[];
+  /** Bloque 6: con 1 a 10 productos se pide una foto de cada uno, para controlar el precio del cartel. */
+  maxFotos: number;
+  porProducto: boolean;
 }
 
 export interface MisTareasResponse {
@@ -111,6 +114,21 @@ export interface NuevaTarea {
   origen?: 'panel' | 'carteles';
 }
 
+/** Bloque 7: el globito del menú. */
+export interface ContadorDeTareas {
+  encargado: boolean;
+  pendientes: number;
+  paraRevisar: number;
+}
+
+/** Bloque 6: la marca del control del precio por foto. */
+export const OCR: Record<string, { texto: string; icono: string; clase: string }> = {
+  coincide: { texto: 'El precio coincide', icono: 'fa-circle-check', clase: 'ok' },
+  nocoincide: { texto: 'El precio no coincide', icono: 'fa-triangle-exclamation', clase: 'mal' },
+  noleido: { texto: 'No se pudo leer el precio', icono: 'fa-circle-question', clase: 'gris' },
+  sinprecio: { texto: 'Sin precio cargado', icono: 'fa-circle-minus', clase: 'gris' },
+};
+
 export const ESTADOS: Record<EstadoSucursal, string> = {
   pendiente: 'Pendiente',
   respondida: 'Para revisar',
@@ -123,6 +141,12 @@ export const ESTADOS: Record<EstadoSucursal, string> = {
 export class TareasService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBaseUrl}business/tareas`;
+
+  /** Bloque 7: avisa que alguien respondió o revisó, para que el globito del menú se actualice enseguida. */
+  readonly cambios = new Subject<void>();
+  avisarCambio(): void {
+    this.cambios.next();
+  }
 
   listar(cuenta: number, estado: 'abiertas' | 'cerradas' | 'todas'): Observable<{ estado: string; sucursales: number; items: ResumenTarea[] }> {
     return this.http.get<{ estado: string; sucursales: number; items: ResumenTarea[] }>(this.base, { params: { businessAccountId: cuenta, estado } });
@@ -140,13 +164,20 @@ export class TareasService {
     return this.http.get<MisTareasResponse>(`${this.base}/mias`, { params: { businessAccountId: cuenta } });
   }
 
-  /** Multipart con progreso: el panel ya achicó las fotos. */
+  contador(cuenta: number): Observable<ContadorDeTareas> {
+    return this.http.get<ContadorDeTareas>(`${this.base}/contador`, { params: { businessAccountId: cuenta } });
+  }
+
+  /** Multipart con progreso: el panel ya achicó las fotos. Cada foto puede decir de qué producto es (un "eans" por foto). */
   responder(cuenta: number, tarea: number, branchId: string, datos: {
-    fotos: Blob[]; comentario?: string | null; noSePudo?: boolean; motivo?: string | null; latitud?: number | null; longitud?: number | null;
+    fotos: { blob: Blob; ean?: string | null }[]; comentario?: string | null; noSePudo?: boolean; motivo?: string | null; latitud?: number | null; longitud?: number | null;
   }): Observable<HttpEvent<{ respuestaId: number; fotos: number }>> {
     const form = new FormData();
     form.append('businessAccountId', String(cuenta));
-    datos.fotos.forEach((f, i) => form.append('fotos', f, `foto-${i + 1}.jpg`));
+    datos.fotos.forEach((f, i) => {
+      form.append('fotos', f.blob, `foto-${i + 1}.jpg`);
+      form.append('eans', f.ean ?? '');
+    });
     if (datos.comentario) form.append('comentario', datos.comentario);
     if (datos.noSePudo) form.append('noSePudo', 'true');
     if (datos.motivo) form.append('motivo', datos.motivo);

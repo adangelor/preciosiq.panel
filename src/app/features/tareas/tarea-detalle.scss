@@ -190,6 +190,7 @@
 }
 
 .detalle__tira-foto {
+  position: relative;
   width: 5.5rem;
   height: 4.2rem;
   padding: 0;
@@ -223,4 +224,51 @@
   .detalle__tira {
     flex-direction: row;
   }
+}
+
+// Bloque 6 (9-nov-2026) -- la marca del control del precio por foto.
+.detalle__ocr {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.detalle__ocr--ok {
+  color: var(--tono-verde-b, #2e7d32);
+}
+
+.detalle__ocr--mal {
+  color: var(--danger, #b91c1c);
+}
+
+.detalle__ocr--gris {
+  color: var(--text-3);
+}
+
+.detalle__control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.75rem;
+  margin: 0.4rem 0;
+}
+
+.detalle__punto {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.detalle__punto--ok {
+  background: var(--tono-verde-b, #2e7d32);
+}
+
+.detalle__punto--mal {
+  background: var(--danger, #b91c1c);
 }
