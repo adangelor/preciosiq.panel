@@ -66,7 +66,7 @@
       }
 
       <div class="acciones">
-        <button type="button" (click)="abrirEditor()">Editar</button>
+        <button type="button" class="btn" (click)="abrirEditor()">Editar</button>
         <a class="boton-secundario" [href]="urlPublica()" target="_blank" rel="noopener">Ver mi tienda ↗</a>
         @if (porDefecto(); as p) {
           <a class="boton-secundario" [routerLink]="['/mi-tienda/cartel', p.branchId]">Cartel para la vidriera</a>
@@ -153,7 +153,7 @@
       }
 
       <div class="acciones">
-        <button type="submit" [disabled]="guardando() || chequeandoSlug() || slugEstado()?.disponible === false">
+        <button type="submit" class="btn" [disabled]="guardando() || chequeandoSlug() || slugEstado()?.disponible === false">
           {{ guardando() ? 'Guardando…' : tienda() ? 'Guardar cambios' : 'Crear mi tienda' }}
         </button>
         @if (tienda()) {

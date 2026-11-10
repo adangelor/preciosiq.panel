@@ -67,7 +67,7 @@
             </table>
           }
           @if (hayParaCorregir(rv)) {
-            <button type="button" (click)="aplicarRevision()" [disabled]="revisando()">
+            <button type="button" class="btn" (click)="aplicarRevision()" [disabled]="revisando()">
               {{ revisando() ? 'Corrigiendo…' : 'Corregir' }}
             </button>
           }
