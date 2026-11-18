@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AdvisorService } from '../../core/advisor';
 import { AdvisorReportResponse } from '../../core/advisor.models';
 import { planGateErrorMessage } from '../../core/plan-gate';
+import { PedidosAsesorComponent } from './pedidos-asesor';
 
 // Asesor de Precios, fase 1 (21-ago-2026, PreciosIQ_Asesor_Spec.md P0.3) -- el
 // dialog que pide y muestra el informe. MatDialog por la misma razon que
@@ -42,7 +43,7 @@ export interface AdvisorReportDialogData {
 @Component({
   selector: 'app-advisor-report-dialog',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, PedidosAsesorComponent],
   templateUrl: './advisor-report-dialog.html',
   styleUrl: './advisor-report-dialog.scss',
 })
@@ -65,6 +66,11 @@ export class AdvisorReportDialogComponent implements OnInit {
   protected readonly refCorta = computed(() => this.report()?.digest?.metadatos?.referenciaNombrada ?? 'zona');
   protected readonly feedbackSent = signal<boolean | null>(null); // true=me sirvio false=no me sirvio
   /**
+   * BP-347 -- la cuenta agregó o sacó un pedido al Asesor: se ofrece pedir el informe de nuevo. Sin refresh: el backend ve
+   * que cambiaron los pedidos y arma uno nuevo; si quedaron igual que antes, devuelve el de hoy.
+   */
+  protected readonly pedidoCambiado = signal(false);
+  /**
    * BP-77 -- de que es el informe, para la linea de arriba: "Centro · radio 3.000 m", o con zona
    * "Córdoba Capital · 3 sucursales · radio 3.000 m alrededor de cada una".
    */
@@ -85,6 +91,7 @@ export class AdvisorReportDialogComponent implements OnInit {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.feedbackSent.set(null);
+    this.pedidoCambiado.set(false);
 
     const de = this.data.priceZoneId != null ? { priceZoneId: this.data.priceZoneId } : { branchId: this.data.branchId ?? '' };
     this.advisorService

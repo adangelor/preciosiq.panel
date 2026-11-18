@@ -12,6 +12,13 @@ import {
   PriceZonesResponse,
 } from './advisor.models';
 
+/** BP-347 -- los pedidos activos de la cuenta y los temas que el Asesor entendió ("mas" y "menos"). */
+export interface PreferenciasDelAsesor {
+  preferencias: { id: number; texto: string; quien: string | null; createdAtUtc: string }[];
+  mas: string[];
+  menos: string[];
+}
+
 // Cliente de /api/business/advisor (BusinessAdvisorEndpoints.cs) -- Asesor de
 // Precios, fase 1. La llamada al LLM ocurre SIEMPRE server-side (la API key jamas
 // llega al navegador); este servicio solo pide el informe ya generado.
@@ -58,6 +65,20 @@ export class AdvisorService {
 
   submitFeedback(reportId: number, thumbsUp: boolean): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(`${this.baseUrl}/report/${reportId}/feedback`, { thumbsUp });
+  }
+
+  // ---- BP-347: lo que la cuenta le pide al Asesor (como BP-288 en DistribucionIQ) ----
+
+  preferencias(businessAccountId: number): Observable<PreferenciasDelAsesor> {
+    return this.http.get<PreferenciasDelAsesor>(`${this.baseUrl}/preferencias`, { params: { businessAccountId } });
+  }
+
+  pedir(businessAccountId: number, texto: string): Observable<PreferenciasDelAsesor> {
+    return this.http.post<PreferenciasDelAsesor>(`${this.baseUrl}/preferencias`, { businessAccountId, texto });
+  }
+
+  sacarPedido(businessAccountId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/preferencias/${id}`, { params: { businessAccountId } });
   }
 
   // ---- BP-78: productos testigo ----

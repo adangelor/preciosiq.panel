@@ -375,5 +375,17 @@
         <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Imprimir / Guardar PDF
       </button>
     </div>
+
+    <!-- BP-347: lo que el comerciante le pide al Asesor para el próximo informe (como BP-288 en DistribucionIQ). -->
+    <div class="no-print">
+      <app-pedidos-asesor [businessAccountId]="data.businessAccountId" (cambio)="pedidoCambiado.set(true)" />
+      @if (pedidoCambiado()) {
+        <p class="pedidos-nuevo">
+          <button type="button" class="print-button" (click)="load(false)">
+            <i class="fa-solid fa-rotate" aria-hidden="true"></i> Pedir el informe de nuevo con esto
+          </button>
+        </p>
+      }
+    </div>
   }
 </div>
