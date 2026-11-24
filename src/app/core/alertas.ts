@@ -237,12 +237,18 @@ export function cifra(a: AlertaEnBandeja): { grande: string; chica: string } {
   }
 }
 
+/** El nombre de la sucursal propia sin el "Sucursal" de adelante (se dice "tu sucursal Lamarca"). */
+function miSucursal(nombre: string | null | undefined): string {
+  return (nombre ?? '').replace(/^sucursal\s+/i, '').trim();
+}
+
 /** La frase que explica el aviso. Nunca nombra a otro negocio de la red: solo cadenas y mayoristas. */
 export function explicacion(a: AlertaEnBandeja): string {
   const d = a.detalle ?? {};
   const propias = a.sucursales.length;
   const enMis = propias > 1 ? ` Te pasa en ${propias} de tus sucursales.` : '';
-  const cerca = d.sucursalPropiaNombre ? ` de tu sucursal ${d.sucursalPropiaNombre}` : '';
+  const propia = miSucursal(d.sucursalPropiaNombre);
+  const cerca = propia ? ` de tu sucursal ${propia}` : '';
   const cuantas = (d.sucursales ?? 1) > 1 ? `, en ${d.sucursales} sucursales cerca (la más barata, ${distancia(d.metros)}${cerca})` : `, ${distancia(d.metros)}${cerca}`;
   switch (a.tipo) {
     case 'te_pasaron':
@@ -254,9 +260,9 @@ export function explicacion(a: AlertaEnBandeja): string {
     case 'oferta':
       return `${d.bandera}${cuantas}. Precio de lista ${pesos(d.precioLista)}${d.desde ? `, en oferta desde el ${fechaCorta(d.desde)}` : ''}. Oferta de verdad: no subió el precio antes.`;
     case 'caro':
-      return `Sobre la mediana de ${d.banderas} banderas de la zona${d.sucursalPropiaNombre ? ` de ${d.sucursalPropiaNombre}` : ''}. La más barata lo tiene a ${pesos(d.minimo)}.`;
+      return `Sobre la mediana de ${d.banderas} banderas de la zona${propia ? ` de tu sucursal ${propia}` : ''}. La más barata lo tiene a ${pesos(d.minimo)}.`;
     case 'regalado':
-      return `Ninguna de las ${d.banderas} banderas de la zona${d.sucursalPropiaNombre ? ` de ${d.sucursalPropiaNombre}` : ''} lo vende a menos de ${pesos(d.minimo)}. Hay lugar para subir.`;
+      return `Ninguna de las ${d.banderas} banderas de la zona${propia ? ` de tu sucursal ${propia}` : ''} lo vende a menos de ${pesos(d.minimo)}. Hay lugar para subir.`;
     case 'mayorista':
       return d.texto ?? `${d.bandera}${d.km != null ? `, a ${d.km.toLocaleString('es-AR', { maximumFractionDigits: 1 })} km` : ''}.`;
   }

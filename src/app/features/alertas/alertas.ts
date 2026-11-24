@@ -83,6 +83,19 @@ export class AlertasComponent implements OnInit {
     return grupos.filter((g) => g.items.length > 0);
   });
 
+  /** Cuántos hay de ese aviso en la solapa que se mira (puede ser más de lo que se cargó). */
+  protected enLaVista(t: TipoAlerta): number {
+    const c = this.conteo()[t];
+    if (!c) return 0;
+    return this.vista() === 'nuevas' ? c.nuevas : this.vista() === 'base' ? c.abiertas - c.nuevas : c.abiertas;
+  }
+
+  /** El número del título de un grupo: el total de la solapa si no entraron todos en la página. */
+  protected totalDelGrupo(g: { aviso: { tipo: TipoAlerta }; titulo: string; items: AlertaEnBandeja[] }): number {
+    if (this.vista() === 'cerradas' || g.titulo === 'Diferencia para revisar') return g.items.length;
+    return Math.max(g.items.length, this.enLaVista(g.aviso.tipo) - (this.datos()?.items ?? []).filter((i) => i.tipo === g.aviso.tipo && i.paraRevisar).length);
+  }
+
   protected readonly conteo = computed(() => {
     const d = this.datos();
     const porTipo: Partial<Record<TipoAlerta, { abiertas: number; nuevas: number }>> = {};

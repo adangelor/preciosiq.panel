@@ -148,9 +148,9 @@
         <div class="alertas__barra">
           <div class="alertas__chips">
             @for (a of avisos; track a.tipo) {
-              @if (conteo()[a.tipo]; as c) {
+              @if (vista() !== 'cerradas' && (enLaVista(a.tipo) > 0 || tipo() === a.tipo)) {
                 <button type="button" class="alertas__chip" [class.alertas__chip--activo]="tipo() === a.tipo" (click)="filtrar(a.tipo)">
-                  {{ a.titulo }} <span>{{ vista() === 'nuevas' ? c.nuevas : vista() === 'base' ? c.abiertas - c.nuevas : c.abiertas }}</span>
+                  {{ a.titulo }} <span>{{ enLaVista(a.tipo) }}</span>
                 </button>
               }
             }
@@ -180,7 +180,8 @@
         @for (g of grupos(); track g.titulo) {
           <h2 class="alertas__grupo">
             <mat-icon class="alertas__icono alertas__icono--{{ g.aviso.tono }}">{{ g.aviso.icono }}</mat-icon>
-            {{ g.titulo }} <span class="alertas__n">{{ g.items.length }}</span>
+            {{ g.titulo }} <span class="alertas__n">{{ totalDelGrupo(g) }}</span>
+            @if (totalDelGrupo(g) > g.items.length) { <small class="muted">se muestran {{ g.items.length }}</small> }
           </h2>
           @if (g.nota) { <p class="muted alertas__nota">{{ g.nota }}</p> }
           @for (a of g.items; track a.id) {
