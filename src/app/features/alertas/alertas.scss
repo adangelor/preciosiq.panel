@@ -1,0 +1,299 @@
+// BP-352 (24-nov-2026) -- Alertas: la bandeja y su configuración. Colores del tema (var(--...)); acá solo la disposición.
+
+.alertas__vistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.alertas__vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+.alertas__vista--activa {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.alertas__vista--config {
+  margin-left: auto;
+}
+
+.alertas__n {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--surface-2, rgba(127, 127, 127, 0.15));
+  color: var(--text-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.alertas__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.alertas__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.alertas__chip {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+
+  span {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.alertas__chip--activo {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.alertas__nota {
+  font-size: 0.8125rem;
+  margin: 0 0 0.75rem;
+  max-width: 56rem;
+}
+
+.alertas__grupo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.6rem;
+}
+
+.alertas__icono {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.alertas__icono--rojo { color: var(--danger, #c0392b); }
+.alertas__icono--ambar { color: var(--warning, #b7791f); }
+.alertas__icono--verde { color: var(--success, #1e8449); }
+.alertas__icono--azul { color: var(--info, #1f5fa8); }
+
+.alertas__tarjeta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 1rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.alertas__tarjeta--rojo { border-left-color: var(--danger, #c0392b); }
+.alertas__tarjeta--ambar { border-left-color: var(--warning, #b7791f); }
+.alertas__tarjeta--verde { border-left-color: var(--success, #1e8449); }
+.alertas__tarjeta--azul { border-left-color: var(--info, #1f5fa8); }
+
+.alertas__tarjeta--sin-leer {
+  cursor: pointer;
+
+  .alertas__que {
+    font-weight: 700;
+  }
+}
+
+.alertas__que {
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alertas__cifra {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  strong {
+    display: block;
+    font-size: 1.1rem;
+  }
+
+  span {
+    font-size: 0.8125rem;
+    color: var(--text-2);
+  }
+}
+
+.alertas__det {
+  grid-column: 1;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.alertas__pie {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin-top: 0.3rem;
+  font-size: 0.8125rem;
+}
+
+// ---- configuración
+.alertas__fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.alertas__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+
+  > span {
+    color: var(--text-2);
+  }
+}
+
+.alertas__opciones {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  min-height: 2.25rem;
+}
+
+.alertas__cadenas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.3rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.alertas__cadena {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+
+  small {
+    color: var(--text-2);
+    margin-left: auto;
+  }
+}
+
+.alertas__cadena--lejos {
+  opacity: 0.55;
+}
+
+.alertas__avisos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.alertas__aviso {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.alertas__aviso--apagado {
+  .alertas__explica,
+  .alertas__umbral {
+    opacity: 0.55;
+  }
+}
+
+.alertas__interruptor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+
+  > span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+.alertas__explica {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.alertas__umbral {
+  display: block;
+  font-size: 0.8125rem;
+  line-height: 2.2;
+
+  input {
+    width: 4.5rem;
+    margin: 0 0.3rem;
+    padding: 0.2rem 0.4rem;
+    display: inline-block;
+  }
+}
+
+.alertas__previa-linea {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 600px) {
+  .alertas__tarjeta {
+    grid-template-columns: 1fr;
+  }
+
+  .alertas__cifra {
+    text-align: left;
+  }
+
+  .alertas__vista--config {
+    margin-left: 0;
+  }
+}

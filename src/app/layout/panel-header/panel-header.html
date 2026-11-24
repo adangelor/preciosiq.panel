@@ -48,6 +48,23 @@
             }
           </a>
         </li>
+        <!-- BP-352 (24-nov-2026) -- las alertas de precio de su sucursal. -->
+        @if (tieneAlertas()) {
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/alertas"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Alertas' : null"
+          >
+            <mat-icon>notifications</mat-icon>
+            <span class="shell__link-text">Alertas</span>
+            @if (alertasContador() > 0) {
+              <span class="shell__badge" [attr.aria-label]="alertasContador() + ' alertas sin leer'">{{ alertasContador() > 99 ? '99+' : alertasContador() }}</span>
+            }
+          </a>
+        </li>
+        }
         } @else {
         <li>
           <a
@@ -299,6 +316,22 @@
         }
 
         <li class="shell__nav-section">Análisis</li>
+        <!-- BP-352 (24-nov-2026) -- alertas de precio sobre los productos testigo (desde Pyme). -->
+        <li>
+          <a
+            class="shell__link"
+            routerLink="/alertas"
+            routerLinkActive="shell__link--active"
+            [attr.title]="iconsOnly() ? 'Alertas' : null"
+          >
+            <mat-icon>notifications</mat-icon>
+            <span class="shell__link-text">Alertas
+              @if (faltaAlertas()) { <span class="shell__plan-tag" title="Desde el plan Pyme">Pyme</span> }</span>
+            @if (alertasContador() > 0) {
+              <span class="shell__badge" [attr.aria-label]="alertasContador() + ' alertas sin leer'">{{ alertasContador() > 99 ? '99+' : alertasContador() }}</span>
+            }
+          </a>
+        </li>
         <!-- BP-164 (18-oct-2026) -- "Benchmark instantaneo" salio del menu: es el Dashboard (/benchmark redirige ahi). -->
         <!-- BP-78 (13-oct-2026) -- los productos por los que el cliente compara; los usa el Asesor. -->
         <li>

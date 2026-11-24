@@ -324,6 +324,12 @@ export const routes: Routes = [
         title: 'PreciosIQ — Dashboard de benchmarking',
       },
       {
+        // BP-352 (24-nov-2026) -- alertas de precio sobre los productos testigo (desde Pyme). El Encargado ve las de su sucursal.
+        path: 'alertas',
+        loadComponent: () => import('./features/alertas/alertas').then((m) => m.AlertasComponent),
+        title: 'PreciosIQ — Alertas',
+      },
+      {
         // BP-78 (13-oct-2026) -- los productos por los que el cliente compara: el Asesor los trata aparte.
         path: 'testigos',
         loadComponent: () => import('./features/key-products/key-products').then((m) => m.KeyProductsComponent),

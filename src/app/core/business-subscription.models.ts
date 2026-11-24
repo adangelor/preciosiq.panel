@@ -67,6 +67,8 @@ export interface SubscriptionStatusResponse {
   hasTiendaOnline?: boolean;
   /** BP-226 -- tareas con foto para las sucursales (Cadena). */
   hasTareasSucursales?: boolean;
+  /** BP-352 -- alertas de precio sobre los productos testigo (desde Pyme). */
+  hasAlertas?: boolean;
 }
 
 // BP-196 (22-oct-2026) -- espejo de EstadoCobroDto / CobroPendienteDto (Services/Cobro/CobroService.cs).

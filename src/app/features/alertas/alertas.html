@@ -1,0 +1,232 @@
+<div class="gestion alertas card--page">
+  <h1>Alertas</h1>
+  <p class="subtitle">
+    Lo que cambió cerca y te conviene mirar: tus <a routerLink="/testigos">productos testigo</a> contra las cadenas de la zona de cada
+    sucursal. Se revisa una vez por día, de madrugada, con el último dato publicado por las cadenas.
+  </p>
+
+  @if (sinCuenta()) {
+    <p class="muted">Todavía no tenés un negocio dado de alta. <a routerLink="/alta">Darlo de alta →</a></p>
+  } @else if (sinPlan()) {
+    <div class="alert alert--info">
+      <span>
+        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+        Las alertas vienen desde el plan <strong>Pyme</strong>: te avisan cuando una cadena de la zona te pasa o se te acerca en un
+        producto testigo, cuando pone una oferta fuerte, o cuando quedaste caro o regalado. <a routerLink="/plan">Ver planes →</a>
+      </span>
+    </div>
+  } @else if (sinScript()) {
+    <p class="alert alert--info">Las alertas todavía no están habilitadas en este servidor.</p>
+  } @else {
+    <div class="alertas__vistas" role="tablist">
+      <button type="button" class="alertas__vista" [class.alertas__vista--activa]="vista() === 'nuevas'" (click)="irA('nuevas')">
+        Nuevas @if (datos(); as d) { <span class="alertas__n">{{ d.nuevas }}</span> }
+      </button>
+      <button type="button" class="alertas__vista" [class.alertas__vista--activa]="vista() === 'base'" (click)="irA('base')">
+        Ya pasaba @if (datos(); as d) { <span class="alertas__n">{{ d.abiertas - d.nuevas }}</span> }
+      </button>
+      <button type="button" class="alertas__vista" [class.alertas__vista--activa]="vista() === 'cerradas'" (click)="irA('cerradas')">Cerradas</button>
+      @if (!datos()?.esEncargado) {
+        <button type="button" class="alertas__vista alertas__vista--config" [class.alertas__vista--activa]="vista() === 'config'" (click)="irA('config')">
+          <mat-icon>tune</mat-icon> Configurar
+        </button>
+      }
+    </div>
+
+    @if (error()) { <p class="alert alert--danger">{{ error() }}</p> }
+    @if (aviso()) { <p class="alert alert--success">{{ aviso() }}</p> }
+
+    @if (cargando()) {
+      <app-loading-bar label="Leyendo las alertas…" />
+    } @else if (vista() === 'config') {
+      <!-- ============================================================ configuración -->
+      @if (cfg(); as c) {
+        @if (cfgResp()!.testigos === 0) {
+          <p class="alert alert--warning">
+            Las alertas miran solo tus productos testigo y todavía no confirmaste ninguno.
+            <a routerLink="/testigos">Elegir mis productos testigo →</a>
+          </p>
+        }
+
+        <h2>Contra quién</h2>
+        <div class="alertas__fila">
+          <label class="alertas__campo">
+            <span>Radio alrededor de cada sucursal</span>
+            <select class="select" (change)="onRadio($event)">
+              @for (r of radios; track r) {
+                <option [value]="r" [selected]="r === c.radioMetros">{{ r < 1000 ? r + ' m' : r / 1000 + ' km' }}</option>
+              }
+            </select>
+          </label>
+          <div class="alertas__campo">
+            <span>Cadenas</span>
+            <div class="alertas__opciones">
+              <label><input type="radio" name="cadenas" [checked]="todasLasCadenas()" (change)="usarTodas(true)" /> Todas las del radio</label>
+              <label><input type="radio" name="cadenas" [checked]="!todasLasCadenas()" (change)="usarTodas(false)" /> Elegir</label>
+            </div>
+          </div>
+        </div>
+        @if (!todasLasCadenas()) {
+          <div class="alertas__cadenas">
+            @for (b of cfgResp()!.cadenas; track b.clave) {
+              <label class="alertas__cadena" [class.alertas__cadena--lejos]="b.metros > c.radioMetros">
+                <input type="checkbox" [checked]="elegida(b.clave)" (change)="alternarCadena(b.clave)" />
+                <span>{{ b.bandera }}</span>
+                <small>{{ distancia(b.metros) }}</small>
+              </label>
+            }
+          </div>
+          <p class="muted alertas__nota">Las que quedan fuera del radio no generan alertas aunque estén tildadas.</p>
+        }
+        <p class="muted alertas__nota">
+          Se comparan los supermercados que publican sus precios. Otros negocios que usan PreciosIQ nunca aparecen acá, ni vos
+          en las alertas de ellos.
+        </p>
+
+        <h2>Qué avisos querés</h2>
+        <div class="alertas__avisos">
+          @for (a of avisos; track a.tipo) {
+            <div class="alertas__aviso" [class.alertas__aviso--apagado]="!prendido(a.tipo) || !tieneElPlan(a.tipo)">
+              <label class="alertas__interruptor">
+                <input type="checkbox" [checked]="prendido(a.tipo) && tieneElPlan(a.tipo)" [disabled]="!tieneElPlan(a.tipo)" (change)="alternar(a.tipo)" />
+                <span>
+                  <strong>{{ a.titulo }}</strong>
+                  @if (!tieneElPlan(a.tipo)) { <span class="pill pill--neutral">Avanzado y Cadena</span> }
+                </span>
+              </label>
+              <p class="alertas__explica">{{ a.explica }}</p>
+              @if (umbral(a.tipo); as u) {
+                <label class="alertas__umbral">
+                  {{ u.antes }}
+                  <input type="number" class="select" [value]="u.valor" [min]="u.min" [max]="u.max" [step]="u.paso"
+                         [disabled]="!prendido(a.tipo) || !tieneElPlan(a.tipo)" (change)="onUmbral(u.clave, $event)" [attr.aria-label]="a.titulo + ': porcentaje'" />
+                  {{ u.despues }}
+                </label>
+              }
+              @if (previa(); as p) {
+                <p class="alertas__previa-linea">Hoy: <strong>{{ p.porTipo[a.tipo] }}</strong></p>
+              }
+            </div>
+          }
+        </div>
+
+        @if (previa(); as p) {
+          <div class="alert alert--info">
+            <span>
+              Con esta configuración hoy habría <strong>{{ totalPrevia() }}</strong> {{ totalPrevia() === 1 ? 'aviso abierto' : 'avisos abiertos' }}
+              sobre {{ p.testigos }} productos testigo, contra {{ p.sucursalesCerca }} sucursales de la competencia.
+              @if (p.paraRevisar > 0) { {{ p.paraRevisar }} son diferencias para revisar. }
+              @if (p.sucursalesSinUbicacion > 0) {
+                {{ p.sucursalesSinUbicacion }} de tus sucursales no {{ p.sucursalesSinUbicacion === 1 ? 'tiene' : 'tienen' }} la ubicación cargada y no se miran.
+              }
+              @if (p.tiposSinDato.length > 0) { Algún aviso no se pudo calcular con el dato de hoy. }
+            </span>
+          </div>
+        }
+
+        <div class="gestion__barra">
+          <button type="button" class="btn btn--ghost" [disabled]="calculando()" (click)="verVistaPrevia()">
+            {{ calculando() ? 'Calculando…' : 'Ver cuántos avisos daría hoy' }}
+          </button>
+          <button type="button" class="btn" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="btn btn--ghost" (click)="restaurar()">Volver a los valores de fábrica</button>
+        </div>
+      }
+    } @else if (datos(); as d) {
+      <!-- ============================================================ la bandeja -->
+      @if (d.testigos === 0) {
+        <p class="empty-state">
+          Las alertas miran solo tus productos testigo: los pocos por los que el cliente juzga si sos caro. Todavía no confirmaste
+          ninguno. <a routerLink="/testigos">Elegir mis productos testigo →</a>
+        </p>
+      } @else if (!d.ultimaCorrida) {
+        <p class="empty-state">
+          Todavía no se hizo la primera revisión. Corre de madrugada: mañana vas a encontrar acá lo que ya está pasando hoy con tus
+          {{ d.testigos }} productos testigo, y desde ahí solo lo nuevo.
+        </p>
+      } @else {
+        <div class="alertas__barra">
+          <div class="alertas__chips">
+            @for (a of avisos; track a.tipo) {
+              @if (conteo()[a.tipo]; as c) {
+                <button type="button" class="alertas__chip" [class.alertas__chip--activo]="tipo() === a.tipo" (click)="filtrar(a.tipo)">
+                  {{ a.titulo }} <span>{{ vista() === 'nuevas' ? c.nuevas : vista() === 'base' ? c.abiertas - c.nuevas : c.abiertas }}</span>
+                </button>
+              }
+            }
+          </div>
+          @if (vista() === 'nuevas' && d.sinLeer > 0) {
+            <button type="button" class="btn btn--ghost btn--small" (click)="marcarTodo()">Marcar como leídas</button>
+          }
+        </div>
+
+        @if (vista() === 'base') {
+          <p class="muted alertas__nota">
+            Esto ya pasaba el {{ fecha(d.lineaDeBaseAt) }}, cuando se hizo la primera revisión. No cuenta como aviso nuevo: es el punto
+            de partida. Cuando algo de acá se resuelve, se va solo.
+          </p>
+        }
+
+        @if (d.items.length === 0) {
+          <p class="empty-state">
+            @switch (vista()) {
+              @case ('nuevas') { Nada nuevo desde la última revisión ({{ fecha(d.ultimaCorrida.fecha) }}). }
+              @case ('base') { No queda nada de lo que ya pasaba. }
+              @default { Todavía no se cerró ninguna alerta. }
+            }
+          </p>
+        }
+
+        @for (g of grupos(); track g.titulo) {
+          <h2 class="alertas__grupo">
+            <mat-icon class="alertas__icono alertas__icono--{{ g.aviso.tono }}">{{ g.aviso.icono }}</mat-icon>
+            {{ g.titulo }} <span class="alertas__n">{{ g.items.length }}</span>
+          </h2>
+          @if (g.nota) { <p class="muted alertas__nota">{{ g.nota }}</p> }
+          @for (a of g.items; track a.id) {
+            <article class="alertas__tarjeta alertas__tarjeta--{{ g.aviso.tono }}" [class.alertas__tarjeta--sin-leer]="!a.leida && !a.lineaDeBase && !a.cerradaAt"
+                     (click)="marcar(a)">
+              <div class="alertas__que">
+                {{ a.detalle?.descripcion ?? a.ean }}
+                @if (!a.leida && !a.lineaDeBase && !a.cerradaAt) { <span class="pill pill--primary">Nuevo</span> }
+              </div>
+              <div class="alertas__cifra">
+                <strong>{{ cifra(a).grande }}</strong>
+                <span>{{ cifra(a).chica }}</span>
+              </div>
+              <p class="alertas__det">{{ explicacion(a) }}</p>
+              <div class="alertas__pie">
+                @if (a.cerradaAt) {
+                  <span class="pill pill--neutral">{{ motivos[a.motivoCierre ?? ''] || 'Cerrada' }} · {{ fecha(a.cerradaAt) }}</span>
+                } @else {
+                  <span class="muted">Desde el {{ fecha(a.desdeDato ?? a.abiertaAt) }}</span>
+                  @if (!d.esEncargado) {
+                    @if (a.tipo === 'mayorista') {
+                      <a routerLink="/precios/mayoristas" (click)="$event.stopPropagation()">Ver mayoristas →</a>
+                    } @else {
+                      <a routerLink="/precios/cargar" [queryParams]="{ ean: a.ean }" (click)="$event.stopPropagation()">Cambiar mi precio →</a>
+                      <a routerLink="/precios/carga-masiva" (click)="$event.stopPropagation()">Simular un cambio →</a>
+                    }
+                  }
+                }
+              </div>
+            </article>
+          }
+        }
+        @if (d.total > d.items.length) {
+          <p class="muted alertas__nota">Se muestran {{ d.items.length }} de {{ d.total }}. Filtrá por aviso para ver el resto.</p>
+        }
+        @if (d.ultimaCorrida.tiposSinDato.length > 0) {
+          <p class="muted alertas__nota">
+            En la última revisión no se pudo mirar:
+            @for (t of d.ultimaCorrida.tiposSinDato; track t; let ultimo = $last) { {{ nombreDeAviso($any(t)) }}{{ ultimo ? '.' : ', ' }} }
+            Lo que estaba abierto de eso quedó como estaba.
+          </p>
+        }
+        @if (!d.encendidas) {
+          <p class="muted alertas__nota">La revisión de la madrugada está apagada en este servidor: lo que ves es de la última vez que corrió.</p>
+        }
+      }
+    }
+  }
+</div>

@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { CambioDeFamilia, FamiliasService } from '../../core/familias';   // BP-221
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -59,6 +59,7 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly priceService = inject(BusinessPriceService);
   private readonly context = inject(BusinessContextService);
+  private readonly route = inject(ActivatedRoute);
   // BP-178 (21-oct-2026) -- con la ficha de articulo (plan Avanzado o Cadena) se puede dar de alta un articulo sin codigo
   // de barras: el "EAN" es el codigo interno y el producto queda con IsEan = 0 (no se compara con la red).
   private readonly gestion = inject(GestionContextoService);
@@ -157,6 +158,9 @@ export class PriceUpsertComponent implements OnInit, OnDestroy {
         if (ctx.branches.length > 0) {
           this.form.patchValue({ branchId: ctx.branches[0].branchId });
         }
+        // BP-352 (24-nov-2026): "Cambiar mi precio" desde una alerta llega con ?ean= y arranca con el producto buscado.
+        const ean = this.route.snapshot.queryParamMap.get('ean')?.trim();
+        if (ean) this.form.patchValue({ ean });
       },
       error: () => {
         this.loadingContext.set(false);

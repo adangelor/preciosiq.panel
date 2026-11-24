@@ -28,6 +28,7 @@ import { AvisosCuentaComponent } from '../avisos-cuenta/avisos-cuenta';
 import { GESTION_VISIBLE } from '../../core/gestion-contexto';
 import { ROL_ENCARGADO } from '../../core/encargado-guard';
 import { TareasService } from '../../core/tareas';
+import { AlertasService } from '../../core/alertas';
 
 // E1.7 (16-ago-2026) -- pedido de Andres: unificar interfaz con distribucioniq.panel
 // (menu lateral + barra superior sticky con logo/usuario), en vez del header simple sin
@@ -101,6 +102,27 @@ export class PanelHeaderComponent implements OnInit {
     this.tareas.contador(cuenta.businessAccountId).subscribe({
       next: (c) => this.tareasContador.set(encargado ? c.pendientes : c.paraRevisar),
       error: () => this.tareasContador.set(0),
+    });
+  }
+
+  /**
+   * BP-352 (24-nov-2026) -- el globito de las alertas de precio: las que no leyó (la línea de base no cuenta). Se pide con
+   * el mismo ritmo que el de las tareas. Sin el plan no se pide; si falla, no se muestra nada.
+   */
+  private readonly alertas = inject(AlertasService);
+  protected readonly alertasContador = signal(0);
+  protected readonly tieneAlertas = computed(() => this.planStatus()?.hasAlertas === true);
+  protected readonly faltaAlertas = computed(() => this.planStatus()?.hasAlertas === false);
+  private alertasPedidoEn = 0;
+
+  private refrescarAlertas(forzar = false): void {
+    const cuenta = this.cuentas()[0];
+    if (!cuenta || !this.tieneAlertas()) return;
+    if (!forzar && Date.now() - this.alertasPedidoEn < 20000) return;
+    this.alertasPedidoEn = Date.now();
+    this.alertas.contador(cuenta.businessAccountId).subscribe({
+      next: (c) => this.alertasContador.set(c.sinLeer),
+      error: () => this.alertasContador.set(0),
     });
   }
   protected resolveLogoUrl = resolveLogoUrl;
@@ -207,15 +229,16 @@ export class PanelHeaderComponent implements OnInit {
         // BP-226: el Encargado no ve la tienda ni sus pedidos (el backend se los cierra): no se vigilan.
         if (accounts[0].rol !== ROL_ENCARGADO) this.avisos.vigilar(accounts[0].businessAccountId);
         this.subscriptionService.getStatus(accounts[0].businessAccountId).subscribe({
-          next: (s) => { this.planStatus.set(s); this.refrescarTareas(true); },
+          next: (s) => { this.planStatus.set(s); this.refrescarTareas(true); this.refrescarAlertas(true); },
           error: () => {},
         });
         // BP-226 bloque 7: el globito de las tareas.
         if (accounts[0].rol === ROL_ENCARGADO) this.refrescarTareas(true);
-        const sub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => this.refrescarTareas());
+        const sub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => { this.refrescarTareas(); this.refrescarAlertas(); });
         const cambio = this.tareas.cambios.subscribe(() => this.refrescarTareas(true));
-        const cada = setInterval(() => this.refrescarTareas(true), 120000);
-        this.destroyRef.onDestroy(() => { sub.unsubscribe(); cambio.unsubscribe(); clearInterval(cada); });
+        const leidas = this.alertas.cambios.subscribe(() => this.refrescarAlertas(true));   // BP-352
+        const cada = setInterval(() => { this.refrescarTareas(true); this.refrescarAlertas(true); }, 120000);
+        this.destroyRef.onDestroy(() => { sub.unsubscribe(); cambio.unsubscribe(); leidas.unsubscribe(); clearInterval(cada); });
       },
       error: () => {},
     });

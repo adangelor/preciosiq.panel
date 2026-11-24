@@ -7,7 +7,8 @@ import { BusinessContextService } from './business-context';
 // pantalla, va a "Mis tareas" con un aviso amable (?fuera=1). Es una ayuda de la interfaz: el 403 lo da el backend
 // (CandadoDeEncargados).
 export const ROL_ENCARGADO = 'Encargado';
-const PERMITIDAS = ['/mis-tareas', '/carteles', '/perfil', '/invitacion'];
+// BP-352 (24-nov-2026): también las alertas de su sucursal (el backend se las recorta).
+const PERMITIDAS = ['/mis-tareas', '/carteles', '/perfil', '/invitacion', '/alertas'];
 
 export const encargadoGuard: CanActivateFn = (_route, state) => {
   const router = inject(Router);
