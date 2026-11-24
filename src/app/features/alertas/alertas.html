@@ -26,7 +26,7 @@
         Ya pasaba @if (datos(); as d) { <span class="alertas__n">{{ d.abiertas - d.nuevas }}</span> }
       </button>
       <button type="button" class="alertas__vista" [class.alertas__vista--activa]="vista() === 'cerradas'" (click)="irA('cerradas')">Cerradas</button>
-      @if (!datos()?.esEncargado) {
+      @if (datos() && !datos()!.esEncargado) {
         <button type="button" class="alertas__vista alertas__vista--config" [class.alertas__vista--activa]="vista() === 'config'" (click)="irA('config')">
           <mat-icon>tune</mat-icon> Configurar
         </button>
